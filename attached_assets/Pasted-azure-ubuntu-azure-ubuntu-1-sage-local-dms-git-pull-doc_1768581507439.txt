@@ -1,0 +1,109 @@
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ git pull
+docker-compose up -d --build web
+Already up to date.
+Building web
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon   10.2MB
+Step 1/10 : FROM python:3.11-slim
+ ---> fa659464a114
+Step 2/10 : ENV PYTHONDONTWRITEBYTECODE=1
+ ---> Using cache
+ ---> 521abcd46c56
+Step 3/10 : ENV PYTHONUNBUFFERED=1
+ ---> Using cache
+ ---> 9d0d4fd6ceb9
+Step 4/10 : WORKDIR /app
+ ---> Using cache
+ ---> c0dceb0ac5e3
+Step 5/10 : RUN apt-get update && apt-get install -y --no-install-recommends     libpq-dev     libmagic1     libdmtx0b     netcat-openbsd     wget     fontconfig     libxrender1     xfonts-75dpi     xfonts-base     && wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb     && dpkg -i wkhtmltox_0.12.6.1-3.bookworm_amd64.deb || apt-get install -f -y     && rm wkhtmltox_0.12.6.1-3.bookworm_amd64.deb     && rm -rf /var/lib/apt/lists/*
+ ---> Using cache
+ ---> 4a3e1f468664
+Step 6/10 : COPY requirements.txt .
+ ---> Using cache
+ ---> 398272522621
+Step 7/10 : RUN pip install --no-cache-dir -r requirements.txt
+ ---> Using cache
+ ---> 7f61c9b9cfa4
+Step 8/10 : COPY . .
+ ---> a2e61fe8d31f
+Step 9/10 : RUN chmod +x entrypoint.sh
+ ---> Running in 13f5ccb769fa
+ ---> Removed intermediate container 13f5ccb769fa
+ ---> 7e8ce04e41d0
+Step 10/10 : CMD ["./entrypoint.sh"]
+ ---> Running in 1c50e1e33d5e
+ ---> Removed intermediate container 1c50e1e33d5e
+ ---> 74535684b64a
+Successfully built 74535684b64a
+Successfully tagged sage-local-dms_web:latest
+Recreating sage-local-dms_db_1 ... 
+sage-local-dms_redis_1 is up-to-date
+
+ERROR: for sage-local-dms_db_1  'ContainerConfig'
+
+ERROR: for db  'ContainerConfig'
+Traceback (most recent call last):
+  File "/usr/bin/docker-compose", line 33, in <module>
+    sys.exit(load_entry_point('docker-compose==1.29.2', 'console_scripts', 'docker-compose')())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 81, in main
+    command_func()
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 203, in perform_command
+    handler(command, command_options)
+  File "/usr/lib/python3/dist-packages/compose/metrics/decorator.py", line 18, in wrapper
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 1186, in up
+    to_attach = up(False)
+                ^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 1166, in up
+    return self.project.up(
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/project.py", line 697, in up
+    results, errors = parallel.parallel_execute(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 108, in parallel_execute
+    raise error_to_reraise
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 206, in producer
+    result = func(obj)
+             ^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/project.py", line 679, in do
+    return service.execute_convergence_plan(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 579, in execute_convergence_plan
+    return self._execute_convergence_recreate(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 499, in _execute_convergence_recreate
+    containers, errors = parallel_execute(
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 108, in parallel_execute
+    raise error_to_reraise
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 206, in producer
+    result = func(obj)
+             ^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 494, in recreate
+    return self.recreate_container(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 612, in recreate_container
+    new_container = self.create_container(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 330, in create_container
+    container_options = self._get_container_create_options(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 921, in _get_container_create_options
+    container_options, override_options = self._build_container_volume_options(
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 960, in _build_container_volume_options
+    binds, affinity = merge_volume_bindings(
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 1548, in merge_volume_bindings
+    old_volumes, old_mounts = get_container_data_volumes(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 1579, in get_container_data_volumes
+    container.image_config['ContainerConfig'].get('Volumes') or {}
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+KeyError: 'ContainerConfig'
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ 
