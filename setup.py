@@ -2,6 +2,9 @@
 """
 DMS Setup-Skript
 Generiert automatisch alle notwendigen Schlüssel und Konfigurationen.
+
+Alle weiteren Einstellungen (Sage, Samba, etc.) werden über das
+Admin-Interface konfiguriert - keine manuelle .env-Bearbeitung nötig!
 """
 import os
 import sys
@@ -25,7 +28,7 @@ def generate_password(length=16):
     return ''.join(secrets.choice(chars) for _ in range(length))
 
 def create_env_file():
-    """Erstellt die .env Datei mit allen notwendigen Konfigurationen."""
+    """Erstellt die minimale .env Datei - nur technische Grundkonfiguration."""
     env_path = Path('.env')
     
     if env_path.exists():
@@ -38,11 +41,10 @@ def create_env_file():
     django_secret = generate_secret_key()
     encryption_key = generate_fernet_key()
     db_password = generate_password(20)
-    samba_password = generate_password(12)
-    admin_password = generate_password(12)
     
     env_content = f"""# DMS Konfiguration - Automatisch generiert
-# WICHTIG: Diese Datei sicher aufbewahren!
+# Technische Grundkonfiguration - NICHT MANUELL BEARBEITEN
+# Alle Benutzereinstellungen werden über Admin > Systemeinstellungen konfiguriert
 
 # Django Einstellungen
 DJANGO_SECRET_KEY={django_secret}
@@ -61,14 +63,6 @@ ENCRYPTION_KEY={encryption_key}
 # Redis
 REDIS_URL=redis://redis:6379/0
 
-# Samba
-SAMBA_PASSWORD={samba_password}
-
-# Admin-Benutzer (wird beim ersten Start erstellt)
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD={admin_password}
-ADMIN_EMAIL=admin@example.com
-
 # Pfade
 SAGE_ARCHIVE_PATH=/data/sage_archive
 MANUAL_INPUT_PATH=/data/manual_input
@@ -77,18 +71,6 @@ EMAIL_ARCHIVE_PATH=/data/email_archive
     
     with open(env_path, 'w') as f:
         f.write(env_content)
-    
-    print("\n" + "="*60)
-    print("DMS SETUP ABGESCHLOSSEN")
-    print("="*60)
-    print(f"\n.env Datei wurde erstellt mit folgenden Zugangsdaten:\n")
-    print(f"  Admin-Benutzername: admin")
-    print(f"  Admin-Passwort:     {admin_password}")
-    print(f"  Samba-Passwort:     {samba_password}")
-    print(f"\nDatenbank-Passwort und Verschlüsselungsschlüssel wurden")
-    print("automatisch generiert und in .env gespeichert.")
-    print("\nWICHTIG: Notieren Sie sich das Admin-Passwort!")
-    print("="*60)
     
     return True
 
@@ -99,10 +81,24 @@ def create_directories():
         'data/manual_input',
         'data/manual_input/processed',
         'data/email_archive',
+        'data/runtime',
     ]
     for d in dirs:
         Path(d).mkdir(parents=True, exist_ok=True)
     print("Verzeichnisse erstellt.")
+
+def create_initial_samba_config():
+    """Erstellt eine initiale Samba-Konfiguration."""
+    runtime_dir = Path('data/runtime')
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    
+    env_file = runtime_dir / '.env.samba'
+    if not env_file.exists():
+        with open(env_file, 'w') as f:
+            f.write("SAMBA_USER=dmsuser\n")
+            f.write("SAMBA_PASSWORD=changeme\n")
+        os.chmod(env_file, 0o600)
+        print("Initiale Samba-Konfiguration erstellt (bitte über Admin ändern).")
 
 def main():
     print("\n" + "="*60)
@@ -110,12 +106,31 @@ def main():
     print("="*60 + "\n")
     
     create_directories()
+    create_initial_samba_config()
     
     if create_env_file():
+        print("\n" + "="*60)
+        print("SETUP ABGESCHLOSSEN")
+        print("="*60)
         print("\nNächste Schritte:")
-        print("1. docker-compose up -d")
-        print("2. Öffnen Sie http://localhost im Browser")
-        print("3. Melden Sie sich mit den Admin-Zugangsdaten an")
+        print("")
+        print("1. Docker starten:")
+        print("   docker-compose up -d")
+        print("")
+        print("2. Ersteinrichtung ausführen (erstellt Admin + Passwörter):")
+        print("   docker-compose exec web python manage.py initial_setup")
+        print("")
+        print("3. Browser öffnen: http://localhost")
+        print("   Mit den angezeigten Zugangsdaten anmelden")
+        print("")
+        print("4. Admin > Systemeinstellungen:")
+        print("   - Samba-Passwort ändern")
+        print("   - Sage Local/Cloud konfigurieren")
+        print("   - Microsoft 365 einrichten")
+        print("")
+        print("WICHTIG: Alle Einstellungen werden über das Admin-Interface")
+        print("konfiguriert - keine manuelle Bearbeitung von Dateien nötig!")
+        print("="*60)
 
 if __name__ == '__main__':
     main()

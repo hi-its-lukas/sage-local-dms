@@ -212,10 +212,16 @@ class SystemSettingsAdminForm(forms.ModelForm):
         required=False,
         label="MS Graph Secret"
     )
+    samba_password = forms.CharField(
+        widget=forms.PasswordInput(render_value=True),
+        required=False,
+        label="Samba Passwort",
+        help_text="Passwort für Netzwerkfreigaben (Sage_Archiv, Manueller_Scan)"
+    )
     
     class Meta:
         model = SystemSettings
-        exclude = ['encrypted_sage_local_api_key', 'encrypted_sage_cloud_api_key', 'encrypted_ms_graph_secret']
+        exclude = ['encrypted_sage_local_api_key', 'encrypted_sage_cloud_api_key', 'encrypted_ms_graph_secret', 'encrypted_samba_password']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -235,6 +241,11 @@ class SystemSettingsAdminForm(forms.ModelForm):
                     self.fields['ms_graph_secret'].initial = decrypt_data(bytes(self.instance.encrypted_ms_graph_secret)).decode()
                 except Exception:
                     pass
+            if self.instance.encrypted_samba_password:
+                try:
+                    self.fields['samba_password'].initial = decrypt_data(bytes(self.instance.encrypted_samba_password)).decode()
+                except Exception:
+                    pass
     
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -251,9 +262,36 @@ class SystemSettingsAdminForm(forms.ModelForm):
         if ms_graph:
             instance.encrypted_ms_graph_secret = encrypt_data(ms_graph.encode())
         
+        samba_pw = self.cleaned_data.get('samba_password')
+        if samba_pw:
+            instance.encrypted_samba_password = encrypt_data(samba_pw.encode())
+        
         if commit:
             instance.save()
+            self._update_samba_config(instance)
         return instance
+    
+    def _update_samba_config(self, instance):
+        """Generate Samba configuration file after saving settings"""
+        import os
+        from pathlib import Path
+        
+        if not instance.encrypted_samba_password:
+            return
+        
+        try:
+            samba_password = decrypt_data(bytes(instance.encrypted_samba_password)).decode()
+            config_dir = Path('/data/runtime')
+            config_dir.mkdir(parents=True, exist_ok=True)
+            
+            env_file = config_dir / '.env.samba'
+            with open(env_file, 'w') as f:
+                f.write(f"SAMBA_USER={instance.samba_username}\n")
+                f.write(f"SAMBA_PASSWORD={samba_password}\n")
+            
+            os.chmod(env_file, 0o600)
+        except Exception:
+            pass
 
 
 @admin.register(SystemSettings)
@@ -275,6 +313,10 @@ class SystemSettingsAdmin(admin.ModelAdmin):
         }),
         ('Speicherung', {
             'fields': ('document_storage_path',),
+        }),
+        ('Netzwerkfreigaben (Samba)', {
+            'fields': ('samba_username', 'samba_password'),
+            'description': 'Zugangsdaten für Windows-Netzwerkfreigaben'
         }),
     )
     

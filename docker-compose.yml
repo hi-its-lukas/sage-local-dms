@@ -57,16 +57,20 @@ services:
 
   samba:
     image: dperson/samba
+    env_file:
+      - ./data/runtime/.env.samba
     environment:
-      - USER1=dmsuser;${SAMBA_PASSWORD}
-      - SHARE1=Sage_Archiv;/shares/sage;no;no;no;dmsuser
-      - SHARE2=Manueller_Scan;/shares/manual;yes;no;no;dmsuser
+      - USER1=${SAMBA_USER:-dmsuser};${SAMBA_PASSWORD:-changeme}
+      - SHARE1=Sage_Archiv;/shares/sage;no;no;no;${SAMBA_USER:-dmsuser}
+      - SHARE2=Manueller_Scan;/shares/manual;yes;no;no;${SAMBA_USER:-dmsuser}
     volumes:
       - ./data/sage_archive:/shares/sage:ro
       - ./data/manual_input:/shares/manual
     ports:
       - "445:445"
     restart: unless-stopped
+    depends_on:
+      - web
 
   nginx:
     image: nginx:alpine

@@ -260,6 +260,18 @@ class SystemSettings(models.Model):
         help_text="Basispfad für Personalakten"
     )
     
+    samba_username = models.CharField(
+        max_length=50, 
+        default="dmsuser",
+        verbose_name="Samba Benutzername",
+        help_text="Benutzername für Netzwerkfreigaben"
+    )
+    encrypted_samba_password = models.BinaryField(
+        blank=True, 
+        null=True, 
+        verbose_name="Samba Passwort (verschlüsselt)"
+    )
+    
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
