@@ -132,9 +132,20 @@ celery -A dms_project beat -l INFO
 
 ## Letzte Änderungen
 
+- **Samba-Konfiguration über Admin**: Passwort wird verschlüsselt in DB gespeichert
+- Management-Kommandos: `initial_setup`, `generate_samba_config`
 - SystemSettings Singleton für GUI-Konfiguration
 - Sage Local WCF Connector (zeep)
 - Sage Cloud REST Connector
 - PDF-Generator für Urlaubsanträge und Zeitnachweise
 - CostCenter und erweiterte Employee-Felder
 - ImportedLeaveRequest/ImportedTimesheet Tracking
+
+## Benutzerfreundliche Einrichtung
+
+Keine Bearbeitung von .env-Dateien nötig! Alle Einstellungen über Admin:
+
+1. **python setup.py** - Erstellt technische Grundkonfiguration
+2. **docker-compose up -d** - Startet alle Container
+3. **docker-compose exec web python manage.py initial_setup** - Erstellt Admin + Passwörter
+4. **Admin > Systemeinstellungen** - Alle weiteren Konfigurationen
