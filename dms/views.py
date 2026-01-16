@@ -10,10 +10,98 @@ from django.db.models import Q
 
 from .models import (
     Document, Employee, Task, PersonnelFile, PersonnelFileEntry,
-    FileCategory, DocumentVersion, AuditLog
+    FileCategory, DocumentVersion, AuditLog, SystemSettings, SystemLog
 )
 from .encryption import encrypt_data, decrypt_data, calculate_sha256
 import magic
+
+
+@login_required
+@permission_required('dms.change_systemsettings', raise_exception=True)
+def sage_sync_dashboard(request):
+    """Dashboard for Sage Cloud synchronization"""
+    settings = SystemSettings.load()
+    recent_logs = SystemLog.objects.filter(
+        source__icontains='Sage'
+    ).order_by('-timestamp')[:20]
+    
+    is_configured = bool(settings.sage_cloud_api_url and settings.encrypted_sage_cloud_api_key)
+    
+    return render(request, 'dms/sage_sync.html', {
+        'settings': settings,
+        'recent_logs': recent_logs,
+        'is_configured': is_configured,
+    })
+
+
+@login_required
+@permission_required('dms.change_systemsettings', raise_exception=True)
+@require_http_methods(['POST'])
+def sage_sync_employees(request):
+    """Trigger Sage Cloud employee sync"""
+    from .connectors.sage_cloud import SageCloudConnector
+    
+    try:
+        connector = SageCloudConnector()
+        if connector.connect():
+            stats = connector.sync_employees()
+            messages.success(request, 
+                f"Mitarbeiter-Sync erfolgreich: {stats['created']} erstellt, "
+                f"{stats['updated']} aktualisiert, {stats['files_created']} Akten erstellt")
+        else:
+            messages.error(request, "Verbindung zu Sage HR Cloud fehlgeschlagen. Prüfen Sie die Einstellungen.")
+    except Exception as e:
+        messages.error(request, f"Fehler beim Sync: {str(e)}")
+    
+    return redirect('dms:sage_sync_dashboard')
+
+
+@login_required
+@permission_required('dms.change_systemsettings', raise_exception=True)
+@require_http_methods(['POST'])
+def sage_sync_leave_requests(request):
+    """Trigger Sage Cloud leave requests import"""
+    from .connectors.sage_cloud import SageCloudConnector
+    from datetime import timedelta
+    from django.utils import timezone
+    
+    try:
+        connector = SageCloudConnector()
+        since_date = (timezone.now() - timedelta(days=30)).date()
+        stats = connector.import_leave_requests(since_date)
+        messages.success(request, 
+            f"Urlaubsanträge-Import erfolgreich: {stats['imported']} importiert, "
+            f"{stats['skipped']} übersprungen")
+    except Exception as e:
+        messages.error(request, f"Fehler beim Import: {str(e)}")
+    
+    return redirect('dms:sage_sync_dashboard')
+
+
+@login_required
+@permission_required('dms.change_systemsettings', raise_exception=True)
+@require_http_methods(['POST'])
+def sage_sync_timesheets(request):
+    """Trigger Sage Cloud timesheets import"""
+    from .connectors.sage_cloud import SageCloudConnector
+    from django.utils import timezone
+    
+    try:
+        now = timezone.now()
+        if now.month == 1:
+            year, month = now.year - 1, 12
+        else:
+            year, month = now.year, now.month - 1
+        
+        connector = SageCloudConnector()
+        stats = connector.import_timesheets(year, month)
+        messages.success(request, 
+            f"Zeiterfassungs-Import für {month:02d}/{year} erfolgreich: "
+            f"{stats['imported']} importiert, {stats['skipped']} übersprungen")
+    except Exception as e:
+        messages.error(request, f"Fehler beim Import: {str(e)}")
+    
+    return redirect('dms:sage_sync_dashboard')
 
 
 @login_required

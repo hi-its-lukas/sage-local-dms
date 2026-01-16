@@ -1,0 +1,94 @@
+{% extends 'dms/base.html' %}
+
+{% block title %}Sage Cloud Synchronisation{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Sage HR Cloud Synchronisation</h2>
+    
+    {% if not is_configured %}
+    <div class="message message-error">
+        <strong>Nicht konfiguriert:</strong> Bitte konfigurieren Sie die Sage Cloud API-Einstellungen im 
+        <a href="{% url 'admin:dms_systemsettings_changelist' %}">Admin-Bereich</a>.
+    </div>
+    {% else %}
+    <p style="color: #27ae60; margin-bottom: 20px;">
+        Verbunden mit: <strong>{{ settings.sage_cloud_api_url }}</strong>
+    </p>
+    {% endif %}
+</div>
+
+<div class="stats">
+    <div class="stat-card">
+        <h3 style="font-size: 1rem;">Mitarbeiter synchronisieren</h3>
+        <p style="margin-bottom: 15px;">Lädt alle Mitarbeiter von Sage HR Cloud und erstellt Personalakten</p>
+        <form method="post" action="{% url 'dms:sage_sync_employees' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success" {% if not is_configured %}disabled{% endif %}>
+                Mitarbeiter abrufen
+            </button>
+        </form>
+    </div>
+    
+    <div class="stat-card">
+        <h3 style="font-size: 1rem;">Urlaubsanträge importieren</h3>
+        <p style="margin-bottom: 15px;">Importiert genehmigte Urlaubsanträge der letzten 30 Tage</p>
+        <form method="post" action="{% url 'dms:sage_sync_leave_requests' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn" {% if not is_configured %}disabled{% endif %}>
+                Urlaubsanträge abrufen
+            </button>
+        </form>
+    </div>
+    
+    <div class="stat-card">
+        <h3 style="font-size: 1rem;">Zeiterfassung importieren</h3>
+        <p style="margin-bottom: 15px;">Importiert Zeiterfassung des Vormonats</p>
+        <form method="post" action="{% url 'dms:sage_sync_timesheets' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn" {% if not is_configured %}disabled{% endif %}>
+                Zeiterfassung abrufen
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Letzte Sync-Aktivitäten</h2>
+    {% if recent_logs %}
+    <table>
+        <thead>
+            <tr>
+                <th>Zeitpunkt</th>
+                <th>Level</th>
+                <th>Quelle</th>
+                <th>Nachricht</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in recent_logs %}
+            <tr>
+                <td>{{ log.timestamp|date:"d.m.Y H:i:s" }}</td>
+                <td>
+                    <span class="badge badge-{% if log.level == 'ERROR' %}review_needed{% elif log.level == 'WARNING' %}unassigned{% else %}assigned{% endif %}">
+                        {{ log.level }}
+                    </span>
+                </td>
+                <td>{{ log.source }}</td>
+                <td>{{ log.message|truncatechars:80 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #666;">Keine Sync-Aktivitäten vorhanden.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Einstellungen</h2>
+    <p>
+        <a href="{% url 'admin:dms_systemsettings_changelist' %}" class="btn">Sage Cloud Einstellungen bearbeiten</a>
+    </p>
+</div>
+{% endblock %}

@@ -20,4 +20,10 @@ urlpatterns = [
     path('personnel-files/<uuid:pk>/add-document/', views.personnel_file_add_document, name='personnel_file_add_document'),
     path('employees/', views.employee_list, name='employee_list'),
     path('filing-plan/', views.filing_plan, name='filing_plan'),
+    
+    # Sage Cloud Sync
+    path('sage-sync/', views.sage_sync_dashboard, name='sage_sync_dashboard'),
+    path('sage-sync/employees/', views.sage_sync_employees, name='sage_sync_employees'),
+    path('sage-sync/leave-requests/', views.sage_sync_leave_requests, name='sage_sync_leave_requests'),
+    path('sage-sync/timesheets/', views.sage_sync_timesheets, name='sage_sync_timesheets'),
 ]
