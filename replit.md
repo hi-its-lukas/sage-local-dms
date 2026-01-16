@@ -1,10 +1,10 @@
 # Dokumentenmanagementsystem (DMS)
 
-Ein produktionsreifes Django-basiertes Dokumentenmanagementsystem für HR- und Unternehmensabläufe mit Sage HR Suite und Microsoft 365 Integration.
+Ein produktionsreifes Django-basiertes Dokumentenmanagementsystem für HR- und Unternehmensabläufe mit Sage HR Cloud und Microsoft 365 Integration.
 
 ## Übersicht
 
-Dieses DMS bietet verschlüsselte Dokumentenspeicherung, Multi-Kanal-Eingabeverarbeitung, Sage Local/Cloud Synchronisation und Microsoft 365 E-Mail-Integration. Alle Dokumente werden mit Fernet-Verschlüsselung vor der Speicherung verschlüsselt.
+Dieses DMS bietet verschlüsselte Dokumentenspeicherung, Multi-Kanal-Eingabeverarbeitung, Sage Cloud Synchronisation und Microsoft 365 E-Mail-Integration. Alle Dokumente werden mit Fernet-Verschlüsselung vor der Speicherung verschlüsselt.
 
 ## Projektstruktur
 
@@ -21,8 +21,7 @@ dms/                   # Hauptanwendung
   ├── admin.py         # Django-Admin-Konfiguration
   ├── encryption.py    # Fernet-Verschlüsselungstools
   ├── connectors/      # Sage Konnektoren
-  │   ├── sage_local.py   # WCF/SOAP Client
-  │   └── sage_cloud.py   # REST API Client
+  │   └── sage_cloud.py   # Sage Cloud REST API Client
   └── generators/      # Dokumentgeneratoren
       └── pdf_generator.py  # PDF-Erstellung
 
@@ -42,16 +41,12 @@ data/                  # Datenverzeichnisse
 3. **Web-Upload (Kanal C)**: Drag-and-Drop-Oberfläche
 4. **E-Mail (Kanal D)**: Microsoft Graph Integration
 
-### Sage Integration
+### Sage Cloud Integration
 
-**Sage Local (WCF/SOAP):**
-- Mitarbeiter-Stammdaten synchronisieren
-- Abteilungen und Kostenstellen
-- Automatisches Mapping von Sage-IDs
-
-**Sage Cloud (REST):**
+**Sage HR Cloud (REST API):**
 - Urlaubsanträge importieren → PDF generieren
 - Arbeitszeitnachweise → monatliche PDF-Berichte
+- Mitarbeiter-Synchronisation
 - Idempotente Verarbeitung
 
 ### Automatische PDF-Generierung
@@ -63,7 +58,7 @@ Das System generiert automatisch professionelle PDF-Dokumente:
 ### GUI-Konfiguration
 
 Alle Einstellungen sind über Django Admin konfigurierbar:
-- **Systemeinstellungen**: Sage Local/Cloud/MS Graph Credentials
+- **Systemeinstellungen**: Sage Cloud/MS Graph Credentials
 - **Celery Beat**: Cron-Zeitpläne für automatische Synchronisation
 
 ### Sicherheit
@@ -113,7 +108,6 @@ net use M: \\SERVER_IP\manual_scan /user:dmsuser PASSWORT /persistent:yes
 Nach dem ersten Login unter `/admin/`:
 
 1. **Systemeinstellungen** konfigurieren:
-   - Sage Local WSDL URL
    - Sage Cloud API URL + Key
    - MS Graph Tenant/Client/Secret
 
@@ -126,7 +120,6 @@ Nach dem ersten Login unter `/admin/`:
 
 | Task | Beschreibung |
 |------|-------------|
-| `sync_sage_local_employees` | Mitarbeiter von Sage Local sync |
 | `import_sage_cloud_leave_requests` | Urlaubsanträge importieren |
 | `import_sage_cloud_timesheets` | Zeiterfassung des Vormonats |
 | `scan_sage_archive` | Sage-Archiv scannen |
@@ -229,7 +222,6 @@ Das System unterstützt jetzt mehrere Mandanten, basierend auf der Sage-Archiv-O
 - **Samba-Konfiguration über Admin**: Passwort wird verschlüsselt in DB gespeichert
 - Management-Kommandos: `initial_setup`, `generate_samba_config`, `create_filing_plan`
 - SystemSettings Singleton für GUI-Konfiguration
-- Sage Local WCF Connector (zeep)
 - Sage Cloud REST Connector
 - PDF-Generator für Urlaubsanträge und Zeitnachweise
 - CostCenter und erweiterte Employee-Felder

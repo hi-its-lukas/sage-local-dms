@@ -76,7 +76,6 @@ class CostCenter(models.Model):
 class Employee(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='employees', null=True, blank=True)
     employee_id = models.CharField(max_length=50, verbose_name="Mitarbeiter-ID")
-    sage_local_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="Sage Local ID")
     sage_cloud_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="Sage Cloud ID")
     first_name = models.CharField(max_length=100, verbose_name="Vorname")
     last_name = models.CharField(max_length=100, verbose_name="Nachname")
@@ -286,15 +285,6 @@ class SystemLog(models.Model):
 
 class SystemSettings(models.Model):
     """Singleton model for system-wide configuration - editable via Django Admin"""
-    
-    sage_local_wsdl_url = models.URLField(
-        blank=True, 
-        verbose_name="Sage Local WSDL URL",
-        help_text="z.B. http://192.168.x.x:33033/?wsdl"
-    )
-    sage_local_api_user = models.CharField(max_length=100, blank=True, verbose_name="Sage Local API-Benutzer")
-    encrypted_sage_local_api_key = models.BinaryField(blank=True, null=True, verbose_name="Sage Local API-Schlüssel (verschlüsselt)")
-    sage_local_timeout = models.PositiveIntegerField(default=30, verbose_name="Sage Local Timeout (Sekunden)")
     
     sage_cloud_api_url = models.URLField(
         blank=True, 

@@ -53,16 +53,16 @@ class CostCenterAdmin(admin.ModelAdmin):
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ['employee_id', 'full_name', 'tenant', 'sage_local_id', 'department', 'cost_center', 'is_active']
+    list_display = ['employee_id', 'full_name', 'tenant', 'sage_cloud_id', 'department', 'cost_center', 'is_active']
     list_filter = ['tenant', 'is_active', 'department', 'cost_center']
-    search_fields = ['employee_id', 'first_name', 'last_name', 'email', 'sage_local_id', 'sage_cloud_id']
+    search_fields = ['employee_id', 'first_name', 'last_name', 'email', 'sage_cloud_id']
     raw_id_fields = ['user']
     fieldsets = (
         ('Stammdaten', {
             'fields': ('employee_id', 'first_name', 'last_name', 'email')
         }),
-        ('Sage-Verknüpfung', {
-            'fields': ('sage_local_id', 'sage_cloud_id'),
+        ('Sage Cloud-Verknüpfung', {
+            'fields': ('sage_cloud_id',),
             'classes': ('collapse',)
         }),
         ('Organisation', {
@@ -226,11 +226,6 @@ class SystemLogAdmin(admin.ModelAdmin):
 
 
 class SystemSettingsAdminForm(forms.ModelForm):
-    sage_local_api_key = forms.CharField(
-        widget=forms.PasswordInput(render_value=True),
-        required=False,
-        label="Sage Local API-Schlüssel"
-    )
     sage_cloud_api_key = forms.CharField(
         widget=forms.PasswordInput(render_value=True),
         required=False,
@@ -250,16 +245,11 @@ class SystemSettingsAdminForm(forms.ModelForm):
     
     class Meta:
         model = SystemSettings
-        exclude = ['encrypted_sage_local_api_key', 'encrypted_sage_cloud_api_key', 'encrypted_ms_graph_secret', 'encrypted_samba_password']
+        exclude = ['encrypted_sage_cloud_api_key', 'encrypted_ms_graph_secret', 'encrypted_samba_password']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
-            if self.instance.encrypted_sage_local_api_key:
-                try:
-                    self.fields['sage_local_api_key'].initial = decrypt_data(bytes(self.instance.encrypted_sage_local_api_key)).decode()
-                except Exception:
-                    pass
             if self.instance.encrypted_sage_cloud_api_key:
                 try:
                     self.fields['sage_cloud_api_key'].initial = decrypt_data(bytes(self.instance.encrypted_sage_cloud_api_key)).decode()
@@ -278,10 +268,6 @@ class SystemSettingsAdminForm(forms.ModelForm):
     
     def save(self, commit=True):
         instance = super().save(commit=False)
-        
-        sage_local_key = self.cleaned_data.get('sage_local_api_key')
-        if sage_local_key:
-            instance.encrypted_sage_local_api_key = encrypt_data(sage_local_key.encode())
         
         sage_cloud_key = self.cleaned_data.get('sage_cloud_api_key')
         if sage_cloud_key:
@@ -328,13 +314,9 @@ class SystemSettingsAdmin(admin.ModelAdmin):
     form = SystemSettingsAdminForm
     
     fieldsets = (
-        ('Sage Local (WCF/SOAP)', {
-            'fields': ('sage_local_wsdl_url', 'sage_local_api_user', 'sage_local_api_key', 'sage_local_timeout'),
-            'description': 'Verbindungseinstellungen für lokalen Sage Desktop'
-        }),
         ('Sage Cloud (REST)', {
             'fields': ('sage_cloud_api_url', 'sage_cloud_api_key'),
-            'description': 'Verbindungseinstellungen für Sage Cloud'
+            'description': 'Verbindungseinstellungen für Sage HR Cloud'
         }),
         ('Microsoft Graph', {
             'fields': ('ms_graph_tenant_id', 'ms_graph_client_id', 'ms_graph_secret'),
