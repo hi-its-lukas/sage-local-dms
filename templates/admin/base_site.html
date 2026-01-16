@@ -564,6 +564,171 @@ ul.messagelist li.warning::before {
     color: var(--text-secondary) !important;
     font-size: 12px !important;
 }
+
+/* Changelist Verbesserungen */
+#changelist {
+    margin: 0;
+}
+
+#changelist table {
+    width: 100%;
+    background: var(--bg-primary);
+    border-collapse: collapse;
+}
+
+#changelist table thead th {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 14px 16px !important;
+    text-align: left !important;
+    border-bottom: 2px solid var(--border) !important;
+}
+
+#changelist table thead th a {
+    color: var(--text-primary) !important;
+}
+
+#changelist table tbody td {
+    padding: 14px 16px !important;
+    font-size: 14px !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--bg-secondary) !important;
+    background: var(--bg-primary) !important;
+}
+
+#changelist table tbody tr:nth-child(even) td {
+    background: var(--bg-secondary) !important;
+}
+
+#changelist table tbody tr:hover td {
+    background: var(--primary-light) !important;
+}
+
+#changelist table tbody td a {
+    color: var(--primary) !important;
+    font-weight: 500;
+}
+
+/* Checkbox-Spalte */
+#changelist table th.action-checkbox-column,
+#changelist table td.action-checkbox {
+    width: 40px !important;
+    text-align: center !important;
+    background: var(--bg-primary) !important;
+}
+
+#changelist table tbody tr:nth-child(even) td.action-checkbox {
+    background: var(--bg-secondary) !important;
+}
+
+/* Action Bar */
+#changelist .actions {
+    background: var(--bg-primary) !important;
+    padding: 16px 20px !important;
+    border-radius: 8px !important;
+    margin-bottom: 20px !important;
+    border: 1px solid var(--border) !important;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#changelist .actions label {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+#changelist .actions select {
+    min-width: 250px !important;
+    padding: 10px 14px !important;
+}
+
+#changelist .actions button {
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+}
+
+#changelist .actions button:hover {
+    background: var(--primary-dark) !important;
+}
+
+/* Results Counter */
+#changelist .paginator,
+#changelist-form .paginator,
+.results + p {
+    background: var(--bg-secondary) !important;
+    padding: 14px 20px !important;
+    border-radius: 8px !important;
+    margin-top: 16px !important;
+    color: var(--text-primary) !important;
+    font-size: 13px !important;
+}
+
+/* Add Button */
+#content-main .object-tools {
+    margin-bottom: 20px;
+}
+
+#content-main .object-tools li {
+    margin-left: 8px;
+}
+
+#content-main .object-tools a.addlink {
+    background: var(--success) !important;
+    color: white !important;
+    padding: 10px 18px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+}
+
+#content-main .object-tools a.addlink:hover {
+    background: #1b5e20 !important;
+}
+
+/* Sidebar Filter verbessern */
+#changelist-filter {
+    width: 220px !important;
+    flex-shrink: 0;
+}
+
+#changelist-filter h2 {
+    font-size: 14px !important;
+    padding: 16px !important;
+}
+
+#changelist-filter h3 {
+    font-size: 11px !important;
+    padding: 10px 16px !important;
+    margin-top: 8px !important;
+}
+
+#changelist-filter ul li a {
+    font-size: 13px !important;
+    padding: 10px 16px !important;
+}
+
+/* Result List Container */
+#changelist #changelist-form {
+    background: var(--bg-primary);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+/* Empty State */
+#changelist table tbody tr.empty td {
+    padding: 40px !important;
+    text-align: center !important;
+    color: var(--text-secondary) !important;
+    font-size: 15px !important;
+}
 </style>
 {% endblock %}
 
