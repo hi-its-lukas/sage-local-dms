@@ -177,8 +177,37 @@ Drei Trigger-Typen:
 python manage.py create_filing_plan
 ```
 
+## Mandantenfähigkeit (Multi-Tenancy)
+
+Das System unterstützt jetzt mehrere Mandanten, basierend auf der Sage-Archiv-Ordnerstruktur:
+
+### Automatische Mandantenerkennung
+
+- Sage-Archiv-Ordner: `00000001` = Mandant 1, `00000002` = Mandant 2, etc.
+- 8-stellige Ordnernamen werden automatisch als Mandanten erkannt
+- Neue Mandanten werden beim Scan automatisch angelegt
+
+### Datenmodelle
+
+- **Tenant**: Mandant mit Code, Name, Beschreibung
+- **TenantUser**: Benutzer-Mandanten-Zuordnung mit Admin-Flag
+- Alle Kernmodelle haben ein `tenant`-Feld: Employee, Document, PersonnelFile, Department, etc.
+
+### Datenisolierung
+
+- Dokumente werden pro Mandant mit eigenem Hash-Check verarbeitet
+- Mitarbeiter-Suche berücksichtigt Mandanten-Kontext
+- Admin-Oberfläche hat Mandanten-Filter auf allen relevanten Listen
+
+### Admin-Verwaltung
+
+- `/admin/dms/tenant/` - Mandantenverwaltung
+- `/admin/dms/tenantuser/` - Benutzer-Mandanten-Zuordnung
+- Alle Listen haben Mandanten-Filter
+
 ## Letzte Änderungen
 
+- **Mandantenfähigkeit**: Automatische Erkennung aus Sage-Ordnerstruktur (00000001, 00000002)
 - **Aktenlogik (d.3 one-Style)**: Personalakten, Aktenplan, Versionierung, Berechtigungen
 - **CSRF_TRUSTED_ORIGINS**: Konfigurierbar über Umgebungsvariable für Cloudflare
 - **Samba-Konfiguration über Admin**: Passwort wird verschlüsselt in DB gespeichert

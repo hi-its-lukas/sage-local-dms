@@ -8,8 +8,9 @@ from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
 
-from .models import Document, ProcessedFile, Employee, Task, EmailConfig, SystemLog
+from .models import Document, ProcessedFile, Employee, Task, EmailConfig, SystemLog, Tenant
 from .encryption import encrypt_data, decrypt_data, calculate_sha256, encrypt_file
+import re
 
 logger = logging.getLogger('dms')
 
@@ -59,9 +60,12 @@ def extract_employee_from_datamatrix(file_path):
         return None
 
 
-def find_employee_by_id(employee_id):
+def find_employee_by_id(employee_id, tenant=None):
     try:
-        return Employee.objects.get(employee_id=employee_id)
+        queryset = Employee.objects.all()
+        if tenant:
+            queryset = queryset.filter(tenant=tenant)
+        return queryset.get(employee_id=employee_id)
     except Employee.DoesNotExist:
         return None
 
@@ -77,91 +81,114 @@ def scan_sage_archive(self):
     processed_count = 0
     skipped_count = 0
     error_count = 0
+    tenant_count = 0
     
     supported_extensions = {'.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png', '.tiff', '.txt'}
+    tenant_folder_pattern = re.compile(r'^\d{8}$')
     
     try:
-        for file_path in sage_path.rglob('*'):
-            if not file_path.is_file():
+        for tenant_folder in sage_path.iterdir():
+            if not tenant_folder.is_dir():
                 continue
             
-            if file_path.suffix.lower() not in supported_extensions:
+            if not tenant_folder_pattern.match(tenant_folder.name):
                 continue
             
-            try:
-                with open(file_path, 'rb') as f:
-                    content = f.read()
-                
-                file_hash = calculate_sha256(content)
-                
-                if ProcessedFile.objects.filter(sha256_hash=file_hash).exists():
-                    skipped_count += 1
+            tenant_code = tenant_folder.name
+            tenant, created = Tenant.objects.get_or_create(
+                code=tenant_code,
+                defaults={'name': f'Mandant {tenant_code}', 'is_active': True}
+            )
+            
+            if created:
+                log_system_event('INFO', 'SageScanner', f"Neuer Mandant erstellt: {tenant_code}")
+                tenant_count += 1
+            
+            for file_path in tenant_folder.rglob('*'):
+                if not file_path.is_file():
                     continue
                 
-                encrypted_content = encrypt_data(content)
-                mime_type = get_mime_type(str(file_path))
+                if file_path.suffix.lower() not in supported_extensions:
+                    continue
                 
-                employee = None
-                status = 'UNASSIGNED'
-                needs_review = False
-                
-                if file_path.suffix.lower() == '.pdf':
-                    dm_data = extract_employee_from_datamatrix(str(file_path))
-                    if dm_data is None:
-                        needs_review = True
-                        status = 'REVIEW_NEEDED'
-                    elif dm_data:
-                        first_emp_data = dm_data[0].get('data', '')
-                        employee = find_employee_by_id(first_emp_data)
-                        if employee:
-                            status = 'ASSIGNED'
-                        else:
-                            status = 'UNASSIGNED'
-                
-                document = Document.objects.create(
-                    title=file_path.stem,
-                    original_filename=file_path.name,
-                    file_extension=file_path.suffix,
-                    mime_type=mime_type,
-                    encrypted_content=encrypted_content,
-                    file_size=len(content),
-                    employee=employee,
-                    status=status,
-                    source='SAGE',
-                    sha256_hash=file_hash,
-                    metadata={
-                        'original_path': str(file_path),
-                        'needs_review': needs_review
-                    }
-                )
-                
-                ProcessedFile.objects.create(
-                    sha256_hash=file_hash,
-                    original_path=str(file_path),
-                    document=document
-                )
-                
-                processed_count += 1
-                
-                if needs_review:
-                    log_system_event('WARNING', 'SageScanner', 
-                        f"File requires review (DataMatrix issue): {file_path.name}",
-                        {'document_id': str(document.id)})
-                
-            except Exception as e:
-                error_count += 1
-                log_system_event('ERROR', 'SageScanner', 
-                    f"Failed to process file: {file_path.name}",
-                    {'error': str(e)})
+                try:
+                    with open(file_path, 'rb') as f:
+                        content = f.read()
+                    
+                    file_hash = calculate_sha256(content)
+                    
+                    if ProcessedFile.objects.filter(tenant=tenant, sha256_hash=file_hash).exists():
+                        skipped_count += 1
+                        continue
+                    
+                    encrypted_content = encrypt_data(content)
+                    mime_type = get_mime_type(str(file_path))
+                    
+                    employee = None
+                    status = 'UNASSIGNED'
+                    needs_review = False
+                    
+                    if file_path.suffix.lower() == '.pdf':
+                        dm_data = extract_employee_from_datamatrix(str(file_path))
+                        if dm_data is None:
+                            needs_review = True
+                            status = 'REVIEW_NEEDED'
+                        elif dm_data:
+                            first_emp_data = dm_data[0].get('data', '')
+                            employee = find_employee_by_id(first_emp_data, tenant=tenant)
+                            if employee:
+                                status = 'ASSIGNED'
+                            else:
+                                status = 'UNASSIGNED'
+                    
+                    document = Document.objects.create(
+                        tenant=tenant,
+                        title=file_path.stem,
+                        original_filename=file_path.name,
+                        file_extension=file_path.suffix,
+                        mime_type=mime_type,
+                        encrypted_content=encrypted_content,
+                        file_size=len(content),
+                        employee=employee,
+                        status=status,
+                        source='SAGE',
+                        sha256_hash=file_hash,
+                        metadata={
+                            'original_path': str(file_path),
+                            'needs_review': needs_review,
+                            'tenant_code': tenant_code
+                        }
+                    )
+                    
+                    ProcessedFile.objects.create(
+                        tenant=tenant,
+                        sha256_hash=file_hash,
+                        original_path=str(file_path),
+                        document=document
+                    )
+                    
+                    processed_count += 1
+                    
+                    if needs_review:
+                        log_system_event('WARNING', 'SageScanner', 
+                            f"File requires review (DataMatrix issue): {file_path.name}",
+                            {'document_id': str(document.id), 'tenant': tenant_code})
+                    
+                except Exception as e:
+                    error_count += 1
+                    log_system_event('ERROR', 'SageScanner', 
+                        f"Failed to process file: {file_path.name}",
+                        {'error': str(e), 'tenant': tenant_code})
         
         log_system_event('INFO', 'SageScanner', 
-            f"Scan complete: {processed_count} processed, {skipped_count} skipped, {error_count} errors")
+            f"Scan complete: {processed_count} processed, {skipped_count} skipped, {error_count} errors, {tenant_count} new tenants")
         
         return {
             'status': 'success',
             'processed': processed_count,
             'skipped': skipped_count,
-            'errors': error_count
+            'errors': error_count,
+            'new_tenants': tenant_count
         }
         
     except Exception as e:

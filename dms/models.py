@@ -1,10 +1,44 @@
 import uuid
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.utils import timezone
 
 
+class Tenant(models.Model):
+    code = models.CharField(max_length=20, unique=True, verbose_name="Mandanten-Code",
+                           help_text="Sage-Ordnername (z.B. 0000001)")
+    name = models.CharField(max_length=200, verbose_name="Mandantenname")
+    description = models.TextField(blank=True, verbose_name="Beschreibung")
+    is_active = models.BooleanField(default=True, verbose_name="Aktiv")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+    class Meta:
+        ordering = ['code']
+        verbose_name = "Mandant"
+        verbose_name_plural = "Mandanten"
+
+
+class TenantUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tenant_memberships')
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='users')
+    is_admin = models.BooleanField(default=False, verbose_name="Mandanten-Admin")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'tenant']
+        verbose_name = "Mandanten-Benutzer"
+        verbose_name_plural = "Mandanten-Benutzer"
+
+    def __str__(self):
+        return f"{self.user.username} @ {self.tenant.code}"
+
+
 class Department(models.Model):
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='departments', null=True, blank=True)
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -14,10 +48,14 @@ class Department(models.Model):
 
     class Meta:
         ordering = ['name']
+        constraints = [
+            models.UniqueConstraint(fields=['tenant', 'name'], name='unique_department_per_tenant')
+        ]
 
 
 class CostCenter(models.Model):
-    code = models.CharField(max_length=50, unique=True)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='cost_centers', null=True, blank=True)
+    code = models.CharField(max_length=50)
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
@@ -30,12 +68,16 @@ class CostCenter(models.Model):
         ordering = ['code']
         verbose_name = "Kostenstelle"
         verbose_name_plural = "Kostenstellen"
+        constraints = [
+            models.UniqueConstraint(fields=['tenant', 'code'], name='unique_costcenter_per_tenant')
+        ]
 
 
 class Employee(models.Model):
-    employee_id = models.CharField(max_length=50, unique=True, verbose_name="Mitarbeiter-ID")
-    sage_local_id = models.CharField(max_length=100, blank=True, null=True, unique=True, verbose_name="Sage Local ID")
-    sage_cloud_id = models.CharField(max_length=100, blank=True, null=True, unique=True, verbose_name="Sage Cloud ID")
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='employees', null=True, blank=True)
+    employee_id = models.CharField(max_length=50, verbose_name="Mitarbeiter-ID")
+    sage_local_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="Sage Local ID")
+    sage_cloud_id = models.CharField(max_length=100, blank=True, null=True, verbose_name="Sage Cloud ID")
     first_name = models.CharField(max_length=100, verbose_name="Vorname")
     last_name = models.CharField(max_length=100, verbose_name="Nachname")
     email = models.EmailField(blank=True)
@@ -57,10 +99,14 @@ class Employee(models.Model):
 
     class Meta:
         ordering = ['last_name', 'first_name']
+        constraints = [
+            models.UniqueConstraint(fields=['tenant', 'employee_id'], name='unique_employee_per_tenant')
+        ]
 
 
 class DocumentType(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='document_types', null=True, blank=True)
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     required_fields = models.JSONField(default=dict, blank=True, help_text="JSON schema for required metadata fields")
     retention_days = models.PositiveIntegerField(default=0, help_text="Days to retain document (0 = forever)")
@@ -90,6 +136,7 @@ class Document(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='documents', null=True, blank=True)
     title = models.CharField(max_length=255)
     original_filename = models.CharField(max_length=255)
     file_extension = models.CharField(max_length=20)
@@ -130,7 +177,8 @@ class Document(models.Model):
 
 
 class ProcessedFile(models.Model):
-    sha256_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='processed_files', null=True, blank=True)
+    sha256_hash = models.CharField(max_length=64, db_index=True)
     original_path = models.CharField(max_length=500)
     processed_at = models.DateTimeField(auto_now_add=True)
     document = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True, blank=True)
@@ -140,6 +188,9 @@ class ProcessedFile(models.Model):
 
     class Meta:
         ordering = ['-processed_at']
+        constraints = [
+            models.UniqueConstraint(fields=['tenant', 'sha256_hash'], name='unique_processed_file_per_tenant')
+        ]
 
 
 class Task(models.Model):
@@ -297,7 +348,8 @@ class SystemSettings(models.Model):
 
 class ImportedLeaveRequest(models.Model):
     """Tracks imported leave requests from Sage Cloud to prevent duplicates"""
-    sage_request_id = models.CharField(max_length=100, unique=True, verbose_name="Sage Anfrage-ID")
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='leave_requests', null=True, blank=True)
+    sage_request_id = models.CharField(max_length=100, verbose_name="Sage Anfrage-ID")
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='leave_requests')
     document = models.ForeignKey('Document', on_delete=models.SET_NULL, null=True, blank=True)
     
@@ -322,6 +374,7 @@ class ImportedLeaveRequest(models.Model):
 
 class ImportedTimesheet(models.Model):
     """Tracks imported monthly timesheets from Sage Cloud"""
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='timesheets', null=True, blank=True)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='timesheets')
     document = models.ForeignKey('Document', on_delete=models.SET_NULL, null=True, blank=True)
     
@@ -346,7 +399,8 @@ class ImportedTimesheet(models.Model):
 
 class FileCategory(models.Model):
     """Aktenplan - Kategorien mit Aufbewahrungsfristen (wie d.3 one)"""
-    code = models.CharField(max_length=20, unique=True, verbose_name="Aktenzeichen")
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='file_categories', null=True, blank=True)
+    code = models.CharField(max_length=20, verbose_name="Aktenzeichen")
     name = models.CharField(max_length=200, verbose_name="Bezeichnung")
     description = models.TextField(blank=True, verbose_name="Beschreibung")
     parent = models.ForeignKey(
@@ -398,6 +452,7 @@ class FileCategory(models.Model):
 class PersonnelFile(models.Model):
     """Personalakte - Container für alle Dokumente eines Mitarbeiters"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='personnel_files', null=True, blank=True)
     employee = models.OneToOneField(
         Employee, 
         on_delete=models.CASCADE, 
@@ -407,7 +462,6 @@ class PersonnelFile(models.Model):
     
     file_number = models.CharField(
         max_length=50, 
-        unique=True, 
         verbose_name="Aktenzeichen",
         help_text="Eindeutige Aktennummer"
     )
@@ -553,6 +607,7 @@ class AccessPermission(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='access_permissions', null=True, blank=True)
     
     user = models.ForeignKey(
         User, 
@@ -659,6 +714,7 @@ class AuditLog(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='audit_logs', null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Zeitstempel")
     
     user = models.ForeignKey(

@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django import forms
 from .models import (
+    Tenant, TenantUser,
     Department, CostCenter, Employee, DocumentType, Document, 
     ProcessedFile, Task, EmailConfig, SystemLog, SystemSettings,
     ImportedLeaveRequest, ImportedTimesheet,
@@ -11,23 +12,49 @@ from .models import (
 from .encryption import encrypt_data, decrypt_data
 
 
+class TenantUserInline(admin.TabularInline):
+    model = TenantUser
+    extra = 1
+
+
+@admin.register(Tenant)
+class TenantAdmin(admin.ModelAdmin):
+    list_display = ['code', 'name', 'is_active', 'user_count', 'created_at']
+    list_filter = ['is_active']
+    search_fields = ['code', 'name']
+    inlines = [TenantUserInline]
+    
+    def user_count(self, obj):
+        return obj.users.count()
+    user_count.short_description = 'Benutzer'
+
+
+@admin.register(TenantUser)
+class TenantUserAdmin(admin.ModelAdmin):
+    list_display = ['user', 'tenant', 'is_admin', 'created_at']
+    list_filter = ['tenant', 'is_admin']
+    search_fields = ['user__username', 'tenant__name']
+    raw_id_fields = ['user']
+
+
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description', 'created_at']
+    list_display = ['name', 'tenant', 'description', 'created_at']
+    list_filter = ['tenant']
     search_fields = ['name', 'description']
 
 
 @admin.register(CostCenter)
 class CostCenterAdmin(admin.ModelAdmin):
-    list_display = ['code', 'name', 'is_active', 'created_at']
-    list_filter = ['is_active']
+    list_display = ['code', 'name', 'tenant', 'is_active', 'created_at']
+    list_filter = ['tenant', 'is_active']
     search_fields = ['code', 'name']
 
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ['employee_id', 'full_name', 'sage_local_id', 'sage_cloud_id', 'department', 'cost_center', 'is_active']
-    list_filter = ['is_active', 'department', 'cost_center']
+    list_display = ['employee_id', 'full_name', 'tenant', 'sage_local_id', 'department', 'cost_center', 'is_active']
+    list_filter = ['tenant', 'is_active', 'department', 'cost_center']
     search_fields = ['employee_id', 'first_name', 'last_name', 'email', 'sage_local_id', 'sage_cloud_id']
     raw_id_fields = ['user']
     fieldsets = (
@@ -56,8 +83,8 @@ class DocumentTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ['title', 'status', 'source', 'employee', 'document_type', 'file_size_display', 'created_at']
-    list_filter = ['status', 'source', 'document_type', 'created_at']
+    list_display = ['title', 'tenant', 'status', 'source', 'employee', 'document_type', 'file_size_display', 'created_at']
+    list_filter = ['tenant', 'status', 'source', 'document_type', 'created_at']
     search_fields = ['title', 'original_filename', 'employee__first_name', 'employee__last_name']
     raw_id_fields = ['employee', 'owner']
     readonly_fields = ['id', 'sha256_hash', 'file_size', 'created_at', 'updated_at']
