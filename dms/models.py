@@ -118,6 +118,9 @@ class DocumentType(models.Model):
 
     class Meta:
         ordering = ['name']
+        constraints = [
+            models.UniqueConstraint(fields=['tenant', 'name'], name='unique_documenttype_per_tenant')
+        ]
 
 
 class Document(models.Model):
@@ -370,6 +373,9 @@ class ImportedLeaveRequest(models.Model):
         ordering = ['-start_date']
         verbose_name = "Importierter Urlaubsantrag"
         verbose_name_plural = "Importierte Urlaubsanträge"
+        constraints = [
+            models.UniqueConstraint(fields=['tenant', 'sage_request_id'], name='unique_leaverequest_per_tenant')
+        ]
 
 
 class ImportedTimesheet(models.Model):
@@ -447,6 +453,9 @@ class FileCategory(models.Model):
         ordering = ['sort_order', 'code']
         verbose_name = "Aktenkategorie"
         verbose_name_plural = "Aktenkategorien (Aktenplan)"
+        constraints = [
+            models.UniqueConstraint(fields=['tenant', 'code'], name='unique_filecategory_per_tenant')
+        ]
 
 
 class PersonnelFile(models.Model):
@@ -499,6 +508,9 @@ class PersonnelFile(models.Model):
         ordering = ['file_number']
         verbose_name = "Personalakte"
         verbose_name_plural = "Personalakten"
+        constraints = [
+            models.UniqueConstraint(fields=['tenant', 'file_number'], name='unique_personnelfile_per_tenant')
+        ]
 
 
 class PersonnelFileEntry(models.Model):
