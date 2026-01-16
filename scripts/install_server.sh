@@ -4,6 +4,7 @@ set -e
 echo "=============================================="
 echo "DMS Server Installation für Ubuntu"
 echo "=============================================="
+echo ""
 
 if [ "$EUID" -ne 0 ]; then
     echo "Bitte als root ausführen: sudo $0"
@@ -12,8 +13,9 @@ fi
 
 DMS_USER="${DMS_USER:-dmsuser}"
 DMS_PASSWORD="${DMS_PASSWORD:-$(openssl rand -base64 12)}"
-SAGE_ARCHIVE_PATH="${SAGE_ARCHIVE_PATH:-/srv/sage_archiv}"
-MANUAL_SCAN_PATH="${MANUAL_SCAN_PATH:-/srv/manual_scan}"
+DMS_DIR="${DMS_DIR:-$(pwd)}"
+SAGE_ARCHIVE_PATH="${SAGE_ARCHIVE_PATH:-$DMS_DIR/data/sage_archive}"
+MANUAL_SCAN_PATH="${MANUAL_SCAN_PATH:-$DMS_DIR/data/manual_input}"
 
 echo ""
 echo "Konfiguration:"
@@ -41,7 +43,10 @@ fi
 smbpasswd -e "$DMS_USER"
 
 echo "[5/7] Samba konfigurieren..."
-cat >> /etc/samba/smb.conf << EOF
+if grep -q "\[sage_archiv\]" /etc/samba/smb.conf; then
+    echo "  Samba-Freigaben existieren bereits, überspringe..."
+else
+    cat >> /etc/samba/smb.conf << EOF
 
 [sage_archiv]
    comment = Sage HR Archiv (Nur Lesen)
@@ -62,6 +67,7 @@ cat >> /etc/samba/smb.conf << EOF
    create mask = 0664
    directory mask = 0775
 EOF
+fi
 
 echo "[6/7] Berechtigungen setzen..."
 chown -R "$DMS_USER:$DMS_USER" "$SAGE_ARCHIVE_PATH" "$MANUAL_SCAN_PATH"

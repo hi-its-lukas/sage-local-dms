@@ -87,10 +87,26 @@ docker-compose up -d
 # 3. Browser öffnen: http://localhost
 ```
 
-### Samba-Freigaben
+### Samba-Freigaben (Host-basiert)
 
-- `\\server\Sage_Archiv` (Nur Lesen)
-- `\\server\Manueller_Scan` (Lesen/Schreiben)
+Das DMS verwendet Host-Samba statt Docker-Samba für bessere Kompatibilität.
+
+**Installation:**
+```bash
+sudo ./scripts/install_server.sh
+```
+
+**Windows-Laufwerke verbinden:**
+```powershell
+.\scripts\map_shares.ps1
+# Oder manuell:
+net use S: \\SERVER_IP\sage_archiv /user:dmsuser PASSWORT /persistent:yes
+net use M: \\SERVER_IP\manual_scan /user:dmsuser PASSWORT /persistent:yes
+```
+
+**Freigaben:**
+- `\\server\sage_archiv` (Nur Lesen) - Sage HR legt hier Dokumente ab
+- `\\server\manual_scan` (Lesen/Schreiben) - Scanner-Eingabe
 
 ## Admin-Konfiguration
 
