@@ -297,13 +297,6 @@ class SystemSettings(models.Model):
     ms_graph_client_id = models.CharField(max_length=100, blank=True, verbose_name="MS Graph Client ID")
     encrypted_ms_graph_secret = models.BinaryField(blank=True, null=True, verbose_name="MS Graph Secret (verschlüsselt)")
     
-    document_storage_path = models.CharField(
-        max_length=500, 
-        default="/data/personalakten",
-        verbose_name="Dokumentenspeicherpfad",
-        help_text="Basispfad für Personalakten"
-    )
-    
     samba_username = models.CharField(
         max_length=50, 
         default="dmsuser",

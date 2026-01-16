@@ -322,9 +322,6 @@ class SystemSettingsAdmin(admin.ModelAdmin):
             'fields': ('ms_graph_tenant_id', 'ms_graph_client_id', 'ms_graph_secret'),
             'description': 'Verbindungseinstellungen für Microsoft 365'
         }),
-        ('Speicherung', {
-            'fields': ('document_storage_path',),
-        }),
         ('Netzwerkfreigaben (Samba)', {
             'fields': ('samba_username', 'samba_password'),
             'description': 'Zugangsdaten für Windows-Netzwerkfreigaben'
