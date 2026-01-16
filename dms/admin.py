@@ -4,7 +4,9 @@ from django import forms
 from .models import (
     Department, CostCenter, Employee, DocumentType, Document, 
     ProcessedFile, Task, EmailConfig, SystemLog, SystemSettings,
-    ImportedLeaveRequest, ImportedTimesheet
+    ImportedLeaveRequest, ImportedTimesheet,
+    FileCategory, PersonnelFile, PersonnelFileEntry, DocumentVersion,
+    AccessPermission, AuditLog
 )
 from .encryption import encrypt_data, decrypt_data
 
@@ -348,6 +350,156 @@ class ImportedTimesheetAdmin(admin.ModelAdmin):
     search_fields = ['employee__first_name', 'employee__last_name']
     raw_id_fields = ['employee', 'document']
     readonly_fields = ['raw_data', 'imported_at']
+
+
+class FileCategoryAdmin(admin.ModelAdmin):
+    list_display = ['code', 'name', 'parent', 'retention_years', 'retention_trigger', 'is_mandatory', 'sort_order', 'is_active']
+    list_filter = ['is_active', 'is_mandatory', 'retention_trigger', 'parent']
+    search_fields = ['code', 'name', 'description']
+    list_editable = ['sort_order', 'is_active']
+    ordering = ['sort_order', 'code']
+    
+    fieldsets = (
+        ('Aktenzeichen', {
+            'fields': ('code', 'name', 'description', 'parent')
+        }),
+        ('Aufbewahrung', {
+            'fields': ('retention_years', 'retention_trigger'),
+            'description': 'Aufbewahrungsfristen gemäß Aktenplan'
+        }),
+        ('Einstellungen', {
+            'fields': ('is_mandatory', 'sort_order', 'is_active')
+        }),
+    )
+
+admin.site.register(FileCategory, FileCategoryAdmin)
+
+
+class PersonnelFileEntryInline(admin.TabularInline):
+    model = PersonnelFileEntry
+    extra = 0
+    readonly_fields = ['entry_number', 'created_at', 'created_by']
+    raw_id_fields = ['document']
+    fields = ['entry_number', 'category', 'document', 'document_date', 'notes', 'created_by', 'created_at']
+
+
+class PersonnelFileAdmin(admin.ModelAdmin):
+    list_display = ['file_number', 'employee', 'status', 'document_count', 'opened_at', 'closed_at']
+    list_filter = ['status', 'opened_at']
+    search_fields = ['file_number', 'employee__first_name', 'employee__last_name', 'employee__employee_id']
+    raw_id_fields = ['employee']
+    readonly_fields = ['id', 'opened_at', 'created_at', 'updated_at', 'document_count']
+    inlines = [PersonnelFileEntryInline]
+    
+    fieldsets = (
+        ('Akte', {
+            'fields': ('id', 'file_number', 'employee', 'status')
+        }),
+        ('Zeitraum', {
+            'fields': ('opened_at', 'closed_at', 'retention_until')
+        }),
+        ('Bemerkungen', {
+            'fields': ('notes',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['close_files', 'archive_files']
+    
+    def close_files(self, request, queryset):
+        from django.utils import timezone
+        queryset.update(status='INACTIVE', closed_at=timezone.now().date())
+    close_files.short_description = "Akten schließen (MA ausgeschieden)"
+    
+    def archive_files(self, request, queryset):
+        queryset.update(status='ARCHIVED')
+    archive_files.short_description = "Als archiviert markieren"
+
+admin.site.register(PersonnelFile, PersonnelFileAdmin)
+
+
+class PersonnelFileEntryAdmin(admin.ModelAdmin):
+    list_display = ['personnel_file', 'entry_number', 'category', 'document', 'document_date', 'created_at']
+    list_filter = ['category', 'created_at']
+    search_fields = ['personnel_file__file_number', 'document__title', 'notes']
+    raw_id_fields = ['personnel_file', 'document', 'created_by']
+    readonly_fields = ['entry_number', 'created_at']
+    date_hierarchy = 'created_at'
+
+admin.site.register(PersonnelFileEntry, PersonnelFileEntryAdmin)
+
+
+class DocumentVersionAdmin(admin.ModelAdmin):
+    list_display = ['document', 'version_number', 'file_size_display', 'created_by', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['document__title', 'change_reason']
+    raw_id_fields = ['document', 'created_by']
+    readonly_fields = ['id', 'version_number', 'sha256_hash', 'file_size', 'created_at']
+    
+    def file_size_display(self, obj):
+        if obj.file_size < 1024:
+            return f"{obj.file_size} B"
+        elif obj.file_size < 1024 * 1024:
+            return f"{obj.file_size / 1024:.1f} KB"
+        else:
+            return f"{obj.file_size / (1024 * 1024):.1f} MB"
+    file_size_display.short_description = 'Größe'
+
+admin.site.register(DocumentVersion, DocumentVersionAdmin)
+
+
+class AccessPermissionAdmin(admin.ModelAdmin):
+    list_display = ['get_target', 'get_object', 'permission_level', 'inherit_to_children', 'valid_from', 'valid_until']
+    list_filter = ['target_type', 'permission_level', 'inherit_to_children']
+    search_fields = ['user__username', 'group__name']
+    raw_id_fields = ['user', 'category', 'personnel_file', 'department', 'created_by']
+    
+    fieldsets = (
+        ('Berechtigter', {
+            'fields': ('user', 'group'),
+            'description': 'Entweder Benutzer ODER Gruppe auswählen'
+        }),
+        ('Ziel', {
+            'fields': ('target_type', 'category', 'personnel_file', 'department')
+        }),
+        ('Berechtigung', {
+            'fields': ('permission_level', 'inherit_to_children')
+        }),
+        ('Gültigkeit', {
+            'fields': ('valid_from', 'valid_until'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_target(self, obj):
+        return obj.user or obj.group
+    get_target.short_description = 'Berechtigter'
+    
+    def get_object(self, obj):
+        return obj.category or obj.personnel_file or obj.department
+    get_object.short_description = 'Ziel'
+
+admin.site.register(AccessPermission, AccessPermissionAdmin)
+
+
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ['timestamp', 'user', 'action', 'document', 'personnel_file', 'ip_address']
+    list_filter = ['action', 'timestamp']
+    search_fields = ['user__username', 'document__title', 'personnel_file__file_number']
+    readonly_fields = ['id', 'timestamp', 'user', 'ip_address', 'user_agent', 'action', 
+                       'document', 'personnel_file', 'details', 'old_value', 'new_value']
+    date_hierarchy = 'timestamp'
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+admin.site.register(AuditLog, AuditLogAdmin)
 
 
 admin.site.site_header = 'DMS Administration'

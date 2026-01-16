@@ -342,3 +342,361 @@ class ImportedTimesheet(models.Model):
         unique_together = ['employee', 'year', 'month']
         verbose_name = "Importierte Zeiterfassung"
         verbose_name_plural = "Importierte Zeiterfassungen"
+
+
+class FileCategory(models.Model):
+    """Aktenplan - Kategorien mit Aufbewahrungsfristen (wie d.3 one)"""
+    code = models.CharField(max_length=20, unique=True, verbose_name="Aktenzeichen")
+    name = models.CharField(max_length=200, verbose_name="Bezeichnung")
+    description = models.TextField(blank=True, verbose_name="Beschreibung")
+    parent = models.ForeignKey(
+        'self', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        related_name='subcategories',
+        verbose_name="Übergeordnete Kategorie"
+    )
+    
+    retention_years = models.PositiveIntegerField(
+        default=10, 
+        verbose_name="Aufbewahrungsfrist (Jahre)",
+        help_text="0 = unbegrenzt"
+    )
+    retention_trigger = models.CharField(
+        max_length=50,
+        choices=[
+            ('CREATION', 'Ab Erstellung'),
+            ('EXIT', 'Ab Austritt'),
+            ('DOCUMENT_DATE', 'Ab Dokumentdatum'),
+        ],
+        default='EXIT',
+        verbose_name="Fristbeginn"
+    )
+    
+    is_mandatory = models.BooleanField(default=False, verbose_name="Pflichtakte")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="Sortierung")
+    is_active = models.BooleanField(default=True, verbose_name="Aktiv")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+    
+    def get_full_path(self):
+        if self.parent:
+            return f"{self.parent.get_full_path()} / {self.name}"
+        return self.name
+
+    class Meta:
+        ordering = ['sort_order', 'code']
+        verbose_name = "Aktenkategorie"
+        verbose_name_plural = "Aktenkategorien (Aktenplan)"
+
+
+class PersonnelFile(models.Model):
+    """Personalakte - Container für alle Dokumente eines Mitarbeiters"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employee = models.OneToOneField(
+        Employee, 
+        on_delete=models.CASCADE, 
+        related_name='personnel_file',
+        verbose_name="Mitarbeiter"
+    )
+    
+    file_number = models.CharField(
+        max_length=50, 
+        unique=True, 
+        verbose_name="Aktenzeichen",
+        help_text="Eindeutige Aktennummer"
+    )
+    
+    STATUS_CHOICES = [
+        ('ACTIVE', 'Aktiv'),
+        ('INACTIVE', 'Inaktiv (ausgeschieden)'),
+        ('ARCHIVED', 'Archiviert'),
+        ('DELETED', 'Zur Löschung vorgemerkt'),
+    ]
+    status = models.CharField(
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default='ACTIVE',
+        verbose_name="Status"
+    )
+    
+    opened_at = models.DateField(auto_now_add=True, verbose_name="Eröffnungsdatum")
+    closed_at = models.DateField(null=True, blank=True, verbose_name="Schließungsdatum")
+    retention_until = models.DateField(null=True, blank=True, verbose_name="Aufbewahren bis")
+    
+    notes = models.TextField(blank=True, verbose_name="Bemerkungen")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.file_number} - {self.employee.full_name}"
+    
+    def document_count(self):
+        return self.file_entries.count()
+    document_count.short_description = "Dokumente"
+
+    class Meta:
+        ordering = ['file_number']
+        verbose_name = "Personalakte"
+        verbose_name_plural = "Personalakten"
+
+
+class PersonnelFileEntry(models.Model):
+    """Eintrag in einer Personalakte - verknüpft Dokument mit Akte und Kategorie"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    personnel_file = models.ForeignKey(
+        PersonnelFile, 
+        on_delete=models.CASCADE, 
+        related_name='file_entries',
+        verbose_name="Personalakte"
+    )
+    document = models.ForeignKey(
+        Document, 
+        on_delete=models.CASCADE, 
+        related_name='file_entries',
+        verbose_name="Dokument"
+    )
+    category = models.ForeignKey(
+        FileCategory, 
+        on_delete=models.PROTECT, 
+        related_name='file_entries',
+        verbose_name="Kategorie"
+    )
+    
+    entry_number = models.PositiveIntegerField(verbose_name="Laufende Nr.")
+    entry_date = models.DateField(default=timezone.now, verbose_name="Eintragsdatum")
+    document_date = models.DateField(null=True, blank=True, verbose_name="Dokumentdatum")
+    
+    notes = models.TextField(blank=True, verbose_name="Bemerkungen")
+    
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name='created_file_entries',
+        verbose_name="Erstellt von"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.personnel_file.file_number}/{self.entry_number} - {self.document.title}"
+
+    def save(self, *args, **kwargs):
+        if not self.entry_number:
+            last_entry = PersonnelFileEntry.objects.filter(
+                personnel_file=self.personnel_file
+            ).order_by('-entry_number').first()
+            self.entry_number = (last_entry.entry_number + 1) if last_entry else 1
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['personnel_file', '-entry_number']
+        unique_together = ['personnel_file', 'entry_number']
+        verbose_name = "Akteneintrag"
+        verbose_name_plural = "Akteneinträge"
+
+
+class DocumentVersion(models.Model):
+    """Dokumentenversion - speichert alle Versionen eines Dokuments"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    document = models.ForeignKey(
+        Document, 
+        on_delete=models.CASCADE, 
+        related_name='versions',
+        verbose_name="Dokument"
+    )
+    
+    version_number = models.PositiveIntegerField(verbose_name="Versionsnummer")
+    encrypted_content = models.BinaryField(verbose_name="Verschlüsselter Inhalt")
+    file_size = models.PositiveIntegerField(default=0, verbose_name="Dateigröße")
+    sha256_hash = models.CharField(max_length=64, verbose_name="SHA-256 Hash")
+    
+    change_reason = models.CharField(max_length=500, blank=True, verbose_name="Änderungsgrund")
+    
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        verbose_name="Erstellt von"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.document.title} v{self.version_number}"
+
+    class Meta:
+        ordering = ['document', '-version_number']
+        unique_together = ['document', 'version_number']
+        verbose_name = "Dokumentenversion"
+        verbose_name_plural = "Dokumentenversionen"
+
+
+class AccessPermission(models.Model):
+    """Zugriffsrechte auf Akten und Kategorien"""
+    PERMISSION_CHOICES = [
+        ('VIEW', 'Ansehen'),
+        ('EDIT', 'Bearbeiten'),
+        ('DELETE', 'Löschen'),
+        ('ADMIN', 'Vollzugriff'),
+    ]
+    
+    TARGET_TYPE_CHOICES = [
+        ('CATEGORY', 'Kategorie'),
+        ('PERSONNEL_FILE', 'Personalakte'),
+        ('DEPARTMENT', 'Abteilung'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        related_name='dms_permissions',
+        verbose_name="Benutzer"
+    )
+    group = models.ForeignKey(
+        'auth.Group', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        related_name='dms_permissions',
+        verbose_name="Gruppe"
+    )
+    
+    target_type = models.CharField(
+        max_length=20, 
+        choices=TARGET_TYPE_CHOICES,
+        verbose_name="Zieltyp"
+    )
+    
+    category = models.ForeignKey(
+        FileCategory, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        related_name='permissions',
+        verbose_name="Kategorie"
+    )
+    personnel_file = models.ForeignKey(
+        PersonnelFile, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        related_name='permissions',
+        verbose_name="Personalakte"
+    )
+    department = models.ForeignKey(
+        Department, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        related_name='permissions',
+        verbose_name="Abteilung"
+    )
+    
+    permission_level = models.CharField(
+        max_length=20, 
+        choices=PERMISSION_CHOICES, 
+        default='VIEW',
+        verbose_name="Berechtigungsstufe"
+    )
+    
+    inherit_to_children = models.BooleanField(
+        default=True, 
+        verbose_name="Auf Unterordner vererben"
+    )
+    
+    valid_from = models.DateField(null=True, blank=True, verbose_name="Gültig ab")
+    valid_until = models.DateField(null=True, blank=True, verbose_name="Gültig bis")
+    
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        related_name='created_permissions',
+        verbose_name="Erstellt von"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        target = self.user or self.group
+        obj = self.category or self.personnel_file or self.department
+        return f"{target} → {obj}: {self.get_permission_level_display()}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if not self.user and not self.group:
+            raise ValidationError("Entweder Benutzer oder Gruppe muss angegeben werden.")
+        if self.user and self.group:
+            raise ValidationError("Nur Benutzer ODER Gruppe angeben, nicht beides.")
+
+    class Meta:
+        ordering = ['target_type', 'permission_level']
+        verbose_name = "Zugriffsberechtigung"
+        verbose_name_plural = "Zugriffsberechtigungen"
+
+
+class AuditLog(models.Model):
+    """Revisionssichere Protokollierung aller Aktionen"""
+    ACTION_CHOICES = [
+        ('CREATE', 'Erstellt'),
+        ('VIEW', 'Angesehen'),
+        ('DOWNLOAD', 'Heruntergeladen'),
+        ('EDIT', 'Bearbeitet'),
+        ('DELETE', 'Gelöscht'),
+        ('ARCHIVE', 'Archiviert'),
+        ('RESTORE', 'Wiederhergestellt'),
+        ('PERMISSION_CHANGE', 'Berechtigung geändert'),
+        ('VERSION_CREATE', 'Version erstellt'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Zeitstempel")
+    
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        verbose_name="Benutzer"
+    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP-Adresse")
+    user_agent = models.CharField(max_length=500, blank=True, verbose_name="User-Agent")
+    
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, verbose_name="Aktion")
+    
+    document = models.ForeignKey(
+        Document, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='audit_logs',
+        verbose_name="Dokument"
+    )
+    personnel_file = models.ForeignKey(
+        PersonnelFile, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='audit_logs',
+        verbose_name="Personalakte"
+    )
+    
+    details = models.JSONField(default=dict, blank=True, verbose_name="Details")
+    old_value = models.TextField(blank=True, verbose_name="Alter Wert")
+    new_value = models.TextField(blank=True, verbose_name="Neuer Wert")
+
+    def __str__(self):
+        return f"{self.timestamp} - {self.user} - {self.get_action_display()}"
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = "Audit-Protokoll"
+        verbose_name_plural = "Audit-Protokolle"

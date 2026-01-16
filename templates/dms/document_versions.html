@@ -1,0 +1,68 @@
+{% extends 'dms/base.html' %}
+
+{% block title %}Versionen - {{ document.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .doc-header { margin-bottom: 20px; }
+    .doc-header h2 { margin-bottom: 5px; }
+    .doc-meta { color: #666; font-size: 0.9rem; }
+    .version-list { margin-top: 20px; }
+    .version-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px; }
+    .version-item:hover { background: #f8f9fa; }
+    .version-info { flex: 1; }
+    .version-number { font-size: 1.2rem; font-weight: 600; color: #2c3e50; }
+    .version-meta { color: #666; font-size: 0.85rem; margin-top: 5px; }
+    .version-reason { color: #333; margin-top: 5px; font-style: italic; }
+    .current-badge { background: #27ae60; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="doc-header">
+        <h2>Versionshistorie: {{ document.title }}</h2>
+        <div class="doc-meta">
+            <span>Datei: {{ document.original_filename }}</span> |
+            <span>Erstellt: {{ document.created_at|date:"d.m.Y H:i" }}</span>
+        </div>
+    </div>
+
+    <div class="version-list">
+        <div class="version-item">
+            <div class="version-info">
+                <span class="version-number">Aktuelle Version</span>
+                <span class="current-badge">Aktuell</span>
+                <div class="version-meta">
+                    Zuletzt geändert: {{ document.updated_at|date:"d.m.Y H:i" }} |
+                    Größe: {% widthratio document.file_size 1024 1 %} KB
+                </div>
+            </div>
+            <a href="{% url 'dms:document_download' pk=document.pk %}" class="btn">Download</a>
+        </div>
+
+        {% for version in versions %}
+        <div class="version-item">
+            <div class="version-info">
+                <span class="version-number">Version {{ version.version_number }}</span>
+                <div class="version-meta">
+                    {{ version.created_at|date:"d.m.Y H:i" }} |
+                    {{ version.created_by.username|default:"System" }} |
+                    {% widthratio version.file_size 1024 1 %} KB
+                </div>
+                {% if version.change_reason %}
+                <div class="version-reason">"{{ version.change_reason }}"</div>
+                {% endif %}
+            </div>
+            <a href="{% url 'dms:document_version_download' pk=document.pk version_number=version.version_number %}" class="btn">Download</a>
+        </div>
+        {% empty %}
+        <p>Keine früheren Versionen vorhanden.</p>
+        {% endfor %}
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <a href="{% url 'dms:document_detail' pk=document.pk %}" class="btn">Zurück zum Dokument</a>
+    </div>
+</div>
+{% endblock %}

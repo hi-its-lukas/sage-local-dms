@@ -130,10 +130,59 @@ celery -A dms_project worker -l INFO
 celery -A dms_project beat -l INFO
 ```
 
+## Aktenlogik (d.3 one-Style)
+
+Das DMS unterstützt jetzt eine d.3 one-ähnliche Aktenstruktur für Personalakten:
+
+### Datenmodelle
+
+- **FileCategory**: Hierarchischer Aktenplan mit Aufbewahrungsfristen
+- **PersonnelFile**: Personalakte pro Mitarbeiter
+- **PersonnelFileEntry**: Dokument-Ablage in Kategorien
+- **DocumentVersion**: Versionierung von Dokumenten
+- **AccessPermission**: Benutzer-/Gruppenberechtigungen
+- **AuditLog**: Revisionssichere Protokollierung
+
+### Aktenplan
+
+48 Standard-Kategorien für HR-Dokumente mit gesetzlichen Aufbewahrungsfristen:
+- 01: Bewerbungsunterlagen (6 Jahre ab Austritt)
+- 02: Arbeitsvertrag (10 Jahre ab Austritt)
+- 03: Persönliche Daten (6 Jahre / SV 30 Jahre)
+- 04: Qualifikation & Entwicklung (10 Jahre)
+- 05: Vergütung (10 Jahre ab Dokumentdatum)
+- 06: Arbeitszeit & Urlaub (3 Jahre)
+- 07: Gesundheit & Arbeitsschutz (3-30 Jahre)
+- 08: Beurteilung & Feedback (5 Jahre)
+- 09: Disziplinarisches (2-3 Jahre)
+- 10: Beendigung (10 Jahre ab Austritt)
+
+### Aufbewahrungsfristen
+
+Drei Trigger-Typen:
+- **Ab Erstellung**: Frist beginnt mit Dokumenterstellung
+- **Ab Austritt**: Frist beginnt mit Beendigung des Arbeitsverhältnisses
+- **Ab Dokumentdatum**: Frist beginnt mit Datum auf dem Dokument
+
+### URLs
+
+- `/personnel-files/` - Personalakten-Liste
+- `/personnel-files/<uuid>/` - Personalakte Detail mit Ordnerstruktur
+- `/employees/` - Mitarbeiter-Liste mit Akte-Status
+- `/filing-plan/` - Aktenplan-Übersicht
+
+### Management-Kommando
+
+```bash
+python manage.py create_filing_plan
+```
+
 ## Letzte Änderungen
 
+- **Aktenlogik (d.3 one-Style)**: Personalakten, Aktenplan, Versionierung, Berechtigungen
+- **CSRF_TRUSTED_ORIGINS**: Konfigurierbar über Umgebungsvariable für Cloudflare
 - **Samba-Konfiguration über Admin**: Passwort wird verschlüsselt in DB gespeichert
-- Management-Kommandos: `initial_setup`, `generate_samba_config`
+- Management-Kommandos: `initial_setup`, `generate_samba_config`, `create_filing_plan`
 - SystemSettings Singleton für GUI-Konfiguration
 - Sage Local WCF Connector (zeep)
 - Sage Cloud REST Connector

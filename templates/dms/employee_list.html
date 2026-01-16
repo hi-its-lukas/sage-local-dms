@@ -1,0 +1,94 @@
+{% extends 'dms/base.html' %}
+
+{% block title %}Mitarbeiter{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filters { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+    .filters input, .filters select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+    .filters input[type="text"] { min-width: 250px; }
+    .has-file { color: #27ae60; }
+    .no-file { color: #e74c3c; }
+    .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 20px; }
+    .pagination a, .pagination span { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; color: #333; }
+    .pagination a:hover { background: #f5f5f5; }
+    .pagination .current { background: #3498db; color: white; border-color: #3498db; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Mitarbeiter</h2>
+    
+    <form method="get" class="filters">
+        <input type="text" name="search" placeholder="Suche nach Name, Personalnr..." value="{{ request.GET.search }}">
+        <select name="has_file">
+            <option value="">Alle</option>
+            <option value="yes" {% if request.GET.has_file == 'yes' %}selected{% endif %}>Mit Personalakte</option>
+            <option value="no" {% if request.GET.has_file == 'no' %}selected{% endif %}>Ohne Personalakte</option>
+        </select>
+        <button type="submit" class="btn">Filtern</button>
+        {% if request.GET.search or request.GET.has_file %}
+            <a href="{% url 'dms:employee_list' %}" class="btn btn-danger">Zurücksetzen</a>
+        {% endif %}
+    </form>
+
+    {% if employees %}
+    <table>
+        <thead>
+            <tr>
+                <th>Personalnr.</th>
+                <th>Name</th>
+                <th>Abteilung</th>
+                <th>Kostenstelle</th>
+                <th>Eintritt</th>
+                <th>Personalakte</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emp in employees %}
+            <tr>
+                <td>{{ emp.employee_id }}</td>
+                <td>{{ emp.full_name }}</td>
+                <td>{{ emp.department|default:"-" }}</td>
+                <td>{{ emp.cost_center|default:"-" }}</td>
+                <td>{{ emp.entry_date|date:"d.m.Y"|default:"-" }}</td>
+                <td>
+                    {% if emp.has_personnel_file %}
+                        <span class="has-file">Vorhanden</span>
+                    {% else %}
+                        <span class="no-file">Keine</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if emp.has_personnel_file %}
+                        <a href="{% url 'dms:personnel_file_detail' pk=emp.personnel_file.pk %}" class="btn">Akte öffnen</a>
+                    {% else %}
+                        <a href="{% url 'dms:personnel_file_create' employee_id=emp.pk %}" class="btn btn-success">Akte anlegen</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if employees.has_other_pages %}
+    <div class="pagination">
+        {% if employees.has_previous %}
+            <a href="?page={{ employees.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.has_file %}&has_file={{ request.GET.has_file }}{% endif %}">Zurück</a>
+        {% endif %}
+        
+        <span class="current">Seite {{ employees.number }} von {{ employees.paginator.num_pages }}</span>
+        
+        {% if employees.has_next %}
+            <a href="?page={{ employees.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.has_file %}&has_file={{ request.GET.has_file }}{% endif %}">Weiter</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <p>Keine Mitarbeiter gefunden.</p>
+    {% endif %}
+</div>
+{% endblock %}

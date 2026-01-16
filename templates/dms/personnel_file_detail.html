@@ -1,0 +1,181 @@
+{% extends 'dms/base.html' %}
+{% load dms_extras %}
+
+{% block title %}{{ personnel_file.file_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .file-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .file-info h2 { margin-bottom: 5px; }
+    .file-meta { color: #666; font-size: 0.9rem; }
+    .file-meta span { margin-right: 20px; }
+    .category-tree { margin-top: 20px; }
+    .category-item { border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+    .category-header { background: #f8f9fa; padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .category-header:hover { background: #e9ecef; }
+    .category-header h3 { margin: 0; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+    .category-code { font-family: monospace; color: #666; font-size: 0.85rem; }
+    .category-count { background: #3498db; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; }
+    .category-content { display: none; padding: 15px; border-top: 1px solid #e0e0e0; }
+    .category-item.open .category-content { display: block; }
+    .subcategory { margin-left: 20px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+    .subcategory:last-child { border-bottom: none; }
+    .subcategory-header { display: flex; justify-content: space-between; align-items: center; }
+    .subcategory-name { font-weight: 500; }
+    .document-list { margin-top: 10px; }
+    .document-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8f9fa; border-radius: 4px; margin-bottom: 5px; }
+    .document-item:hover { background: #e9ecef; }
+    .document-title { flex: 1; }
+    .document-date { color: #666; font-size: 0.85rem; margin: 0 15px; }
+    .retention-info { font-size: 0.8rem; color: #95a5a6; }
+    .empty-category { color: #95a5a6; font-style: italic; padding: 10px 0; }
+    .toggle-icon { transition: transform 0.2s; }
+    .category-item.open .toggle-icon { transform: rotate(90deg); }
+    .add-doc-btn { font-size: 0.85rem; padding: 4px 10px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+    .modal.show { display: flex; }
+    .modal-content { background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="file-header">
+        <div class="file-info">
+            <h2>{{ personnel_file.file_number }} - {{ personnel_file.employee.full_name }}</h2>
+            <div class="file-meta">
+                <span>Personalnr.: {{ personnel_file.employee.employee_id }}</span>
+                <span>Abteilung: {{ personnel_file.employee.department|default:"-" }}</span>
+                <span>Status: {{ personnel_file.get_status_display }}</span>
+                <span>Eröffnet: {{ personnel_file.opened_at|date:"d.m.Y" }}</span>
+                {% if personnel_file.retention_until %}
+                <span>Aufbewahren bis: {{ personnel_file.retention_until|date:"d.m.Y" }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'dms:personnel_file_list' %}" class="btn">Zurück zur Liste</a>
+        </div>
+    </div>
+
+    <div class="category-tree">
+        {% for category in categories %}
+        {% with cat_code=category.code %}
+        <div class="category-item {% if cat_code in entries_by_category %}open{% endif %}">
+            <div class="category-header" onclick="this.parentElement.classList.toggle('open')">
+                <h3>
+                    <span class="toggle-icon">▶</span>
+                    <span class="category-code">{{ category.code }}</span>
+                    {{ category.name }}
+                    {% if cat_code in entries_by_category %}
+                        <span class="category-count">{{ entries_by_category|get_item:cat_code|length }}</span>
+                    {% endif %}
+                </h3>
+                <span class="retention-info">{{ category.retention_years }} Jahre ab {{ category.get_retention_trigger_display }}</span>
+            </div>
+            <div class="category-content">
+                {% for sub in category.subcategories.all %}
+                <div class="subcategory">
+                    <div class="subcategory-header">
+                        <span class="subcategory-name">
+                            <span class="category-code">{{ sub.code }}</span>
+                            {{ sub.name }}
+                        </span>
+                        <button class="btn add-doc-btn" onclick="openAddDocModal('{{ sub.id }}', '{{ sub.code }} - {{ sub.name }}')">+ Dokument</button>
+                    </div>
+                    <div class="document-list">
+                        {% for entry in entries_by_category|get_item:cat_code %}
+                            {% if entry.category.code == sub.code %}
+                            <div class="document-item">
+                                <span class="document-title">{{ entry.document.title }}</span>
+                                <span class="document-date">{{ entry.document_date|date:"d.m.Y"|default:entry.created_at|date:"d.m.Y" }}</span>
+                                <a href="{% url 'dms:document_download' pk=entry.document.pk %}" class="btn">Download</a>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="subcategory">
+                    <div class="subcategory-header">
+                        <span class="subcategory-name">{{ category.name }}</span>
+                        <button class="btn add-doc-btn" onclick="openAddDocModal('{{ category.id }}', '{{ category.code }} - {{ category.name }}')">+ Dokument</button>
+                    </div>
+                    <div class="document-list">
+                        {% for entry in entries_by_category|get_item:cat_code %}
+                            {% if entry.category.code == category.code %}
+                            <div class="document-item">
+                                <span class="document-title">{{ entry.document.title }}</span>
+                                <span class="document-date">{{ entry.document_date|date:"d.m.Y"|default:entry.created_at|date:"d.m.Y" }}</span>
+                                <a href="{% url 'dms:document_download' pk=entry.document.pk %}" class="btn">Download</a>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+</div>
+
+<div class="modal" id="addDocModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Dokument zur Akte hinzufügen</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <form id="addDocForm" method="post" action="{% url 'dms:personnel_file_add_document' pk=personnel_file.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="category_id" id="categoryId">
+            <div class="form-group">
+                <label>Kategorie</label>
+                <input type="text" id="categoryName" readonly>
+            </div>
+            <div class="form-group">
+                <label>Dokument auswählen</label>
+                <select name="document_id" required>
+                    <option value="">-- Dokument wählen --</option>
+                    {% for doc in unassigned_documents %}
+                    <option value="{{ doc.id }}">{{ doc.title }} ({{ doc.original_filename }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Dokumentdatum</label>
+                <input type="date" name="document_date">
+            </div>
+            <div class="form-group">
+                <label>Bemerkungen</label>
+                <textarea name="notes" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">Hinzufügen</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openAddDocModal(categoryId, categoryName) {
+    document.getElementById('categoryId').value = categoryId;
+    document.getElementById('categoryName').value = categoryName;
+    document.getElementById('addDocModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('addDocModal').classList.remove('show');
+}
+
+document.getElementById('addDocModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}

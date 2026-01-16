@@ -1,0 +1,104 @@
+{% extends 'dms/base.html' %}
+
+{% block title %}Aktenplan{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filing-plan { margin-top: 20px; }
+    .category-main { border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+    .category-main-header { background: #2c3e50; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .category-main-header h3 { margin: 0; font-size: 1.1rem; }
+    .category-main-header .code { font-family: monospace; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; margin-right: 10px; }
+    .retention-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; }
+    .category-subs { padding: 0; }
+    .sub-category { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid #f0f0f0; }
+    .sub-category:last-child { border-bottom: none; }
+    .sub-category:hover { background: #f8f9fa; }
+    .sub-code { font-family: monospace; color: #666; margin-right: 10px; }
+    .sub-retention { color: #95a5a6; font-size: 0.85rem; }
+    .description { color: #666; font-size: 0.9rem; padding: 10px 20px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; }
+    .legend { background: #f8f9fa; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
+    .legend h4 { margin-bottom: 10px; }
+    .legend-items { display: flex; gap: 30px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+    .legend-icon { width: 12px; height: 12px; border-radius: 2px; }
+    .mandatory { background: #27ae60; }
+    .optional { background: #95a5a6; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Aktenplan - Personalakten</h2>
+    <p>Standardkategorien für die Ablage von HR-Dokumenten mit gesetzlichen Aufbewahrungsfristen.</p>
+    
+    <div class="legend">
+        <h4>Legende</h4>
+        <div class="legend-items">
+            <div class="legend-item">
+                <span class="legend-icon mandatory"></span>
+                Pflichtakte
+            </div>
+            <div class="legend-item">
+                <span class="legend-icon optional"></span>
+                Optional
+            </div>
+            <div class="legend-item">
+                <strong>Ab Erstellung</strong> - Frist beginnt mit Dokumenterstellung
+            </div>
+            <div class="legend-item">
+                <strong>Ab Austritt</strong> - Frist beginnt mit Beendigung des Arbeitsverhältnisses
+            </div>
+            <div class="legend-item">
+                <strong>Ab Dokumentdatum</strong> - Frist beginnt mit Datum auf dem Dokument
+            </div>
+        </div>
+    </div>
+
+    <div class="filing-plan">
+        {% for category in categories %}
+        <div class="category-main">
+            <div class="category-main-header">
+                <h3>
+                    <span class="code">{{ category.code }}</span>
+                    {{ category.name }}
+                    {% if category.is_mandatory %}
+                        <span style="margin-left: 10px; font-size: 0.8rem; color: #2ecc71;">Pflicht</span>
+                    {% endif %}
+                </h3>
+                <span class="retention-badge">
+                    {% if category.retention_years == 0 %}
+                        Unbegrenzt
+                    {% else %}
+                        {{ category.retention_years }} Jahre
+                    {% endif %}
+                    {{ category.get_retention_trigger_display }}
+                </span>
+            </div>
+            {% if category.description %}
+            <div class="description">{{ category.description }}</div>
+            {% endif %}
+            <div class="category-subs">
+                {% for sub in category.subcategories.all %}
+                <div class="sub-category">
+                    <span>
+                        <span class="sub-code">{{ sub.code }}</span>
+                        {{ sub.name }}
+                    </span>
+                    <span class="sub-retention">
+                        {% if sub.retention_years != category.retention_years %}
+                            {{ sub.retention_years }} Jahre
+                        {% endif %}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="sub-category">
+                    <span class="sub-code">Keine Unterkategorien</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'dms/base.html' %}
+
+{% block title %}Personalakten{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filters { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+    .filters input, .filters select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+    .filters input[type="text"] { min-width: 250px; }
+    .status-active { color: #27ae60; }
+    .status-inactive { color: #95a5a6; }
+    .status-archived { color: #3498db; }
+    .file-number { font-family: monospace; font-weight: 600; }
+    .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 20px; }
+    .pagination a, .pagination span { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; color: #333; }
+    .pagination a:hover { background: #f5f5f5; }
+    .pagination .current { background: #3498db; color: white; border-color: #3498db; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Personalakten</h2>
+    
+    <form method="get" class="filters">
+        <input type="text" name="search" placeholder="Suche nach Name, Aktenzeichen..." value="{{ request.GET.search }}">
+        <select name="status">
+            <option value="">Alle Status</option>
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn">Filtern</button>
+        {% if request.GET.search or request.GET.status %}
+            <a href="{% url 'dms:personnel_file_list' %}" class="btn btn-danger">Zurücksetzen</a>
+        {% endif %}
+    </form>
+
+    {% if personnel_files %}
+    <table>
+        <thead>
+            <tr>
+                <th>Aktenzeichen</th>
+                <th>Mitarbeiter</th>
+                <th>Personalnr.</th>
+                <th>Abteilung</th>
+                <th>Status</th>
+                <th>Dokumente</th>
+                <th>Eröffnet</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pf in personnel_files %}
+            <tr>
+                <td><span class="file-number">{{ pf.file_number }}</span></td>
+                <td>{{ pf.employee.full_name }}</td>
+                <td>{{ pf.employee.employee_id }}</td>
+                <td>{{ pf.employee.department|default:"-" }}</td>
+                <td>
+                    <span class="status-{{ pf.status|lower }}">{{ pf.get_status_display }}</span>
+                </td>
+                <td>{{ pf.document_count }}</td>
+                <td>{{ pf.opened_at|date:"d.m.Y" }}</td>
+                <td>
+                    <a href="{% url 'dms:personnel_file_detail' pk=pf.pk %}" class="btn">Öffnen</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if personnel_files.has_other_pages %}
+    <div class="pagination">
+        {% if personnel_files.has_previous %}
+            <a href="?page={{ personnel_files.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Zurück</a>
+        {% endif %}
+        
+        <span class="current">Seite {{ personnel_files.number }} von {{ personnel_files.paginator.num_pages }}</span>
+        
+        {% if personnel_files.has_next %}
+            <a href="?page={{ personnel_files.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Weiter</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <p>Keine Personalakten gefunden.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -19,3 +19,4 @@ requests>=2.31
 requests
 weasyprint
 zeep
+python-dateutil

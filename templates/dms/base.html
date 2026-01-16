@@ -48,8 +48,11 @@
             <h1>Dokumentenmanagementsystem</h1>
             <nav>
                 <a href="{% url 'dms:index' %}">Dashboard</a>
-                <a href="{% url 'dms:upload_page' %}">Hochladen</a>
+                <a href="{% url 'dms:personnel_file_list' %}">Personalakten</a>
+                <a href="{% url 'dms:employee_list' %}">Mitarbeiter</a>
                 <a href="{% url 'dms:document_list' %}">Dokumente</a>
+                <a href="{% url 'dms:upload_page' %}">Hochladen</a>
+                <a href="{% url 'dms:filing_plan' %}">Aktenplan</a>
                 <a href="{% url 'dms:task_list' %}">Aufgaben</a>
                 <a href="{% url 'admin:index' %}">Admin</a>
                 <span class="user-info">{{ request.user.username }}</span>
