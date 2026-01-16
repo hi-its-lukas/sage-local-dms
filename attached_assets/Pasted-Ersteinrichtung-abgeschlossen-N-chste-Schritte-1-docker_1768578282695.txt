@@ -1,0 +1,860 @@
+Ersteinrichtung abgeschlossen!
+
+Nächste Schritte:
+1. docker-compose up -d
+2. Browser öffnen: http://localhost
+3. Mit Admin-Zugangsdaten anmelden
+4. Unter Admin > Systemeinstellungen weitere Optionen konfigurieren
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ docker-compose up -d
+Command 'docker-compose' not found, but can be installed with:
+sudo apt install docker-compose
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ sudo apt install docker-compose
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following additional packages will be installed:
+  python3-compose python3-docker python3-dockerpty python3-docopt python3-dotenv python3-texttable python3-websocket
+The following NEW packages will be installed:
+  docker-compose python3-compose python3-docker python3-dockerpty python3-docopt python3-dotenv python3-texttable python3-websocket
+0 upgraded, 8 newly installed, 0 to remove and 3 not upgraded.
+Need to get 297 kB of archives.
+After this operation, 1589 kB of additional disk space will be used.
+Do you want to continue? [Y/n] y
+Get:1 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 python3-websocket all 1.7.0-1 [38.1 kB]
+Get:2 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 python3-docker all 5.0.3-1ubuntu1.1 [89.1 kB]
+Get:3 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 python3-dockerpty all 0.4.1-5 [11.4 kB]
+Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 python3-docopt all 0.6.2-6 [26.1 kB]
+Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 python3-dotenv all 1.0.1-1 [22.3 kB]
+Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 python3-texttable all 1.6.7-1 [11.0 kB]
+Get:7 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 python3-compose all 1.29.2-6ubuntu1 [84.6 kB]
+Get:8 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 docker-compose all 1.29.2-6ubuntu1 [14.0 kB]
+Fetched 297 kB in 0s (2292 kB/s)     
+Selecting previously unselected package python3-websocket.
+(Reading database ... 68835 files and directories currently installed.)
+Preparing to unpack .../0-python3-websocket_1.7.0-1_all.deb ...
+Unpacking python3-websocket (1.7.0-1) ...
+Selecting previously unselected package python3-docker.
+Preparing to unpack .../1-python3-docker_5.0.3-1ubuntu1.1_all.deb ...
+Unpacking python3-docker (5.0.3-1ubuntu1.1) ...
+Selecting previously unselected package python3-dockerpty.
+Preparing to unpack .../2-python3-dockerpty_0.4.1-5_all.deb ...
+Unpacking python3-dockerpty (0.4.1-5) ...
+Selecting previously unselected package python3-docopt.
+Preparing to unpack .../3-python3-docopt_0.6.2-6_all.deb ...
+Unpacking python3-docopt (0.6.2-6) ...
+Selecting previously unselected package python3-dotenv.
+Preparing to unpack .../4-python3-dotenv_1.0.1-1_all.deb ...
+Unpacking python3-dotenv (1.0.1-1) ...
+Selecting previously unselected package python3-texttable.
+Preparing to unpack .../5-python3-texttable_1.6.7-1_all.deb ...
+Unpacking python3-texttable (1.6.7-1) ...
+Selecting previously unselected package python3-compose.
+Preparing to unpack .../6-python3-compose_1.29.2-6ubuntu1_all.deb ...
+Unpacking python3-compose (1.29.2-6ubuntu1) ...
+Selecting previously unselected package docker-compose.
+Preparing to unpack .../7-docker-compose_1.29.2-6ubuntu1_all.deb ...
+Unpacking docker-compose (1.29.2-6ubuntu1) ...
+Setting up python3-dotenv (1.0.1-1) ...
+Setting up python3-texttable (1.6.7-1) ...
+Setting up python3-docopt (0.6.2-6) ...
+Setting up python3-websocket (1.7.0-1) ...
+Setting up python3-dockerpty (0.4.1-5) ...
+Setting up python3-docker (5.0.3-1ubuntu1.1) ...
+Setting up python3-compose (1.29.2-6ubuntu1) ...
+Setting up docker-compose (1.29.2-6ubuntu1) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Scanning processes...                                                                                                                         
+Scanning linux images...                                                                                                                      
+
+Running kernel seems to be up-to-date.
+
+No services need to be restarted.
+
+No containers need to be restarted.
+
+No user sessions are running outdated binaries.
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ docker-compose up -d
+Building web
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon   10.2MB
+Step 1/10 : FROM python:3.11-slim
+3.11-slim: Pulling from library/python
+119d43eec815: Already exists
+5b09819094bb: Already exists
+3e731abb5c1d: Already exists
+0b2bf04f68e9: Already exists
+Digest: sha256:c24e9effa2821a6885165d930d939fec2af0dcf819276138f11dd45e200bd032
+Status: Downloaded newer image for python:3.11-slim
+ ---> fa659464a114
+Step 2/10 : ENV PYTHONDONTWRITEBYTECODE=1
+ ---> Running in 7dd561961d7e
+ ---> Removed intermediate container 7dd561961d7e
+ ---> 521abcd46c56
+Step 3/10 : ENV PYTHONUNBUFFERED=1
+ ---> Running in 3573a257f288
+ ---> Removed intermediate container 3573a257f288
+ ---> 9d0d4fd6ceb9
+Step 4/10 : WORKDIR /app
+ ---> Running in 717ec0a0d747
+ ---> Removed intermediate container 717ec0a0d747
+ ---> c0dceb0ac5e3
+Step 5/10 : RUN apt-get update && apt-get install -y --no-install-recommends     libpq-dev     libmagic1     libdmtx0b     netcat-openbsd     wget     fontconfig     libxrender1     xfonts-75dpi     xfonts-base     && wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb     && dpkg -i wkhtmltox_0.12.6.1-3.bookworm_amd64.deb || apt-get install -f -y     && rm wkhtmltox_0.12.6.1-3.bookworm_amd64.deb     && rm -rf /var/lib/apt/lists/*
+ ---> Running in a3a943772ed3
+Hit:1 http://deb.debian.org/debian trixie InRelease
+Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+Get:3 http://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]
+Get:4 http://deb.debian.org/debian trixie/main amd64 Packages [9670 kB]
+Get:5 http://deb.debian.org/debian trixie-updates/main amd64 Packages [5412 B]
+Get:6 http://deb.debian.org/debian-security trixie-security/main amd64 Packages [95.9 kB]
+Fetched 9862 kB in 1s (6615 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  fontconfig-config fonts-dejavu-core fonts-dejavu-mono libbrotli1 libcom-err2
+  libexpat1 libfontconfig1 libfontenc1 libfreetype6 libgnutls30t64
+  libgssapi-krb5-2 libidn2-0 libk5crypto3 libkeyutils1 libkrb5-3
+  libkrb5support0 libldap2 libmagic-mgc libp11-kit0 libpng16-16t64 libpq5
+  libpsl5t64 libsasl2-2 libsasl2-modules-db libssl-dev libtasn1-6
+  libunistring5 libx11-6 libx11-data libxau6 libxcb1 libxdmcp6 x11-common
+  xfonts-encodings xfonts-utils
+Suggested packages:
+  gnutls-bin krb5-doc krb5-user file postgresql-doc-17 libssl-doc xfs
+  | xserver
+Recommended packages:
+  krb5-locales libldap-common publicsuffix libsasl2-modules
+The following NEW packages will be installed:
+  fontconfig fontconfig-config fonts-dejavu-core fonts-dejavu-mono libbrotli1
+  libcom-err2 libdmtx0t64 libexpat1 libfontconfig1 libfontenc1 libfreetype6
+  libgnutls30t64 libgssapi-krb5-2 libidn2-0 libk5crypto3 libkeyutils1
+  libkrb5-3 libkrb5support0 libldap2 libmagic-mgc libmagic1t64 libp11-kit0
+  libpng16-16t64 libpq-dev libpq5 libpsl5t64 libsasl2-2 libsasl2-modules-db
+  libssl-dev libtasn1-6 libunistring5 libx11-6 libx11-data libxau6 libxcb1
+  libxdmcp6 libxrender1 netcat-openbsd wget x11-common xfonts-75dpi
+  xfonts-base xfonts-encodings xfonts-utils
+0 upgraded, 44 newly installed, 0 to remove and 0 not upgraded.
+Need to get 23.5 MB of archives.
+After this operation, 68.9 MB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian trixie/main amd64 libexpat1 amd64 2.7.1-2 [108 kB]
+Get:2 http://deb.debian.org/debian trixie/main amd64 libunistring5 amd64 1.3-2 [477 kB]
+Get:3 http://deb.debian.org/debian trixie/main amd64 libidn2-0 amd64 2.3.8-2 [109 kB]
+Get:4 http://deb.debian.org/debian trixie/main amd64 libp11-kit0 amd64 0.25.5-3 [425 kB]
+Get:5 http://deb.debian.org/debian trixie/main amd64 libtasn1-6 amd64 4.20.0-2 [49.9 kB]
+Get:6 http://deb.debian.org/debian trixie/main amd64 libgnutls30t64 amd64 3.8.9-3+deb13u1 [1466 kB]
+Get:7 http://deb.debian.org/debian trixie/main amd64 libpsl5t64 amd64 0.21.2-1.1+b1 [57.2 kB]
+Get:8 http://deb.debian.org/debian trixie/main amd64 wget amd64 1.25.0-2 [984 kB]
+Get:9 http://deb.debian.org/debian trixie/main amd64 libbrotli1 amd64 1.1.0-2+b7 [307 kB]
+Get:10 http://deb.debian.org/debian trixie/main amd64 libpng16-16t64 amd64 1.6.48-1+deb13u1 [283 kB]
+Get:11 http://deb.debian.org/debian trixie/main amd64 libfreetype6 amd64 2.13.3+dfsg-1 [452 kB]
+Get:12 http://deb.debian.org/debian trixie/main amd64 fonts-dejavu-mono all 2.37-8 [489 kB]
+Get:13 http://deb.debian.org/debian trixie/main amd64 fonts-dejavu-core all 2.37-8 [840 kB]
+Get:14 http://deb.debian.org/debian trixie/main amd64 fontconfig-config amd64 2.15.0-2.3 [318 kB]
+Get:15 http://deb.debian.org/debian trixie/main amd64 libfontconfig1 amd64 2.15.0-2.3 [392 kB]
+Get:16 http://deb.debian.org/debian trixie/main amd64 fontconfig amd64 2.15.0-2.3 [463 kB]
+Get:17 http://deb.debian.org/debian trixie/main amd64 libcom-err2 amd64 1.47.2-3+b7 [25.0 kB]
+Get:18 http://deb.debian.org/debian trixie/main amd64 libdmtx0t64 amd64 0.7.7-1.2+b1 [57.3 kB]
+Get:19 http://deb.debian.org/debian trixie/main amd64 libfontenc1 amd64 1:1.1.8-1+b2 [23.3 kB]
+Get:20 http://deb.debian.org/debian trixie/main amd64 libkrb5support0 amd64 1.21.3-5 [33.0 kB]
+Get:21 http://deb.debian.org/debian trixie/main amd64 libk5crypto3 amd64 1.21.3-5 [81.5 kB]
+Get:22 http://deb.debian.org/debian trixie/main amd64 libkeyutils1 amd64 1.6.3-6 [9456 B]
+Get:23 http://deb.debian.org/debian trixie/main amd64 libkrb5-3 amd64 1.21.3-5 [326 kB]
+Get:24 http://deb.debian.org/debian trixie/main amd64 libgssapi-krb5-2 amd64 1.21.3-5 [138 kB]
+Get:25 http://deb.debian.org/debian trixie/main amd64 libsasl2-modules-db amd64 2.1.28+dfsg1-9 [19.8 kB]
+Get:26 http://deb.debian.org/debian trixie/main amd64 libsasl2-2 amd64 2.1.28+dfsg1-9 [57.5 kB]
+Get:27 http://deb.debian.org/debian trixie/main amd64 libldap2 amd64 2.6.10+dfsg-1 [194 kB]
+Get:28 http://deb.debian.org/debian trixie/main amd64 libmagic-mgc amd64 1:5.46-5 [338 kB]
+Get:29 http://deb.debian.org/debian trixie/main amd64 libmagic1t64 amd64 1:5.46-5 [109 kB]
+Get:30 http://deb.debian.org/debian trixie/main amd64 libpq5 amd64 17.7-0+deb13u1 [228 kB]
+Get:31 http://deb.debian.org/debian trixie/main amd64 libssl-dev amd64 3.5.4-1~deb13u1 [2957 kB]
+Get:32 http://deb.debian.org/debian trixie/main amd64 libpq-dev amd64 17.7-0+deb13u1 [151 kB]
+Get:33 http://deb.debian.org/debian trixie/main amd64 libxau6 amd64 1:1.0.11-1 [20.4 kB]
+Get:34 http://deb.debian.org/debian trixie/main amd64 libxdmcp6 amd64 1:1.1.5-1 [27.8 kB]
+Get:35 http://deb.debian.org/debian trixie/main amd64 libxcb1 amd64 1.17.0-2+b1 [144 kB]
+Get:36 http://deb.debian.org/debian trixie/main amd64 libx11-data all 2:1.8.12-1 [343 kB]
+Get:37 http://deb.debian.org/debian trixie/main amd64 libx11-6 amd64 2:1.8.12-1 [815 kB]
+Get:38 http://deb.debian.org/debian trixie/main amd64 libxrender1 amd64 1:0.9.12-1 [27.9 kB]
+Get:39 http://deb.debian.org/debian trixie/main amd64 netcat-openbsd amd64 1.229-1 [42.5 kB]
+Get:40 http://deb.debian.org/debian trixie/main amd64 x11-common all 1:7.7+24+deb13u1 [217 kB]
+Get:41 http://deb.debian.org/debian trixie/main amd64 xfonts-encodings all 1:1.0.4-2.2 [577 kB]
+Get:42 http://deb.debian.org/debian trixie/main amd64 xfonts-utils amd64 1:7.7+7 [93.3 kB]
+Get:43 http://deb.debian.org/debian trixie/main amd64 xfonts-75dpi all 1:1.0.5 [3365 kB]
+Get:44 http://deb.debian.org/debian trixie/main amd64 xfonts-base all 1:1.0.5+nmu1 [5895 kB]
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8, <STDIN> line 44.)
+debconf: falling back to frontend: Teletype
+debconf: unable to initialize frontend: Teletype
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Noninteractive
+Preconfiguring packages ...
+Fetched 23.5 MB in 1s (46.2 MB/s)
+Selecting previously unselected package libexpat1:amd64.
+(Reading database ... 5645 files and directories currently installed.)
+Preparing to unpack .../00-libexpat1_2.7.1-2_amd64.deb ...
+Unpacking libexpat1:amd64 (2.7.1-2) ...
+Selecting previously unselected package libunistring5:amd64.
+Preparing to unpack .../01-libunistring5_1.3-2_amd64.deb ...
+Unpacking libunistring5:amd64 (1.3-2) ...
+Selecting previously unselected package libidn2-0:amd64.
+Preparing to unpack .../02-libidn2-0_2.3.8-2_amd64.deb ...
+Unpacking libidn2-0:amd64 (2.3.8-2) ...
+Selecting previously unselected package libp11-kit0:amd64.
+Preparing to unpack .../03-libp11-kit0_0.25.5-3_amd64.deb ...
+Unpacking libp11-kit0:amd64 (0.25.5-3) ...
+Selecting previously unselected package libtasn1-6:amd64.
+Preparing to unpack .../04-libtasn1-6_4.20.0-2_amd64.deb ...
+Unpacking libtasn1-6:amd64 (4.20.0-2) ...
+Selecting previously unselected package libgnutls30t64:amd64.
+Preparing to unpack .../05-libgnutls30t64_3.8.9-3+deb13u1_amd64.deb ...
+Unpacking libgnutls30t64:amd64 (3.8.9-3+deb13u1) ...
+Selecting previously unselected package libpsl5t64:amd64.
+Preparing to unpack .../06-libpsl5t64_0.21.2-1.1+b1_amd64.deb ...
+Unpacking libpsl5t64:amd64 (0.21.2-1.1+b1) ...
+Selecting previously unselected package wget.
+Preparing to unpack .../07-wget_1.25.0-2_amd64.deb ...
+Unpacking wget (1.25.0-2) ...
+Selecting previously unselected package libbrotli1:amd64.
+Preparing to unpack .../08-libbrotli1_1.1.0-2+b7_amd64.deb ...
+Unpacking libbrotli1:amd64 (1.1.0-2+b7) ...
+Selecting previously unselected package libpng16-16t64:amd64.
+Preparing to unpack .../09-libpng16-16t64_1.6.48-1+deb13u1_amd64.deb ...
+Unpacking libpng16-16t64:amd64 (1.6.48-1+deb13u1) ...
+Selecting previously unselected package libfreetype6:amd64.
+Preparing to unpack .../10-libfreetype6_2.13.3+dfsg-1_amd64.deb ...
+Unpacking libfreetype6:amd64 (2.13.3+dfsg-1) ...
+Selecting previously unselected package fonts-dejavu-mono.
+Preparing to unpack .../11-fonts-dejavu-mono_2.37-8_all.deb ...
+Unpacking fonts-dejavu-mono (2.37-8) ...
+Selecting previously unselected package fonts-dejavu-core.
+Preparing to unpack .../12-fonts-dejavu-core_2.37-8_all.deb ...
+Unpacking fonts-dejavu-core (2.37-8) ...
+Selecting previously unselected package fontconfig-config.
+Preparing to unpack .../13-fontconfig-config_2.15.0-2.3_amd64.deb ...
+Unpacking fontconfig-config (2.15.0-2.3) ...
+Selecting previously unselected package libfontconfig1:amd64.
+Preparing to unpack .../14-libfontconfig1_2.15.0-2.3_amd64.deb ...
+Unpacking libfontconfig1:amd64 (2.15.0-2.3) ...
+Selecting previously unselected package fontconfig.
+Preparing to unpack .../15-fontconfig_2.15.0-2.3_amd64.deb ...
+Unpacking fontconfig (2.15.0-2.3) ...
+Selecting previously unselected package libcom-err2:amd64.
+Preparing to unpack .../16-libcom-err2_1.47.2-3+b7_amd64.deb ...
+Unpacking libcom-err2:amd64 (1.47.2-3+b7) ...
+Selecting previously unselected package libdmtx0t64:amd64.
+Preparing to unpack .../17-libdmtx0t64_0.7.7-1.2+b1_amd64.deb ...
+Unpacking libdmtx0t64:amd64 (0.7.7-1.2+b1) ...
+Selecting previously unselected package libfontenc1:amd64.
+Preparing to unpack .../18-libfontenc1_1%3a1.1.8-1+b2_amd64.deb ...
+Unpacking libfontenc1:amd64 (1:1.1.8-1+b2) ...
+Selecting previously unselected package libkrb5support0:amd64.
+Preparing to unpack .../19-libkrb5support0_1.21.3-5_amd64.deb ...
+Unpacking libkrb5support0:amd64 (1.21.3-5) ...
+Selecting previously unselected package libk5crypto3:amd64.
+Preparing to unpack .../20-libk5crypto3_1.21.3-5_amd64.deb ...
+Unpacking libk5crypto3:amd64 (1.21.3-5) ...
+Selecting previously unselected package libkeyutils1:amd64.
+Preparing to unpack .../21-libkeyutils1_1.6.3-6_amd64.deb ...
+Unpacking libkeyutils1:amd64 (1.6.3-6) ...
+Selecting previously unselected package libkrb5-3:amd64.
+Preparing to unpack .../22-libkrb5-3_1.21.3-5_amd64.deb ...
+Unpacking libkrb5-3:amd64 (1.21.3-5) ...
+Selecting previously unselected package libgssapi-krb5-2:amd64.
+Preparing to unpack .../23-libgssapi-krb5-2_1.21.3-5_amd64.deb ...
+Unpacking libgssapi-krb5-2:amd64 (1.21.3-5) ...
+Selecting previously unselected package libsasl2-modules-db:amd64.
+Preparing to unpack .../24-libsasl2-modules-db_2.1.28+dfsg1-9_amd64.deb ...
+Unpacking libsasl2-modules-db:amd64 (2.1.28+dfsg1-9) ...
+Selecting previously unselected package libsasl2-2:amd64.
+Preparing to unpack .../25-libsasl2-2_2.1.28+dfsg1-9_amd64.deb ...
+Unpacking libsasl2-2:amd64 (2.1.28+dfsg1-9) ...
+Selecting previously unselected package libldap2:amd64.
+Preparing to unpack .../26-libldap2_2.6.10+dfsg-1_amd64.deb ...
+Unpacking libldap2:amd64 (2.6.10+dfsg-1) ...
+Selecting previously unselected package libmagic-mgc.
+Preparing to unpack .../27-libmagic-mgc_1%3a5.46-5_amd64.deb ...
+Unpacking libmagic-mgc (1:5.46-5) ...
+Selecting previously unselected package libmagic1t64:amd64.
+Preparing to unpack .../28-libmagic1t64_1%3a5.46-5_amd64.deb ...
+Unpacking libmagic1t64:amd64 (1:5.46-5) ...
+Selecting previously unselected package libpq5:amd64.
+Preparing to unpack .../29-libpq5_17.7-0+deb13u1_amd64.deb ...
+Unpacking libpq5:amd64 (17.7-0+deb13u1) ...
+Selecting previously unselected package libssl-dev:amd64.
+Preparing to unpack .../30-libssl-dev_3.5.4-1~deb13u1_amd64.deb ...
+Unpacking libssl-dev:amd64 (3.5.4-1~deb13u1) ...
+Selecting previously unselected package libpq-dev.
+Preparing to unpack .../31-libpq-dev_17.7-0+deb13u1_amd64.deb ...
+Unpacking libpq-dev (17.7-0+deb13u1) ...
+Selecting previously unselected package libxau6:amd64.
+Preparing to unpack .../32-libxau6_1%3a1.0.11-1_amd64.deb ...
+Unpacking libxau6:amd64 (1:1.0.11-1) ...
+Selecting previously unselected package libxdmcp6:amd64.
+Preparing to unpack .../33-libxdmcp6_1%3a1.1.5-1_amd64.deb ...
+Unpacking libxdmcp6:amd64 (1:1.1.5-1) ...
+Selecting previously unselected package libxcb1:amd64.
+Preparing to unpack .../34-libxcb1_1.17.0-2+b1_amd64.deb ...
+Unpacking libxcb1:amd64 (1.17.0-2+b1) ...
+Selecting previously unselected package libx11-data.
+Preparing to unpack .../35-libx11-data_2%3a1.8.12-1_all.deb ...
+Unpacking libx11-data (2:1.8.12-1) ...
+Selecting previously unselected package libx11-6:amd64.
+Preparing to unpack .../36-libx11-6_2%3a1.8.12-1_amd64.deb ...
+Unpacking libx11-6:amd64 (2:1.8.12-1) ...
+Selecting previously unselected package libxrender1:amd64.
+Preparing to unpack .../37-libxrender1_1%3a0.9.12-1_amd64.deb ...
+Unpacking libxrender1:amd64 (1:0.9.12-1) ...
+Selecting previously unselected package netcat-openbsd.
+Preparing to unpack .../38-netcat-openbsd_1.229-1_amd64.deb ...
+Unpacking netcat-openbsd (1.229-1) ...
+Selecting previously unselected package x11-common.
+Preparing to unpack .../39-x11-common_1%3a7.7+24+deb13u1_all.deb ...
+Unpacking x11-common (1:7.7+24+deb13u1) ...
+Selecting previously unselected package xfonts-encodings.
+Preparing to unpack .../40-xfonts-encodings_1%3a1.0.4-2.2_all.deb ...
+Unpacking xfonts-encodings (1:1.0.4-2.2) ...
+Selecting previously unselected package xfonts-utils.
+Preparing to unpack .../41-xfonts-utils_1%3a7.7+7_amd64.deb ...
+Unpacking xfonts-utils (1:7.7+7) ...
+Selecting previously unselected package xfonts-75dpi.
+Preparing to unpack .../42-xfonts-75dpi_1%3a1.0.5_all.deb ...
+Unpacking xfonts-75dpi (1:1.0.5) ...
+Selecting previously unselected package xfonts-base.
+Preparing to unpack .../43-xfonts-base_1%3a1.0.5+nmu1_all.deb ...
+Unpacking xfonts-base (1:1.0.5+nmu1) ...
+Setting up libexpat1:amd64 (2.7.1-2) ...
+Setting up libxau6:amd64 (1:1.0.11-1) ...
+Setting up libxdmcp6:amd64 (1:1.1.5-1) ...
+Setting up libkeyutils1:amd64 (1.6.3-6) ...
+Setting up libxcb1:amd64 (1.17.0-2+b1) ...
+Setting up libmagic-mgc (1:5.46-5) ...
+Setting up libbrotli1:amd64 (1.1.0-2+b7) ...
+Setting up libmagic1t64:amd64 (1:5.46-5) ...
+Setting up netcat-openbsd (1.229-1) ...
+update-alternatives: using /bin/nc.openbsd to provide /bin/nc (nc) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/man1/nc.1.gz because associated file /usr/share/man/man1/nc_openbsd.1.gz (of link group nc) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/netcat.1.gz because associated file /usr/share/man/man1/nc_openbsd.1.gz (of link group nc) doesn't exist
+Setting up x11-common (1:7.7+24+deb13u1) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8.)
+debconf: falling back to frontend: Teletype
+debconf: unable to initialize frontend: Teletype
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Noninteractive
+invoke-rc.d: could not determine current runlevel
+invoke-rc.d: policy-rc.d denied execution of start.
+Setting up libcom-err2:amd64 (1.47.2-3+b7) ...
+Setting up libkrb5support0:amd64 (1.21.3-5) ...
+Setting up libsasl2-modules-db:amd64 (2.1.28+dfsg1-9) ...
+Setting up libfontenc1:amd64 (1:1.1.8-1+b2) ...
+Setting up libx11-data (2:1.8.12-1) ...
+Setting up libdmtx0t64:amd64 (0.7.7-1.2+b1) ...
+Setting up xfonts-encodings (1:1.0.4-2.2) ...
+Setting up libp11-kit0:amd64 (0.25.5-3) ...
+Setting up libunistring5:amd64 (1.3-2) ...
+Setting up fonts-dejavu-mono (2.37-8) ...
+Setting up libssl-dev:amd64 (3.5.4-1~deb13u1) ...
+Setting up libpng16-16t64:amd64 (1.6.48-1+deb13u1) ...
+Setting up fonts-dejavu-core (2.37-8) ...
+Setting up libk5crypto3:amd64 (1.21.3-5) ...
+Setting up libsasl2-2:amd64 (2.1.28+dfsg1-9) ...
+Setting up libtasn1-6:amd64 (4.20.0-2) ...
+Setting up libx11-6:amd64 (2:1.8.12-1) ...
+Setting up libkrb5-3:amd64 (1.21.3-5) ...
+Setting up libldap2:amd64 (2.6.10+dfsg-1) ...
+Setting up libxrender1:amd64 (1:0.9.12-1) ...
+Setting up fontconfig-config (2.15.0-2.3) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8.)
+debconf: falling back to frontend: Teletype
+debconf: unable to initialize frontend: Teletype
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Noninteractive
+Setting up libidn2-0:amd64 (2.3.8-2) ...
+Setting up libfreetype6:amd64 (2.13.3+dfsg-1) ...
+Setting up libgssapi-krb5-2:amd64 (1.21.3-5) ...
+Setting up libfontconfig1:amd64 (2.15.0-2.3) ...
+Setting up libgnutls30t64:amd64 (3.8.9-3+deb13u1) ...
+Setting up fontconfig (2.15.0-2.3) ...
+Regenerating fonts cache... done.
+Setting up libpsl5t64:amd64 (0.21.2-1.1+b1) ...
+Setting up libpq5:amd64 (17.7-0+deb13u1) ...
+Setting up libpq-dev (17.7-0+deb13u1) ...
+Setting up xfonts-utils (1:7.7+7) ...
+Setting up xfonts-base (1:1.0.5+nmu1) ...
+Setting up xfonts-75dpi (1:1.0.5) ...
+Setting up wget (1.25.0-2) ...
+Processing triggers for libc-bin (2.41-12+deb13u1) ...
+Selecting previously unselected package wkhtmltox.
+(Reading database ... 7614 files and directories currently installed.)
+Preparing to unpack wkhtmltox_0.12.6.1-3.bookworm_amd64.deb ...
+Unpacking wkhtmltox (1:0.12.6.1-3.bookworm) ...
+dpkg: dependency problems prevent configuration of wkhtmltox:
+ wkhtmltox depends on libjpeg62-turbo; however:
+  Package libjpeg62-turbo is not installed.
+ wkhtmltox depends on libxext6; however:
+  Package libxext6 is not installed.
+
+dpkg: error processing package wkhtmltox (--install):
+ dependency problems - leaving unconfigured
+Errors were encountered while processing:
+ wkhtmltox
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Correcting dependencies... Done
+The following additional packages will be installed:
+  libjpeg62-turbo libxext6
+The following NEW packages will be installed:
+  libjpeg62-turbo libxext6
+0 upgraded, 2 newly installed, 0 to remove and 0 not upgraded.
+1 not fully installed or removed.
+Need to get 219 kB of archives.
+After this operation, 843 kB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian trixie/main amd64 libjpeg62-turbo amd64 1:2.1.5-4 [168 kB]
+Get:2 http://deb.debian.org/debian trixie/main amd64 libxext6 amd64 2:1.3.4-1+b3 [50.4 kB]
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8, <STDIN> line 2.)
+debconf: falling back to frontend: Teletype
+debconf: unable to initialize frontend: Teletype
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Noninteractive
+Fetched 219 kB in 1s (227 kB/s)
+Selecting previously unselected package libjpeg62-turbo:amd64.
+(Reading database ... 7636 files and directories currently installed.)
+Preparing to unpack .../libjpeg62-turbo_1%3a2.1.5-4_amd64.deb ...
+Unpacking libjpeg62-turbo:amd64 (1:2.1.5-4) ...
+Selecting previously unselected package libxext6:amd64.
+Preparing to unpack .../libxext6_2%3a1.3.4-1+b3_amd64.deb ...
+Unpacking libxext6:amd64 (2:1.3.4-1+b3) ...
+Setting up libxext6:amd64 (2:1.3.4-1+b3) ...
+Setting up libjpeg62-turbo:amd64 (1:2.1.5-4) ...
+Setting up wkhtmltox (1:0.12.6.1-3.bookworm) ...
+Processing triggers for libc-bin (2.41-12+deb13u1) ...
+ ---> Removed intermediate container a3a943772ed3
+ ---> 4a3e1f468664
+Step 6/10 : COPY requirements.txt .
+ ---> 398272522621
+Step 7/10 : RUN pip install --no-cache-dir -r requirements.txt
+ ---> Running in aaf847f1738e
+Collecting django>=5.0 (from -r requirements.txt (line 1))
+  Downloading django-5.2.10-py3-none-any.whl.metadata (4.1 kB)
+Collecting celery>=5.3 (from -r requirements.txt (line 2))
+  Downloading celery-5.6.2-py3-none-any.whl.metadata (23 kB)
+Collecting redis>=5.0 (from -r requirements.txt (line 3))
+  Downloading redis-7.1.0-py3-none-any.whl.metadata (12 kB)
+Collecting psycopg2-binary>=2.9 (from -r requirements.txt (line 4))
+  Downloading psycopg2_binary-2.9.11-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (4.9 kB)
+Collecting pymupdf>=1.23 (from -r requirements.txt (line 5))
+  Downloading pymupdf-1.26.7-cp310-abi3-manylinux_2_28_x86_64.whl.metadata (3.4 kB)
+Collecting pylibdmtx>=0.1.10 (from -r requirements.txt (line 6))
+  Downloading pylibdmtx-0.1.10-py2.py3-none-any.whl.metadata (5.6 kB)
+Collecting cryptography>=41.0 (from -r requirements.txt (line 7))
+  Downloading cryptography-46.0.3-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (5.7 kB)
+Collecting O365>=2.0 (from -r requirements.txt (line 8))
+  Downloading o365-2.1.8-py3-none-any.whl.metadata (3.6 kB)
+Collecting pdfkit>=1.0 (from -r requirements.txt (line 9))
+  Downloading pdfkit-1.0.0-py3-none-any.whl.metadata (9.3 kB)
+Collecting gunicorn>=21.0 (from -r requirements.txt (line 10))
+  Downloading gunicorn-23.0.0-py3-none-any.whl.metadata (4.4 kB)
+Collecting django-celery-beat>=2.5 (from -r requirements.txt (line 11))
+  Downloading django_celery_beat-2.8.1-py3-none-any.whl.metadata (13 kB)
+Collecting python-magic>=0.4 (from -r requirements.txt (line 12))
+  Downloading python_magic-0.4.27-py2.py3-none-any.whl.metadata (5.8 kB)
+Collecting Pillow>=10.0 (from -r requirements.txt (line 13))
+  Downloading pillow-12.1.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (8.8 kB)
+Collecting whitenoise>=6.6 (from -r requirements.txt (line 14))
+  Downloading whitenoise-6.11.0-py3-none-any.whl.metadata (3.7 kB)
+Collecting dj-database-url>=2.1 (from -r requirements.txt (line 15))
+  Downloading dj_database_url-3.1.0-py3-none-any.whl.metadata (13 kB)
+Collecting zeep>=4.2 (from -r requirements.txt (line 16))
+  Downloading zeep-4.3.2-py3-none-any.whl.metadata (4.4 kB)
+Collecting weasyprint>=60.0 (from -r requirements.txt (line 17))
+  Downloading weasyprint-67.0-py3-none-any.whl.metadata (3.7 kB)
+Collecting requests>=2.31 (from -r requirements.txt (line 18))
+  Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+Collecting asgiref>=3.8.1 (from django>=5.0->-r requirements.txt (line 1))
+  Downloading asgiref-3.11.0-py3-none-any.whl.metadata (9.3 kB)
+Collecting sqlparse>=0.3.1 (from django>=5.0->-r requirements.txt (line 1))
+  Downloading sqlparse-0.5.5-py3-none-any.whl.metadata (4.7 kB)
+Collecting billiard<5.0,>=4.2.1 (from celery>=5.3->-r requirements.txt (line 2))
+  Downloading billiard-4.2.4-py3-none-any.whl.metadata (4.8 kB)
+Collecting kombu>=5.6.0 (from celery>=5.3->-r requirements.txt (line 2))
+  Downloading kombu-5.6.2-py3-none-any.whl.metadata (3.5 kB)
+Collecting vine<6.0,>=5.1.0 (from celery>=5.3->-r requirements.txt (line 2))
+  Downloading vine-5.1.0-py3-none-any.whl.metadata (2.7 kB)
+Collecting click<9.0,>=8.1.2 (from celery>=5.3->-r requirements.txt (line 2))
+  Downloading click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+Collecting click-didyoumean>=0.3.0 (from celery>=5.3->-r requirements.txt (line 2))
+  Downloading click_didyoumean-0.3.1-py3-none-any.whl.metadata (3.9 kB)
+Collecting click-repl>=0.2.0 (from celery>=5.3->-r requirements.txt (line 2))
+  Downloading click_repl-0.3.0-py3-none-any.whl.metadata (3.6 kB)
+Collecting click-plugins>=1.1.1 (from celery>=5.3->-r requirements.txt (line 2))
+  Downloading click_plugins-1.1.1.2-py2.py3-none-any.whl.metadata (6.5 kB)
+Collecting python-dateutil>=2.8.2 (from celery>=5.3->-r requirements.txt (line 2))
+  Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+Collecting tzlocal (from celery>=5.3->-r requirements.txt (line 2))
+  Downloading tzlocal-5.3.1-py3-none-any.whl.metadata (7.6 kB)
+Collecting cffi>=2.0.0 (from cryptography>=41.0->-r requirements.txt (line 7))
+  Downloading cffi-2.0.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.6 kB)
+Collecting beautifulsoup4>=4.12.3 (from O365>=2.0->-r requirements.txt (line 8))
+  Downloading beautifulsoup4-4.14.3-py3-none-any.whl.metadata (3.8 kB)
+Collecting msal>=1.31.1 (from O365>=2.0->-r requirements.txt (line 8))
+  Downloading msal-1.34.0-py3-none-any.whl.metadata (11 kB)
+Collecting tzdata>=2024.2 (from O365>=2.0->-r requirements.txt (line 8))
+  Downloading tzdata-2025.3-py2.py3-none-any.whl.metadata (1.4 kB)
+Collecting packaging (from gunicorn>=21.0->-r requirements.txt (line 10))
+  Downloading packaging-25.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting django-timezone-field>=5.0 (from django-celery-beat>=2.5->-r requirements.txt (line 11))
+  Downloading django_timezone_field-7.2.1-py3-none-any.whl.metadata (13 kB)
+Collecting python-crontab>=2.3.4 (from django-celery-beat>=2.5->-r requirements.txt (line 11))
+  Downloading python_crontab-3.3.0-py3-none-any.whl.metadata (17 kB)
+Collecting cron-descriptor>=1.2.32 (from django-celery-beat>=2.5->-r requirements.txt (line 11))
+  Downloading cron_descriptor-2.0.6-py3-none-any.whl.metadata (8.1 kB)
+Collecting attrs>=17.2.0 (from zeep>=4.2->-r requirements.txt (line 16))
+  Downloading attrs-25.4.0-py3-none-any.whl.metadata (10 kB)
+Collecting isodate>=0.5.4 (from zeep>=4.2->-r requirements.txt (line 16))
+  Downloading isodate-0.7.2-py3-none-any.whl.metadata (11 kB)
+Collecting lxml>=4.6.0 (from zeep>=4.2->-r requirements.txt (line 16))
+  Downloading lxml-6.0.2-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (3.6 kB)
+Collecting platformdirs>=1.4.0 (from zeep>=4.2->-r requirements.txt (line 16))
+  Downloading platformdirs-4.5.1-py3-none-any.whl.metadata (12 kB)
+Collecting requests-toolbelt>=0.7.1 (from zeep>=4.2->-r requirements.txt (line 16))
+  Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+Collecting requests-file>=1.5.1 (from zeep>=4.2->-r requirements.txt (line 16))
+  Downloading requests_file-3.0.1-py2.py3-none-any.whl.metadata (1.7 kB)
+Collecting pytz (from zeep>=4.2->-r requirements.txt (line 16))
+  Downloading pytz-2025.2-py2.py3-none-any.whl.metadata (22 kB)
+Collecting pydyf>=0.11.0 (from weasyprint>=60.0->-r requirements.txt (line 17))
+  Downloading pydyf-0.12.1-py3-none-any.whl.metadata (2.5 kB)
+Collecting tinyhtml5>=2.0.0b1 (from weasyprint>=60.0->-r requirements.txt (line 17))
+  Downloading tinyhtml5-2.0.0-py3-none-any.whl.metadata (2.9 kB)
+Collecting tinycss2>=1.5.0 (from weasyprint>=60.0->-r requirements.txt (line 17))
+  Downloading tinycss2-1.5.1-py3-none-any.whl.metadata (3.0 kB)
+Collecting cssselect2>=0.8.0 (from weasyprint>=60.0->-r requirements.txt (line 17))
+  Downloading cssselect2-0.8.0-py3-none-any.whl.metadata (2.9 kB)
+Collecting Pyphen>=0.9.1 (from weasyprint>=60.0->-r requirements.txt (line 17))
+  Downloading pyphen-0.17.2-py3-none-any.whl.metadata (3.2 kB)
+Collecting fonttools>=4.59.2 (from fonttools[woff]>=4.59.2->weasyprint>=60.0->-r requirements.txt (line 17))
+  Downloading fonttools-4.61.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (114 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 114.2/114.2 kB 68.4 MB/s eta 0:00:00
+Collecting charset_normalizer<4,>=2 (from requests>=2.31->-r requirements.txt (line 18))
+  Downloading charset_normalizer-3.4.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (37 kB)
+Collecting idna<4,>=2.5 (from requests>=2.31->-r requirements.txt (line 18))
+  Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+Collecting urllib3<3,>=1.21.1 (from requests>=2.31->-r requirements.txt (line 18))
+  Downloading urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+Collecting certifi>=2017.4.17 (from requests>=2.31->-r requirements.txt (line 18))
+  Downloading certifi-2026.1.4-py3-none-any.whl.metadata (2.5 kB)
+Collecting soupsieve>=1.6.1 (from beautifulsoup4>=4.12.3->O365>=2.0->-r requirements.txt (line 8))
+  Downloading soupsieve-2.8.1-py3-none-any.whl.metadata (4.6 kB)
+Collecting typing-extensions>=4.0.0 (from beautifulsoup4>=4.12.3->O365>=2.0->-r requirements.txt (line 8))
+  Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting pycparser (from cffi>=2.0.0->cryptography>=41.0->-r requirements.txt (line 7))
+  Downloading pycparser-2.23-py3-none-any.whl.metadata (993 bytes)
+Collecting prompt-toolkit>=3.0.36 (from click-repl>=0.2.0->celery>=5.3->-r requirements.txt (line 2))
+  Downloading prompt_toolkit-3.0.52-py3-none-any.whl.metadata (6.4 kB)
+Collecting webencodings (from cssselect2>=0.8.0->weasyprint>=60.0->-r requirements.txt (line 17))
+  Downloading webencodings-0.5.1-py2.py3-none-any.whl.metadata (2.1 kB)
+Collecting brotli>=1.0.1 (from fonttools[woff]>=4.59.2->weasyprint>=60.0->-r requirements.txt (line 17))
+  Downloading brotli-1.2.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (6.1 kB)
+Collecting zopfli>=0.1.4 (from fonttools[woff]>=4.59.2->weasyprint>=60.0->-r requirements.txt (line 17))
+  Downloading zopfli-0.4.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (3.5 kB)
+Collecting amqp<6.0.0,>=5.1.1 (from kombu>=5.6.0->celery>=5.3->-r requirements.txt (line 2))
+  Downloading amqp-5.3.1-py3-none-any.whl.metadata (8.9 kB)
+Collecting PyJWT<3,>=1.0.0 (from PyJWT[crypto]<3,>=1.0.0->msal>=1.31.1->O365>=2.0->-r requirements.txt (line 8))
+  Downloading PyJWT-2.10.1-py3-none-any.whl.metadata (4.0 kB)
+Collecting six>=1.5 (from python-dateutil>=2.8.2->celery>=5.3->-r requirements.txt (line 2))
+  Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Collecting wcwidth (from prompt-toolkit>=3.0.36->click-repl>=0.2.0->celery>=5.3->-r requirements.txt (line 2))
+  Downloading wcwidth-0.2.14-py2.py3-none-any.whl.metadata (15 kB)
+Downloading django-5.2.10-py3-none-any.whl (8.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.3/8.3 MB 110.3 MB/s eta 0:00:00
+Downloading celery-5.6.2-py3-none-any.whl (445 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 445.5/445.5 kB 254.3 MB/s eta 0:00:00
+Downloading redis-7.1.0-py3-none-any.whl (354 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 354.2/354.2 kB 248.6 MB/s eta 0:00:00
+Downloading psycopg2_binary-2.9.11-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.2/4.2 MB 176.4 MB/s eta 0:00:00
+Downloading pymupdf-1.26.7-cp310-abi3-manylinux_2_28_x86_64.whl (24.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 24.1/24.1 MB 166.4 MB/s eta 0:00:00
+Downloading pylibdmtx-0.1.10-py2.py3-none-any.whl (23 kB)
+Downloading cryptography-46.0.3-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 142.8 MB/s eta 0:00:00
+Downloading o365-2.1.8-py3-none-any.whl (159 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 159.8/159.8 kB 265.7 MB/s eta 0:00:00
+Downloading pdfkit-1.0.0-py3-none-any.whl (12 kB)
+Downloading gunicorn-23.0.0-py3-none-any.whl (85 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.0/85.0 kB 238.8 MB/s eta 0:00:00
+Downloading django_celery_beat-2.8.1-py3-none-any.whl (104 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 104.8/104.8 kB 247.5 MB/s eta 0:00:00
+Downloading python_magic-0.4.27-py2.py3-none-any.whl (13 kB)
+Downloading pillow-12.1.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.0/7.0 MB 153.3 MB/s eta 0:00:00
+Downloading whitenoise-6.11.0-py3-none-any.whl (20 kB)
+Downloading dj_database_url-3.1.0-py3-none-any.whl (8.8 kB)
+Downloading zeep-4.3.2-py3-none-any.whl (101 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 101.9/101.9 kB 275.1 MB/s eta 0:00:00
+Downloading weasyprint-67.0-py3-none-any.whl (316 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 316.3/316.3 kB 288.9 MB/s eta 0:00:00
+Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.7/64.7 kB 240.1 MB/s eta 0:00:00
+Downloading asgiref-3.11.0-py3-none-any.whl (24 kB)
+Downloading attrs-25.4.0-py3-none-any.whl (67 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 67.6/67.6 kB 235.5 MB/s eta 0:00:00
+Downloading beautifulsoup4-4.14.3-py3-none-any.whl (107 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 107.7/107.7 kB 269.1 MB/s eta 0:00:00
+Downloading billiard-4.2.4-py3-none-any.whl (87 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.1/87.1 kB 261.6 MB/s eta 0:00:00
+Downloading certifi-2026.1.4-py3-none-any.whl (152 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 152.9/152.9 kB 288.5 MB/s eta 0:00:00
+Downloading cffi-2.0.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (215 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 215.6/215.6 kB 285.7 MB/s eta 0:00:00
+Downloading charset_normalizer-3.4.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (151 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 151.6/151.6 kB 261.9 MB/s eta 0:00:00
+Downloading click-8.3.1-py3-none-any.whl (108 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 108.3/108.3 kB 270.5 MB/s eta 0:00:00
+Downloading click_didyoumean-0.3.1-py3-none-any.whl (3.6 kB)
+Downloading click_plugins-1.1.1.2-py2.py3-none-any.whl (11 kB)
+Downloading click_repl-0.3.0-py3-none-any.whl (10 kB)
+Downloading cron_descriptor-2.0.6-py3-none-any.whl (74 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 74.4/74.4 kB 253.4 MB/s eta 0:00:00
+Downloading cssselect2-0.8.0-py3-none-any.whl (15 kB)
+Downloading django_timezone_field-7.2.1-py3-none-any.whl (13 kB)
+Downloading fonttools-4.61.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (5.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/5.0 MB 167.9 MB/s eta 0:00:00
+Downloading idna-3.11-py3-none-any.whl (71 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 71.0/71.0 kB 217.9 MB/s eta 0:00:00
+Downloading isodate-0.7.2-py3-none-any.whl (22 kB)
+Downloading kombu-5.6.2-py3-none-any.whl (214 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 214.2/214.2 kB 273.7 MB/s eta 0:00:00
+Downloading vine-5.1.0-py3-none-any.whl (9.6 kB)
+Downloading lxml-6.0.2-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (5.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 106.6 MB/s eta 0:00:00
+Downloading msal-1.34.0-py3-none-any.whl (116 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 117.0/117.0 kB 251.7 MB/s eta 0:00:00
+Downloading platformdirs-4.5.1-py3-none-any.whl (18 kB)
+Downloading pydyf-0.12.1-py3-none-any.whl (8.0 kB)
+Downloading pyphen-0.17.2-py3-none-any.whl (2.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 194.1 MB/s eta 0:00:00
+Downloading python_crontab-3.3.0-py3-none-any.whl (27 kB)
+Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 229.9/229.9 kB 282.0 MB/s eta 0:00:00
+Downloading requests_file-3.0.1-py2.py3-none-any.whl (4.5 kB)
+Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 54.5/54.5 kB 205.3 MB/s eta 0:00:00
+Downloading sqlparse-0.5.5-py3-none-any.whl (46 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 46.1/46.1 kB 214.0 MB/s eta 0:00:00
+Downloading tinycss2-1.5.1-py3-none-any.whl (28 kB)
+Downloading tinyhtml5-2.0.0-py3-none-any.whl (39 kB)
+Downloading tzdata-2025.3-py2.py3-none-any.whl (348 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 348.5/348.5 kB 287.4 MB/s eta 0:00:00
+Downloading tzlocal-5.3.1-py3-none-any.whl (18 kB)
+Downloading urllib3-2.6.3-py3-none-any.whl (131 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 131.6/131.6 kB 256.4 MB/s eta 0:00:00
+Downloading packaging-25.0-py3-none-any.whl (66 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 66.5/66.5 kB 133.4 MB/s eta 0:00:00
+Downloading pytz-2025.2-py2.py3-none-any.whl (509 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 509.2/509.2 kB 266.7 MB/s eta 0:00:00
+Downloading amqp-5.3.1-py3-none-any.whl (50 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 50.9/50.9 kB 15.7 MB/s eta 0:00:00
+Downloading brotli-1.2.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.4/1.4 MB 176.6 MB/s eta 0:00:00
+Downloading prompt_toolkit-3.0.52-py3-none-any.whl (391 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 391.4/391.4 kB 242.0 MB/s eta 0:00:00
+Downloading PyJWT-2.10.1-py3-none-any.whl (22 kB)
+Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Downloading soupsieve-2.8.1-py3-none-any.whl (36 kB)
+Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.6/44.6 kB 165.9 MB/s eta 0:00:00
+Downloading webencodings-0.5.1-py2.py3-none-any.whl (11 kB)
+Downloading zopfli-0.4.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (847 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 847.1/847.1 kB 287.7 MB/s eta 0:00:00
+Downloading pycparser-2.23-py3-none-any.whl (118 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 118.1/118.1 kB 235.2 MB/s eta 0:00:00
+Downloading wcwidth-0.2.14-py2.py3-none-any.whl (37 kB)
+Installing collected packages: webencodings, pytz, python-crontab, pylibdmtx, pdfkit, brotli, zopfli, whitenoise, wcwidth, vine, urllib3, tzlocal, tzdata, typing-extensions, tinyhtml5, tinycss2, sqlparse, soupsieve, six, redis, python-magic, Pyphen, pymupdf, PyJWT, pydyf, pycparser, psycopg2-binary, platformdirs, Pillow, packaging, lxml, isodate, idna, fonttools, click, charset_normalizer, certifi, billiard, attrs, asgiref, requests, python-dateutil, prompt-toolkit, gunicorn, django, cssselect2, cron-descriptor, click-plugins, click-didyoumean, cffi, beautifulsoup4, amqp, weasyprint, requests-toolbelt, requests-file, kombu, django-timezone-field, dj-database-url, cryptography, click-repl, zeep, celery, msal, django-celery-beat, O365
+Successfully installed O365-2.1.8 Pillow-12.1.0 PyJWT-2.10.1 Pyphen-0.17.2 amqp-5.3.1 asgiref-3.11.0 attrs-25.4.0 beautifulsoup4-4.14.3 billiard-4.2.4 brotli-1.2.0 celery-5.6.2 certifi-2026.1.4 cffi-2.0.0 charset_normalizer-3.4.4 click-8.3.1 click-didyoumean-0.3.1 click-plugins-1.1.1.2 click-repl-0.3.0 cron-descriptor-2.0.6 cryptography-46.0.3 cssselect2-0.8.0 dj-database-url-3.1.0 django-5.2.10 django-celery-beat-2.8.1 django-timezone-field-7.2.1 fonttools-4.61.1 gunicorn-23.0.0 idna-3.11 isodate-0.7.2 kombu-5.6.2 lxml-6.0.2 msal-1.34.0 packaging-25.0 pdfkit-1.0.0 platformdirs-4.5.1 prompt-toolkit-3.0.52 psycopg2-binary-2.9.11 pycparser-2.23 pydyf-0.12.1 pylibdmtx-0.1.10 pymupdf-1.26.7 python-crontab-3.3.0 python-dateutil-2.9.0.post0 python-magic-0.4.27 pytz-2025.2 redis-7.1.0 requests-2.32.5 requests-file-3.0.1 requests-toolbelt-1.0.0 six-1.17.0 soupsieve-2.8.1 sqlparse-0.5.5 tinycss2-1.5.1 tinyhtml5-2.0.0 typing-extensions-4.15.0 tzdata-2025.3 tzlocal-5.3.1 urllib3-2.6.3 vine-5.1.0 wcwidth-0.2.14 weasyprint-67.0 webencodings-0.5.1 whitenoise-6.11.0 zeep-4.3.2 zopfli-0.4.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+
+[notice] A new release of pip is available: 24.0 -> 25.3
+[notice] To update, run: pip install --upgrade pip
+ ---> Removed intermediate container aaf847f1738e
+ ---> 7f61c9b9cfa4
+Step 8/10 : COPY . .
+ ---> f7682963a2df
+Step 9/10 : RUN chmod +x entrypoint.sh
+ ---> Running in 7be8536e3f79
+ ---> Removed intermediate container 7be8536e3f79
+ ---> 7fbca08126cd
+Step 10/10 : CMD ["./entrypoint.sh"]
+ ---> Running in 79126f4078ab
+ ---> Removed intermediate container 79126f4078ab
+ ---> 7080a8b48870
+Successfully built 7080a8b48870
+Successfully tagged sage-local-dms_web:latest
+WARNING: Image for service web was built because it did not already exist. To rebuild this image you must use `docker-compose build` or `docker-compose up --build`.
+Building celery_worker
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon   10.2MB
+Step 1/10 : FROM python:3.11-slim
+ ---> fa659464a114
+Step 2/10 : ENV PYTHONDONTWRITEBYTECODE=1
+ ---> Using cache
+ ---> 521abcd46c56
+Step 3/10 : ENV PYTHONUNBUFFERED=1
+ ---> Using cache
+ ---> 9d0d4fd6ceb9
+Step 4/10 : WORKDIR /app
+ ---> Using cache
+ ---> c0dceb0ac5e3
+Step 5/10 : RUN apt-get update && apt-get install -y --no-install-recommends     libpq-dev     libmagic1     libdmtx0b     netcat-openbsd     wget     fontconfig     libxrender1     xfonts-75dpi     xfonts-base     && wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb     && dpkg -i wkhtmltox_0.12.6.1-3.bookworm_amd64.deb || apt-get install -f -y     && rm wkhtmltox_0.12.6.1-3.bookworm_amd64.deb     && rm -rf /var/lib/apt/lists/*
+ ---> Using cache
+ ---> 4a3e1f468664
+Step 6/10 : COPY requirements.txt .
+ ---> Using cache
+ ---> 398272522621
+Step 7/10 : RUN pip install --no-cache-dir -r requirements.txt
+ ---> Using cache
+ ---> 7f61c9b9cfa4
+Step 8/10 : COPY . .
+ ---> Using cache
+ ---> f7682963a2df
+Step 9/10 : RUN chmod +x entrypoint.sh
+ ---> Using cache
+ ---> 7fbca08126cd
+Step 10/10 : CMD ["./entrypoint.sh"]
+ ---> Using cache
+ ---> 7080a8b48870
+Successfully built 7080a8b48870
+Successfully tagged sage-local-dms_celery_worker:latest
+WARNING: Image for service celery_worker was built because it did not already exist. To rebuild this image you must use `docker-compose build` or `docker-compose up --build`.
+Building celery_beat
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon   10.2MB
+Step 1/10 : FROM python:3.11-slim
+ ---> fa659464a114
+Step 2/10 : ENV PYTHONDONTWRITEBYTECODE=1
+ ---> Using cache
+ ---> 521abcd46c56
+Step 3/10 : ENV PYTHONUNBUFFERED=1
+ ---> Using cache
+ ---> 9d0d4fd6ceb9
+Step 4/10 : WORKDIR /app
+ ---> Using cache
+ ---> c0dceb0ac5e3
+Step 5/10 : RUN apt-get update && apt-get install -y --no-install-recommends     libpq-dev     libmagic1     libdmtx0b     netcat-openbsd     wget     fontconfig     libxrender1     xfonts-75dpi     xfonts-base     && wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb     && dpkg -i wkhtmltox_0.12.6.1-3.bookworm_amd64.deb || apt-get install -f -y     && rm wkhtmltox_0.12.6.1-3.bookworm_amd64.deb     && rm -rf /var/lib/apt/lists/*
+ ---> Using cache
+ ---> 4a3e1f468664
+Step 6/10 : COPY requirements.txt .
+ ---> Using cache
+ ---> 398272522621
+Step 7/10 : RUN pip install --no-cache-dir -r requirements.txt
+ ---> Using cache
+ ---> 7f61c9b9cfa4
+Step 8/10 : COPY . .
+ ---> Using cache
+ ---> f7682963a2df
+Step 9/10 : RUN chmod +x entrypoint.sh
+ ---> Using cache
+ ---> 7fbca08126cd
+Step 10/10 : CMD ["./entrypoint.sh"]
+ ---> Using cache
+ ---> 7080a8b48870
+Successfully built 7080a8b48870
+Successfully tagged sage-local-dms_celery_beat:latest
+WARNING: Image for service celery_beat was built because it did not already exist. To rebuild this image you must use `docker-compose build` or `docker-compose up --build`.
+Recreating sage-local-dms-db-1 ... 
+Recreating sage-local-dms-redis-1 ... 
+
+ERROR: for sage-local-dms-redis-1  'ContainerConfig'
+
+ERROR: for sage-local-dms-db-1  'ContainerConfig'
+
+ERROR: for redis  'ContainerConfig'
+
+ERROR: for db  'ContainerConfig'
+Traceback (most recent call last):
+  File "/usr/bin/docker-compose", line 33, in <module>
+    sys.exit(load_entry_point('docker-compose==1.29.2', 'console_scripts', 'docker-compose')())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 81, in main
+    command_func()
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 203, in perform_command
+    handler(command, command_options)
+  File "/usr/lib/python3/dist-packages/compose/metrics/decorator.py", line 18, in wrapper
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 1186, in up
+    to_attach = up(False)
+                ^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 1166, in up
+    return self.project.up(
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/project.py", line 697, in up
+    results, errors = parallel.parallel_execute(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 108, in parallel_execute
+    raise error_to_reraise
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 206, in producer
+    result = func(obj)
+             ^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/project.py", line 679, in do
+    return service.execute_convergence_plan(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 579, in execute_convergence_plan
+    return self._execute_convergence_recreate(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 499, in _execute_convergence_recreate
+    containers, errors = parallel_execute(
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 108, in parallel_execute
+    raise error_to_reraise
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 206, in producer
+    result = func(obj)
+             ^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 494, in recreate
+    return self.recreate_container(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 612, in recreate_container
+    new_container = self.create_container(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 330, in create_container
+    container_options = self._get_container_create_options(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 921, in _get_container_create_options
+    container_options, override_options = self._build_container_volume_options(
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 960, in _build_container_volume_options
+    binds, affinity = merge_volume_bindings(
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 1548, in merge_volume_bindings
+    old_volumes, old_mounts = get_container_data_volumes(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 1579, in get_container_data_volumes
+    container.image_config['ContainerConfig'].get('Volumes') or {}
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+KeyError: 'ContainerConfig'
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ 
