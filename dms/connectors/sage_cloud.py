@@ -87,6 +87,97 @@ class SageCloudConnector:
     def is_connected(self) -> bool:
         return self._authenticated and self.session is not None
     
+    def fetch_employees(self) -> List[Dict[str, Any]]:
+        """Fetch all employees from Sage Cloud"""
+        data = self._api_request('/employees')
+        if not data:
+            return []
+        
+        employees_list = data.get('data', data) if isinstance(data, dict) else data
+        
+        employees = []
+        for emp in employees_list:
+            employees.append({
+                'sage_cloud_id': str(emp.get('id', '')),
+                'employee_id': emp.get('employee_number', emp.get('staff_number', str(emp.get('id', '')))),
+                'first_name': emp.get('first_name', emp.get('firstname', '')),
+                'last_name': emp.get('last_name', emp.get('surname', emp.get('lastname', ''))),
+                'email': emp.get('email', emp.get('work_email', '')),
+                'department_name': emp.get('department', emp.get('department_name', '')),
+                'position': emp.get('position', emp.get('job_title', '')),
+                'entry_date': emp.get('start_date', emp.get('hire_date', emp.get('employment_start_date'))),
+                'exit_date': emp.get('termination_date', emp.get('leave_date')),
+                'is_active': emp.get('status', 'active').lower() == 'active',
+                'raw_data': emp
+            })
+        
+        self._log('INFO', f'{len(employees)} Mitarbeiter von Sage Cloud abgerufen')
+        return employees
+    
+    def sync_employees(self) -> Dict[str, int]:
+        """Sync employees from Sage Cloud to database and create personnel files"""
+        from ..models import Department, PersonnelFile
+        
+        employees_data = self.fetch_employees()
+        stats = {'created': 0, 'updated': 0, 'files_created': 0, 'errors': 0}
+        
+        for emp_data in employees_data:
+            try:
+                department = None
+                if emp_data.get('department_name'):
+                    department, _ = Department.objects.get_or_create(
+                        name=emp_data['department_name']
+                    )
+                
+                entry_date = emp_data.get('entry_date')
+                if entry_date and isinstance(entry_date, str):
+                    try:
+                        entry_date = datetime.fromisoformat(entry_date.replace('Z', '+00:00')).date()
+                    except:
+                        entry_date = None
+                
+                exit_date = emp_data.get('exit_date')
+                if exit_date and isinstance(exit_date, str):
+                    try:
+                        exit_date = datetime.fromisoformat(exit_date.replace('Z', '+00:00')).date()
+                    except:
+                        exit_date = None
+                
+                employee, created = Employee.objects.update_or_create(
+                    sage_cloud_id=emp_data['sage_cloud_id'],
+                    defaults={
+                        'employee_id': emp_data['employee_id'],
+                        'first_name': emp_data['first_name'],
+                        'last_name': emp_data['last_name'],
+                        'email': emp_data.get('email', ''),
+                        'department': department,
+                        'entry_date': entry_date,
+                        'exit_date': exit_date,
+                        'is_active': emp_data.get('is_active', True),
+                    }
+                )
+                
+                if created:
+                    stats['created'] += 1
+                else:
+                    stats['updated'] += 1
+                
+                pf, pf_created = PersonnelFile.objects.get_or_create(
+                    employee=employee,
+                    defaults={
+                        'status': 'ACTIVE' if employee.is_active else 'INACTIVE'
+                    }
+                )
+                if pf_created:
+                    stats['files_created'] += 1
+                    
+            except Exception as e:
+                stats['errors'] += 1
+                self._log('ERROR', f'Fehler bei Mitarbeiter-Sync: {str(e)}', {'data': emp_data})
+        
+        self._log('INFO', 'Mitarbeiter-Sync abgeschlossen', stats)
+        return stats
+    
     def _api_request(self, endpoint: str, params: dict = None) -> Optional[dict]:
         """Make authenticated API request"""
         if not self.is_connected():

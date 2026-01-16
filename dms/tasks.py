@@ -449,6 +449,28 @@ Date: {message.received}
 
 
 @shared_task(bind=True, max_retries=3)
+def sync_sage_cloud_employees(self):
+    """Sync employees from Sage Cloud and create personnel files"""
+    from .connectors.sage_cloud import SageCloudConnector
+    
+    try:
+        connector = SageCloudConnector()
+        if connector.connect():
+            stats = connector.sync_employees()
+            log_system_event('INFO', 'SageCloudSync', 
+                'Mitarbeiter-Synchronisation abgeschlossen', stats)
+            return {'status': 'success', **stats}
+        else:
+            log_system_event('WARNING', 'SageCloudSync', 
+                'Verbindung zu Sage Cloud nicht möglich')
+            return {'status': 'connection_failed'}
+    except Exception as e:
+        log_system_event('ERROR', 'SageCloudSync', 
+            f'Sage Cloud Sync fehlgeschlagen: {str(e)}')
+        raise self.retry(exc=e, countdown=300)
+
+
+@shared_task(bind=True, max_retries=3)
 def import_sage_cloud_leave_requests(self):
     """Import approved leave requests from Sage Cloud"""
     from .connectors.sage_cloud import SageCloudConnector
