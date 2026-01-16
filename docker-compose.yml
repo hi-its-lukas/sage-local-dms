@@ -3,7 +3,7 @@ services:
     build: .
     volumes:
       - static_volume:/app/staticfiles
-      - ./data/sage_archive:/data/sage_archive:ro
+      - /srv/sage_archiv:/data/sage_archive:ro
       - ./data/manual_input:/data/manual_input
       - ./data/email_archive:/data/email_archive
     expose:
@@ -33,7 +33,7 @@ services:
     build: .
     command: celery -A dms_project worker -l INFO
     volumes:
-      - ./data/sage_archive:/data/sage_archive:ro
+      - /srv/sage_archiv:/data/sage_archive:ro
       - ./data/manual_input:/data/manual_input
       - ./data/email_archive:/data/email_archive
     env_file:
