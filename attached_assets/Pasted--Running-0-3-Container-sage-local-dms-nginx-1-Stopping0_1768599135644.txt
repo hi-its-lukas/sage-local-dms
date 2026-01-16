@@ -1,0 +1,379 @@
+[+] Running 0/3
+ ⠋ Container sage-local-dms-nginx-1          Stopping0.1s 
+[+] Running 0/3ge-local-dms-celery_worker-1  Stopping0.1s
+ ⠙ Container sage-local-dms-nginx-1          Stopping0.2s ⠋ Container sage-local-dms-celery_beat-1    Stopping0.1s
+[+] Running 0/3ge-local-dms-celery_worker-1  Stopping0.2s
+ ⠹ Container sage-local-dms-nginx-1          Stopping0.3s ⠙ Container sage-local-dms-celery_beat-1    Stopping0.2s
+[+] Running 1/4ge-local-dms-celery_worker-1  Stopping0.3s
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+ ⠸ Container sage-local-dms-celery_worker-1  Stopping0.4s[+] Running 1/4
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+ ⠼ Container sage-local-dms-celery_worker-1  Stopping0.5s[+] Running 2/4ge-local-dms-web-1            Stopping0.1s
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 2/4ge-local-dms-celery_worker-1  Stopping0.6s
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 2/4ge-local-dms-celery_worker-1  Stopping0.7s
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 2/4ge-local-dms-celery_worker-1  Stopping0.8s
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 2/4ge-local-dms-celery_worker-1  Stopping0.9s
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 2/4ge-local-dms-celery_worker-1  Stopping1.0s
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 2/4ge-local-dms-celery_worker-1  Stopping1.1s
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 2/4ge-local-dms-celery_worker-1  Stopping1.2s
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-celery_worker-1  Stopping1.3s
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 3/4ge-local-dms-nginx-1          Removed0.3s 
+[+] Running 4/6ge-local-dms-nginx-1          Removed0.3s 
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 4/6ge-local-dms-celery_worker-1  Removed3.1s 
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 4/6ge-local-dms-celery_worker-1  Removed3.1s 
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 4/6ge-local-dms-celery_worker-1  Removed3.1s 
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+[+] Running 6/7ge-local-dms-celery_worker-1  Removed3.1s 
+[+] Running 7/7ge-local-dms-nginx-1          Removed0.3s 
+ ✔ Container sage-local-dms-nginx-1          Removed0.3s 
+ ✔ Container sage-local-dms-celery_worker-1  Removed3.1s 
+ ✔ Container sage-local-dms-celery_beat-1    Removed0.6s 
+ ✔ Container sage-local-dms-web-1            Removed1.0s 
+ ✔ Container sage-local-dms-redis-1          Removed0.4s 
+ ✔ Container sage-local-dms-db-1             Removed0.4s 
+ ✔ Network sage-local-dms_default            Removed0.1s 
+WARN[0000] Docker Compose is configured to build using Bake, but buildx isn't installed 
+[+] Building 106.5s (23/31)               docker:default
+ => [web internal] load build definition from Dock  0.0s
+ => => transferring dockerfile: 872B                0.0s
+ => [celery_worker internal] load build definition  0.0s
+ => => transferring dockerfile: 872B                0.0s
+ => [celery_beat internal] load build definition f  0.1s
+ => => transferring dockerfile: 872B                0.0s
+ => [celery_beat internal] load metadata for docke  0.0s
+ => [web internal] load .dockerignore               0.1s
+ => => transferring context: 2B                     0.0s
+ => [celery_worker internal] load .dockerignore     0.1s
+ => => transferring context: 2B                     0.0s
+ => [celery_beat internal] load .dockerignore       0.1s
+ => => transferring context: 2B                     0.0s
+ => [celery_beat 1/7] FROM docker.io/library/pytho  0.0s
+ => [web internal] load build context               0.7s
+ => => transferring context: 6.22MB                 0.6s
+ => CACHED [celery_beat 2/7] WORKDIR /app           0.0s
+ => [celery_beat 3/7] RUN apt-get update && apt-g  41.9s
+ => [celery_worker internal] load build context     0.5s
+ => => transferring context: 6.22MB                 0.4s
+ => [celery_beat internal] load build context       0.4s
+ => => transferring context: 6.22MB                 0.3s
+ => [web 4/7] COPY requirements.txt .               0.1s
+ => [celery_worker 5/7] RUN pip install --no-cach  35.4s 
+ => [celery_worker 6/7] COPY . .                    2.2s 
+ => [celery_beat 7/7] RUN chmod +x entrypoint.sh    0.6s 
+ => [celery_beat] exporting to image               24.2s 
+ => => exporting layers                            23.4s 
+ => => writing image sha256:ec8bf15db0b72cf10877f8  0.0s 
+ => => naming to docker.io/library/sage-local-dms-  0.0s 
+ => [web] exporting to image                       24.2s
+ => => exporting layers                            23.4s
+ => => writing image sha256:83f0f71868c3a00dcdd525  0.0s
+ => => naming to docker.io/library/sage-local-dms-  0.0s
+ => [celery_worker] exporting to image             24.2s
+ => => exporting layers                            23.4s
+ => => writing image sha256:43fca38da45c477b2a9af3  0.0s
+ => => naming to docker.io/library/sage-local-dms-  0.1s
+ => [celery_beat] resolving provenance for metadat  0.2s
+ => [web] resolving provenance for metadata file    0.2s
+ => [celery_worker] resolving provenance for metad  0.0s
+[+] Building 3/3
+ ✔ celery_beat    Built                             0.0s 
+ ✔ celery_worker  Built                             0.0s 
+ ✔ web            Built                             0.0s 
+[+] Running 3/6
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ✔ Container sage-local-dms-db-1     Created       10.0s 
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠋ Container sage-local-dms-celery_beat-1    Creating0.0s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating0.0s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠙ Container sage-local-dms-celery_beat-1    Creating0.1s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating0.1s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠹ Container sage-local-dms-celery_beat-1    Creating0.2s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating0.2s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠸ Container sage-local-dms-celery_beat-1    Creating0.3s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating0.3s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠼ Container sage-local-dms-celery_beat-1    Creating0.4s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating0.4s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠴ Container sage-local-dms-celery_beat-1    Creating0.5s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating0.5s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠦ Container sage-local-dms-celery_beat-1    Creating0.6s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating0.6s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠧ Container sage-local-dms-celery_beat-1    Creating0.7s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating0.7s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠇ Container sage-local-dms-celery_beat-1    Creating0.8s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating0.8s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠏ Container sage-local-dms-celery_beat-1    Creating0.9s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating0.9s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠋ Container sage-local-dms-celery_beat-1    Creating1.0s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating1.0s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠙ Container sage-local-dms-celery_beat-1    Creating1.1s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating1.1s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠹ Container sage-local-dms-celery_beat-1    Creating1.2s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating1.2s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠸ Container sage-local-dms-celery_beat-1    Creating1.3s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating1.3s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠼ Container sage-local-dms-celery_beat-1    Creating1.4s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating1.4s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠴ Container sage-local-dms-celery_beat-1    Creating1.5s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating1.5s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠦ Container sage-local-dms-celery_beat-1    Creating1.6s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating1.6s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠧ Container sage-local-dms-celery_beat-1    Creating1.7s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating1.7s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠇ Container sage-local-dms-celery_beat-1    Creating1.8s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating1.8s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠏ Container sage-local-dms-celery_beat-1    Creating1.9s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating1.9s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠋ Container sage-local-dms-celery_beat-1    Creating2.0s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating2.0s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠙ Container sage-local-dms-celery_beat-1    Creating2.1s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating2.1s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠹ Container sage-local-dms-celery_beat-1    Creating2.3s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating2.3s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠸ Container sage-local-dms-celery_beat-1    Creating2.3s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating2.3s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠼ Container sage-local-dms-celery_beat-1    Creating2.4s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating2.4s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠴ Container sage-local-dms-celery_beat-1    Creating2.5s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating2.5s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠦ Container sage-local-dms-celery_beat-1    Creating2.6s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating2.6s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠧ Container sage-local-dms-celery_beat-1    Creating2.7s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating2.7s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠇ Container sage-local-dms-celery_beat-1    Creating2.8s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating2.8s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠏ Container sage-local-dms-celery_beat-1    Creating2.9s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating2.9s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠋ Container sage-local-dms-celery_beat-1    Creating3.0s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating3.0s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠙ Container sage-local-dms-celery_beat-1    Creating3.1s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating3.1s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠹ Container sage-local-dms-celery_beat-1    Creating3.2s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating3.2s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠸ Container sage-local-dms-celery_beat-1    Creating3.3s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating3.3s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠼ Container sage-local-dms-celery_beat-1    Creating3.4s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating3.4s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠴ Container sage-local-dms-celery_beat-1    Creating3.5s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating3.5s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠦ Container sage-local-dms-celery_beat-1    Creating3.6s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating3.6s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠧ Container sage-local-dms-celery_beat-1    Creating3.7s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating3.7s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠇ Container sage-local-dms-celery_beat-1    Creating3.8s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating3.8s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠏ Container sage-local-dms-celery_beat-1    Creating3.9s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating3.9s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠋ Container sage-local-dms-celery_beat-1    Creating4.0s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating4.0s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠙ Container sage-local-dms-celery_beat-1    Creating4.1s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating4.1s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠹ Container sage-local-dms-celery_beat-1    Creating4.2s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating4.2s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠸ Container sage-local-dms-celery_beat-1    Creating4.3s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating4.3s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠼ Container sage-local-dms-celery_beat-1    Creating4.4s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating4.4s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠴ Container sage-local-dms-celery_beat-1    Creating4.5s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating4.5s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠦ Container sage-local-dms-celery_beat-1    Creating4.6s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating4.6s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠧ Container sage-local-dms-celery_beat-1    Creating4.7s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating4.7s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠇ Container sage-local-dms-celery_beat-1    Creating4.8s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating4.8s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠏ Container sage-local-dms-celery_beat-1    Creating4.9s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating4.9s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠋ Container sage-local-dms-celery_beat-1    Creating5.0s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 3/6ge-local-dms-web-1            Creating5.0s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠙ Container sage-local-dms-celery_beat-1    Creating5.1s
+ ✔ Container sage-local-dms-db-1             Created10.0s[+] Running 4/6ge-local-dms-web-1            Creating5.1s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠹ Container sage-local-dms-celery_beat-1    Creating5.2s
+[+] Running 4/6ge-local-dms-db-1             Created10.0s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠸ Container sage-local-dms-celery_beat-1    Creating5.3s
+[+] Running 4/6ge-local-dms-db-1             Created10.0s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s ⠼ Container sage-local-dms-celery_beat-1    Creating5.4s
+[+] Running 6/7ge-local-dms-db-1             Created10.0s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s[+] Running 6/7ge-local-dms-celery_beat-1    Creating5.5s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s[+] Running 6/7ge-local-dms-celery_worker-1  Created5.3s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s[+] Running 6/7ge-local-dms-celery_worker-1  Created5.3s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s[+] Running 6/7ge-local-dms-celery_worker-1  Created5.3s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s[+] Running 6/7ge-local-dms-celery_worker-1  Created5.3s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s[+] Running 6/7ge-local-dms-celery_worker-1  Created5.3s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Created10.4s[+] Running 5/7ge-local-dms-celery_worker-1  Created5.3s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+[+] Running 5/7ge-local-dms-redis-1          Starting16.7
+ ✔ Network sage-local-dms_default            Created0.1s 
+[+] Running 5/7ge-local-dms-redis-1          Starting16.8
+ ✔ Network sage-local-dms_default            Created0.1s 
+[+] Running 5/7ge-local-dms-redis-1          Starting16.9
+ ✔ Network sage-local-dms_default            Created0.1s 
+[+] Running 5/7ge-local-dms-redis-1          Starting17.0
+ ✔ Network sage-local-dms_default            Created0.1s 
+[+] Running 5/7ge-local-dms-redis-1          Starting17.1
+ ✔ Network sage-local-dms_default            Created0.1s 
+[+] Running 5/7ge-local-dms-redis-1          Starting17.2
+ ✔ Network sage-local-dms_default            Created0.1s 
+[+] Running 5/7ge-local-dms-redis-1          Starting17.3
+ ✔ Network sage-local-dms_default            Created0.1s 
+[+] Running 5/7ge-local-dms-redis-1          Starting17.5
+ ✔ Network sage-local-dms_default            Created0.1s 
+[+] Running 4/7ge-local-dms-redis-1          Starting17.5
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s   Container sage-local-dms-celery_beat-1    Created5.6s 
+ ✔ Container sage-local-dms-db-1             Started17.6s[+] Running 4/7ge-local-dms-celery_beat-1    Created5.6s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s ⠦ Container sage-local-dms-celery_beat-1    Starting7.2s
+ ✔ Container sage-local-dms-db-1             Started17.6s[+] Running 4/7ge-local-dms-web-1            Starting7.2s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s ⠧ Container sage-local-dms-celery_beat-1    Starting7.3s
+ ✔ Container sage-local-dms-db-1             Started17.6s[+] Running 4/7ge-local-dms-web-1            Starting7.3s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s ⠇ Container sage-local-dms-celery_beat-1    Starting7.4s
+ ✔ Container sage-local-dms-db-1             Started17.6s[+] Running 4/7ge-local-dms-web-1            Starting7.4s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s ⠏ Container sage-local-dms-celery_beat-1    Starting7.5s
+ ✔ Container sage-local-dms-db-1             Started17.6s[+] Running 4/7ge-local-dms-web-1            Starting7.5s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s ⠋ Container sage-local-dms-celery_beat-1    Starting7.6s
+ ✔ Container sage-local-dms-db-1             Started17.6s[+] Running 5/7ge-local-dms-web-1            Starting7.6s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s ⠙ Container sage-local-dms-celery_beat-1    Starting7.7s
+[+] Running 5/7ge-local-dms-db-1             Started17.6s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s ✔ Container sage-local-dms-nginx-1          Created0.7s 
+[+] Running 5/7ge-local-dms-db-1             Started17.6s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s ✔ Container sage-local-dms-nginx-1          Created0.7s 
+[+] Running 6/7ge-local-dms-db-1             Started17.6s
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-nginx-1          Created0.7s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 6/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s[+] Running 7/7ge-local-dms-celery_worker-1  Started8.1s 
+ ✔ Network sage-local-dms_default            Created0.1s 
+ ✔ Container sage-local-dms-redis-1          Started17.6s ✔ Container sage-local-dms-celery_worker-1  Started8.1s 
+ ✔ Container sage-local-dms-db-1             Started17.6s ✔ Container sage-local-dms-web-1            Started8.0s 
+ ✔ Container sage-local-dms-celery_worker-1  Started8.1s 
+ ✔ Container sage-local-dms-celery_beat-1    Started7.8s 
+ ✔ Container sage-local-dms-web-1            Started8.0s 
+ ✔ Container sage-local-dms-nginx-1          Started4.3s 
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ 
