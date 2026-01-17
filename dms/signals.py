@@ -1,7 +1,11 @@
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.db import transaction
 from datetime import date
 from dateutil.relativedelta import relativedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def calculate_entry_retention_date(entry, pf):
@@ -57,3 +61,48 @@ def update_personnel_file_retention(sender, instance, created, **kwargs):
         if not pf.retention_until or retention_date > pf.retention_until:
             pf.retention_until = retention_date
             pf.save(update_fields=['retention_until'])
+
+
+@receiver(post_save, sender='dms.Document')
+def auto_file_document(sender, instance, created, **kwargs):
+    """
+    Automatische Ablage in Personalakte wenn:
+    - Dokument hat einen Mitarbeiter zugewiesen
+    - Dokumenttyp hat eine Aktenkategorie zugeordnet
+    """
+    from dms.models import PersonnelFile, PersonnelFileEntry
+    
+    if not instance.employee:
+        return
+    
+    if not instance.document_type:
+        return
+    
+    if not instance.document_type.file_category:
+        return
+    
+    personnel_file = getattr(instance.employee, 'personnel_file', None)
+    if not personnel_file:
+        return
+    
+    category = instance.document_type.file_category
+    
+    existing = PersonnelFileEntry.objects.filter(
+        personnel_file=personnel_file,
+        document=instance
+    ).exists()
+    
+    if existing:
+        return
+    
+    try:
+        with transaction.atomic():
+            PersonnelFileEntry.objects.create(
+                personnel_file=personnel_file,
+                document=instance,
+                category=category,
+                notes=f"Automatisch abgelegt aus {instance.document_type.name}"
+            )
+            logger.info(f"Auto-filed document {instance.id} to personnel file {personnel_file.file_number}")
+    except Exception as e:
+        logger.error(f"Auto-filing failed for document {instance.id}: {e}")
