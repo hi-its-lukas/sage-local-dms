@@ -112,6 +112,7 @@ body.nav-sidebar {
 
 .main, .main-sidebar {
     margin-left: 0 !important;
+    display: none !important;
 }
 
 #content, #container {
@@ -133,9 +134,32 @@ body.nav-sidebar {
     padding-right: 24px !important;
 }
 
+/* AdminLTE sidebar-mini/sidebar-collapse Fixes - DAS ist der echte Fix */
+body.sidebar-mini .main-header,
+body.sidebar-mini .content-wrapper,
+body.sidebar-mini .main-footer,
+body.sidebar-collapse .main-header,
 body.sidebar-collapse .content-wrapper,
-body.sidebar-mini .content-wrapper {
+body.sidebar-collapse .main-footer,
+body.sidebar-mini-md .main-header,
+body.sidebar-mini-md .content-wrapper,
+body.sidebar-mini-md .main-footer {
     margin-left: 0 !important;
+}
+
+body.sidebar-mini .main-header,
+body.sidebar-collapse .main-header,
+body.sidebar-mini-md .main-header {
+    padding-left: 0 !important;
+}
+
+/* Sidebar komplett verstecken */
+.main-sidebar,
+.sidebar,
+.nav-sidebar,
+aside.main-sidebar {
+    display: none !important;
+    width: 0 !important;
 }
 
 #content {
@@ -979,6 +1003,18 @@ ul.messagelist li.warning::before {
     font-size: 13px !important;
 }
 </style>
+<script>
+// AdminLTE Sidebar-Klassen entfernen um margin-left zu verhindern
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.remove('sidebar-mini', 'sidebar-collapse', 'sidebar-mini-md', 'sidebar-closed', 'sidebar-open');
+    document.body.style.marginLeft = '0';
+    document.body.style.paddingLeft = '0';
+});
+// Auch sofort ausführen falls DOM schon geladen
+if (document.body) {
+    document.body.classList.remove('sidebar-mini', 'sidebar-collapse', 'sidebar-mini-md', 'sidebar-closed', 'sidebar-open');
+}
+</script>
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
