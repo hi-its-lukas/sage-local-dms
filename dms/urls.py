@@ -12,6 +12,7 @@ urlpatterns = [
     path('documents/<uuid:pk>/download/', views.document_download, name='document_download'),
     path('documents/<uuid:pk>/view/', views.document_view, name='document_view'),
     path('documents/<uuid:pk>/edit/', views.document_edit, name='document_edit'),
+    path('documents/<uuid:pk>/split/', views.document_split, name='document_split'),
     path('documents/<uuid:pk>/versions/', views.document_versions, name='document_versions'),
     path('documents/bulk-edit/', views.bulk_edit_documents, name='bulk_edit_documents'),
     path('documents/search/', views.fulltext_search, name='fulltext_search'),

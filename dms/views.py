@@ -917,3 +917,131 @@ def system_logs(request):
         'current_level': level_filter,
         'current_limit': limit,
     })
+
+
+@login_required
+def document_split(request, pk):
+    """Manuelles Teilen eines PDF-Dokuments nach Seitenbereichen"""
+    import tempfile
+    from pathlib import Path
+    import fitz
+    
+    document = get_object_or_404(Document, pk=pk)
+    
+    if not _can_access_document(request.user, document):
+        return HttpResponse('Permission denied', status=403)
+    
+    if document.mime_type != 'application/pdf':
+        messages.error(request, 'Nur PDF-Dokumente können geteilt werden.')
+        return redirect('dms:document_detail', pk=pk)
+    
+    try:
+        decrypted_content = decrypt_data(document.encrypted_content)
+        pdf_doc = fitz.open(stream=decrypted_content, filetype='pdf')
+        page_count = len(pdf_doc)
+        pdf_doc.close()
+    except Exception as e:
+        messages.error(request, f'Fehler beim Lesen des PDFs: {str(e)}')
+        return redirect('dms:document_detail', pk=pk)
+    
+    from .models import Tenant
+    employees = Employee.objects.filter(is_active=True)
+    if document.tenant:
+        employees = employees.filter(tenant=document.tenant)
+    employees = employees.order_by('last_name', 'first_name')
+    
+    if request.method == 'POST':
+        try:
+            splits_data = json.loads(request.POST.get('splits', '[]'))
+            
+            if not splits_data:
+                messages.error(request, 'Keine Split-Bereiche angegeben.')
+                return redirect('dms:document_split', pk=pk)
+            
+            from .encryption import encrypt_data as enc_data, calculate_sha256_chunked
+            from .tasks import auto_classify_document, log_system_event, parse_month_folder_to_date
+            
+            decrypted_content = decrypt_data(document.encrypted_content)
+            pdf_doc = fitz.open(stream=decrypted_content, filetype='pdf')
+            
+            created_docs = []
+            
+            for split in splits_data:
+                start_page = int(split.get('start', 1)) - 1
+                end_page = int(split.get('end', 1))
+                employee_id = split.get('employee_id')
+                
+                if start_page < 0 or end_page > page_count or start_page >= end_page:
+                    continue
+                
+                new_pdf = fitz.open()
+                new_pdf.insert_pdf(pdf_doc, from_page=start_page, to_page=end_page - 1)
+                
+                with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+                    new_pdf.save(tmp.name)
+                    new_pdf.close()
+                    
+                    with open(tmp.name, 'rb') as f:
+                        split_content = f.read()
+                    
+                    split_encrypted = enc_data(split_content)
+                    split_hash = calculate_sha256_chunked(tmp.name)
+                    
+                    Path(tmp.name).unlink()
+                
+                split_employee = None
+                if employee_id:
+                    split_employee = Employee.objects.filter(id=employee_id).first()
+                
+                metadata = document.metadata.copy() if document.metadata else {}
+                metadata['split_from'] = document.original_filename
+                metadata['split_pages'] = f"{start_page + 1}-{end_page}"
+                metadata['manual_split'] = True
+                metadata['split_from_document_id'] = str(document.id)
+                
+                month_folder = metadata.get('month_folder')
+                
+                emp_suffix = f"_MA{split_employee.employee_id}" if split_employee else f"_S{start_page + 1}-{end_page}"
+                split_filename = f"{document.title}{emp_suffix}.pdf"
+                
+                split_doc = Document.objects.create(
+                    tenant=document.tenant,
+                    title=f"{document.title} (S.{start_page + 1}-{end_page})",
+                    original_filename=split_filename,
+                    file_extension='.pdf',
+                    mime_type='application/pdf',
+                    encrypted_content=split_encrypted,
+                    file_size=len(split_content),
+                    employee=split_employee,
+                    status='ASSIGNED' if split_employee else 'REVIEW_NEEDED',
+                    source=document.source,
+                    sha256_hash=split_hash,
+                    metadata=metadata,
+                    document_date=parse_month_folder_to_date(month_folder)
+                )
+                
+                auto_classify_document(split_doc, tenant=document.tenant)
+                created_docs.append(split_doc)
+            
+            pdf_doc.close()
+            
+            if created_docs:
+                log_system_event('INFO', 'ManualSplit', 
+                    f"Dokument manuell geteilt: {document.original_filename} → {len(created_docs)} Teile",
+                    {'original_id': str(document.id), 'split_count': len(created_docs)})
+                
+                document.delete()
+                
+                messages.success(request, f'{len(created_docs)} Dokumente erfolgreich erstellt. Original wurde entfernt.')
+                return redirect('dms:document_list')
+            else:
+                messages.error(request, 'Keine gültigen Split-Bereiche.')
+                
+        except Exception as e:
+            messages.error(request, f'Fehler beim Teilen: {str(e)}')
+    
+    return render(request, 'dms/document_split.html', {
+        'document': document,
+        'page_count': page_count,
+        'employees': employees,
+    })

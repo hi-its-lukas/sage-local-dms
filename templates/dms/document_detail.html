@@ -525,6 +525,11 @@
         <div class="properties-header">
             <span class="properties-title">Details zum Dokument</span>
             <div class="properties-header-actions">
+                {% if document.mime_type == 'application/pdf' %}
+                <a href="{% url 'dms:document_split' document.pk %}" class="properties-header-btn" title="Manuell teilen">
+                    <span class="material-icons">content_cut</span>
+                </a>
+                {% endif %}
                 <a href="{% url 'dms:document_edit' document.pk %}" class="properties-header-btn" title="Bearbeiten">
                     <span class="material-icons">edit</span>
                 </a>
