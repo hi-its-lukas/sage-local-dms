@@ -10,10 +10,92 @@ from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
 
-from .models import Document, ProcessedFile, Employee, Task, EmailConfig, SystemLog, Tenant, ScanJob
+from .models import Document, ProcessedFile, Employee, Task, EmailConfig, SystemLog, Tenant, ScanJob, MatchingRule
 from .encryption import encrypt_data, decrypt_data, calculate_sha256, encrypt_file, calculate_sha256_chunked, encrypt_file_streaming
 from .ocr import process_document_with_ocr, classify_document, extract_employee_info
 import re
+
+
+def auto_classify_document(document, tenant=None):
+    """
+    Wendet Matching-Regeln auf ein Dokument an.
+    Wird beim Import automatisch aufgerufen.
+    
+    Returns: True wenn Klassifizierung erfolgt ist
+    """
+    from django.db.models import Q
+    
+    rules = MatchingRule.objects.filter(is_active=True).order_by('-priority')
+    if tenant:
+        rules = rules.filter(Q(tenant=tenant) | Q(tenant__isnull=True))
+    
+    search_text = f"{document.original_filename} {document.title}"
+    
+    for rule in rules:
+        pattern = rule.match_pattern
+        
+        if not rule.is_case_sensitive:
+            search_text_check = search_text.lower()
+            pattern = pattern.lower()
+        else:
+            search_text_check = search_text
+        
+        matched = False
+        
+        if rule.algorithm == 'EXACT':
+            matched = pattern in search_text_check
+        elif rule.algorithm == 'ANY':
+            words = pattern.split()
+            matched = any(word in search_text_check for word in words)
+        elif rule.algorithm == 'ALL':
+            words = pattern.split()
+            matched = all(word in search_text_check for word in words)
+        elif rule.algorithm == 'REGEX':
+            try:
+                flags = 0 if rule.is_case_sensitive else re.IGNORECASE
+                matched = bool(re.search(rule.match_pattern, search_text, flags))
+            except re.error:
+                matched = False
+        elif rule.algorithm == 'FUZZY':
+            words = pattern.split()
+            for word in words:
+                if len(word) >= 4:
+                    for i in range(len(search_text_check) - len(word) + 1):
+                        substring = search_text_check[i:i+len(word)]
+                        matches = sum(a == b for a, b in zip(word, substring))
+                        if matches >= len(word) * 0.8:
+                            matched = True
+                            break
+                if matched:
+                    break
+        
+        if matched:
+            changed = False
+            
+            if rule.assign_document_type and not document.document_type:
+                document.document_type = rule.assign_document_type
+                changed = True
+            
+            if rule.assign_employee and not document.employee:
+                document.employee = rule.assign_employee
+                changed = True
+            
+            if rule.assign_status and document.status in ('UNASSIGNED', 'NEW'):
+                document.status = rule.assign_status
+                changed = True
+            
+            if changed:
+                document.save()
+                log_system_event('DEBUG', 'AutoClassify', 
+                    f"Dokument klassifiziert: {document.original_filename}",
+                    {'rule': rule.name, 'document_type': str(document.document_type)})
+            
+            if rule.assign_tags.exists():
+                document.tags.add(*rule.assign_tags.all())
+            
+            return True
+    
+    return False
 
 logger = logging.getLogger('dms')
 
@@ -621,6 +703,9 @@ def _run_sage_scan(task_self):
                 original_path=str(file_path),
                 document=document
             )
+            
+            # Auto-Klassifizierung anhand Matching-Regeln
+            auto_classify_document(document, tenant=tenant)
             
             # Speicher freigeben
             del content
