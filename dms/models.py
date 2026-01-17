@@ -111,6 +111,16 @@ class DocumentType(models.Model):
     retention_days = models.PositiveIntegerField(default=0, help_text="Days to retain document (0 = forever)")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    file_category = models.ForeignKey(
+        'FileCategory', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='document_types',
+        verbose_name="Aktenkategorie",
+        help_text="Zuordnung zum Aktenplan - Dokumente dieses Typs werden automatisch in diese Unterakte einsortiert"
+    )
 
     def __str__(self):
         return self.name

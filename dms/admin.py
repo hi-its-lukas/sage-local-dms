@@ -76,9 +76,76 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 @admin.register(DocumentType)
 class DocumentTypeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description', 'retention_days', 'is_active']
-    list_filter = ['is_active']
+    list_display = ['name', 'file_category', 'tenant', 'doc_count', 'retention_days', 'is_active']
+    list_filter = ['is_active', 'tenant', 'file_category']
     search_fields = ['name', 'description']
+    autocomplete_fields = ['file_category']
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'tenant')
+        }),
+        ('Aktenplan-Zuordnung', {
+            'fields': ('file_category',),
+            'description': 'Dokumente dieses Typs werden automatisch in diese Unterakte der Personalakte einsortiert.'
+        }),
+        ('Einstellungen', {
+            'fields': ('retention_days', 'is_active', 'required_fields'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['apply_category_to_documents']
+    
+    def doc_count(self, obj):
+        return obj.document_set.count()
+    doc_count.short_description = 'Dokumente'
+    
+    def apply_category_to_documents(self, request, queryset):
+        from .models import Document, PersonnelFile, PersonnelFileEntry
+        
+        total_created = 0
+        total_skipped = 0
+        
+        for doc_type in queryset:
+            if not doc_type.file_category:
+                self.message_user(request, f"'{doc_type.name}' hat keine Aktenkategorie zugeordnet.", level='warning')
+                continue
+            
+            documents = Document.objects.filter(
+                document_type=doc_type,
+                employee__isnull=False
+            ).select_related('employee', 'tenant')
+            
+            for doc in documents:
+                personnel_file, _ = PersonnelFile.objects.get_or_create(
+                    employee=doc.employee,
+                    defaults={
+                        'tenant': doc.tenant,
+                        'file_number': f"PA-{doc.employee.employee_id}",
+                        'status': 'ACTIVE'
+                    }
+                )
+                
+                entry, created = PersonnelFileEntry.objects.get_or_create(
+                    personnel_file=personnel_file,
+                    document=doc,
+                    defaults={
+                        'category': doc_type.file_category,
+                        'document_date': doc.document_date or doc.created_at.date(),
+                        'created_by': request.user
+                    }
+                )
+                
+                if created:
+                    total_created += 1
+                else:
+                    total_skipped += 1
+        
+        self.message_user(
+            request, 
+            f"{total_created} Akteneinträge erstellt, {total_skipped} bereits vorhanden."
+        )
+    apply_category_to_documents.short_description = "Auf bestehende Dokumente anwenden"
 
 
 @admin.register(Document)
