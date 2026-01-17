@@ -1,0 +1,94 @@
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ docker-compose exec web python manage.py shell -c "
+from dms.models import Document, DocumentType, PersonnelFile
+
+# Zeige Dokumente mit Typ und Mitarbeiter
+docs = Document.objects.filter(document_type__isnull=False, employee__isnull=False)[:10]
+for d in docs:
+    dt = d.document_type
+    fc = dt.file_category if dt else None
+    pf = getattr(d.employee, 'personnel_file', None)
+    print(f'{d.original_filename[:40]:40}')
+    print(f'  Type: {dt.name} | FC: {fc} | PF exists: {pf is not None}')
+"
+36 objects imported automatically (use -v 2 for details).
+
+Meldebescheinigung21022025_123957_MA1_8.
+  Type: Meldebescheinigung | FC: None | PF exists: True
+Meldebescheinigung21022025_123957_MA1_7.
+  Type: Meldebescheinigung | FC: None | PF exists: True
+Meldebescheinigung21022025_123957_MA1_6.
+  Type: Meldebescheinigung | FC: None | PF exists: True
+Meldebescheinigung21022025_123957_MA1_5.
+  Type: Meldebescheinigung | FC: None | PF exists: True
+Meldebescheinigung21022025_123957_MA1_4.
+  Type: Meldebescheinigung | FC: None | PF exists: True
+Meldebescheinigung21022025_123957_MA1_3.
+  Type: Meldebescheinigung | FC: None | PF exists: True
+Meldebescheinigung21022025_123957_MA1_2.
+  Type: Meldebescheinigung | FC: None | PF exists: True
+Meldebescheinigung21022025_123957_MA1_1.
+  Type: Meldebescheinigung | FC: None | PF exists: True
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ docker-compose exec web python manage.py shell -c "
+from dms.models import DocumentType
+
+# Zeige alle DocumentTypes und ihre FileCategory
+for dt in DocumentType.objects.all():
+    print(f'{dt.name:30} -> {dt.file_category}')
+"
+36 objects imported automatically (use -v 2 for details).
+
+BEITRAGSLISTE                  -> 05.03 - Bonusvereinbarungen
+BEITRAGSNACHWEIS               -> 05.03 - Bonusvereinbarungen
+BEITRAGSSCHULD                 -> 05.03 - Bonusvereinbarungen
+BERUFSGENOSSENSCHAFT           -> 07.02 - AU-Bescheinigungen
+BUCHUNGSSTAPEL                 -> 05.04 - Prämien
+Beitragsnachweis               -> None
+Berechnung voraussichtliche Beitragsschuld -> None
+Berufsgenossenschaftsliste     -> None
+DATEV Buchungsstapel           -> None
+DIFFERENZABRECHNUNG            -> 05.01 - Gehaltsabrechnungen
+Differenzabrechnung            -> None
+ELSTAM                         -> 05.02 - Gehaltsvereinbarungen
+ELStAM - Meldeprotokoll        -> None
+ENTGELTBESCHEINIGUNG           -> 07.01 - Krankmeldungen
+ERSTATTUNG                     -> 07.01 - Krankmeldungen
+Elektronische Lohnsteuerbescheinigung -> None
+Entgeltbescheinigung Kind krank -> None
+Ereignis Protokoll - Nettolohnberechnung -> None
+Erstattungsantrag U1           -> None
+Erweitertes Lohnkonto          -> None
+FIBU                           -> 05.04 - Prämien
+Fibu-Buchungsjournal           -> None
+Fibu-Journal                   -> None
+Jahreslohnjournal              -> None
+Jahreslohnkonto                -> None
+Jahreslohnnachweis Berufsgenossenschaft -> None
+KUG                            -> 06.03 - Überstundennachweise
+Korrekturlohnscheine           -> None
+LOHNJOURNAL                    -> 05.01 - Gehaltsabrechnungen
+LOHNKONTO                      -> 05.01 - Gehaltsabrechnungen
+LOHNSCHEINE                    -> 05.01 - Gehaltsabrechnungen
+LOHNSTEUERANMELDUNG            -> 05.02 - Gehaltsvereinbarungen
+LOHNSTEUERBESCHEINIGUNG        -> 05.02 - Gehaltsvereinbarungen
+LST_JAHRESAUSGLEICH            -> 05.02 - Gehaltsvereinbarungen
+Lohnjournal                    -> None
+Lohnkonto - Altersvorsorge     -> None
+Lohnkonto Bruttolohn           -> None
+Lohnscheine                    -> None
+Lohnsteueranmeldung            -> None
+MELDEBESCHEINIGUNG             -> 03.03 - Steuerliche Unterlagen
+Meldebescheinigung             -> None
+Protokoll Beitragsnachweis     -> None
+Protokoll LSt-Jahresausgleich  -> None
+RESTURLAUB                     -> 06.01 - Arbeitszeitnachweise
+Resturlaub Vorjahr             -> None
+SAGE_EXPORT                    -> 05.04 - Prämien
+STUNDENKALENDARIUM             -> 06.02 - Urlaubsanträge
+Sage Export                    -> None
+Saison-KUG Abrechnungsliste    -> None
+Saison-KUG Antrag              -> None
+Soll-Istprotokoll              -> None
+Stundenkalendarium             -> None
+ZVK                            -> 05.03 - Bonusvereinbarungen
+ZVK-LAK-Beitragsliste          -> None
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ 
