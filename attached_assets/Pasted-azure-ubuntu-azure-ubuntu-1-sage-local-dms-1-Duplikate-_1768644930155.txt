@@ -1,0 +1,219 @@
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ # 1. Duplikate entfernen
+docker-compose exec web python manage.py cleanup_duplicates
+
+# 2. Celery-Logs prüfen
+docker-compose logs --tail=50 celery_worker
+
+# 3. Manuell einen Scan starten um zu testen
+docker-compose exec web python manage.py shell -c "
+from dms.tasks import scan_sage_archive
+result = scan_sage_archive.delay()
+print(f'Task gestartet: {result.id}')"
+
+# 4. Nach ein paar Sekunden ScanJobs prüfen
+docker-compose exec web python manage.py shell -c "
+from dms.models import ScanJob
+for j in ScanJob.objects.order_by('-started_at')[:5]:
+    print(f'{j.status}: {j.processed_files}/{j.total_files} - {j.started_at}')"
+Suche nach doppelten Dokumenten...
+
+Duplikat gefunden: Lohnscheine11082025_152846
+  Original: 76cfd0dd-dd4e-4a13-bce7-e57b110ed6ed (2026-01-16 23:33:10.325125+00:00)
+  Duplikate: 1
+    - 9d7fa9f2-ed67-4712-9007-42f7eccead71 (2026-01-16 23:44:20.112180+00:00)
+
+Duplikat gefunden: Lohnsteueranmeldung11082025_154048
+  Original: 4eea11e4-b4b5-4ae9-bd9c-13d4717b2e97 (2026-01-17 00:59:52.833462+00:00)
+  Duplikate: 1
+    - e779f65e-082c-49e9-8360-ad0110350a6a (2026-01-17 01:03:48.134863+00:00)
+
+Duplikat gefunden: Differenzabrechnung (6. Korrektur)26112025_210155
+  Original: 06b28abd-2e23-4cac-ae68-2cc61b00af84 (2026-01-17 09:20:19.128808+00:00)
+  Duplikate: 1
+    - 725db629-df7c-45e6-b25e-e582a951c926 (2026-01-17 09:20:19.260515+00:00)
+
+Duplikat gefunden: ZVK-LAK-Beitragsliste-Dachdecker (1. Korrektur)14102025_112727
+  Original: 0c3ffe58-cce8-4943-bd49-d589ae393dba (2026-01-17 09:24:45.327450+00:00)
+  Duplikate: 1
+    - 2e23731d-0a4c-4265-ab33-3a41106c9041 (2026-01-17 09:24:46.900606+00:00)
+
+Duplikat gefunden: Differenzabrechnung (1. Korrektur)11092025_090950
+  Original: fc1f1e1e-194a-498b-ac22-b7531c1124b6 (2026-01-17 08:50:31.892837+00:00)
+  Duplikate: 1
+    - 4a9c79e7-8376-46c1-9e1a-1a9808a1d59c (2026-01-17 08:50:32.128789+00:00)
+
+Duplikat gefunden: Korrekturlohnscheine (3. Korrektur)22112025_102802
+  Original: 20850730-c3f6-4f5c-ba50-254aed53625d (2026-01-17 08:45:39.360961+00:00)
+  Duplikate: 1
+    - e39178b9-2693-4163-b788-94bde92dd9e3 (2026-01-17 08:45:40.257217+00:00)
+
+Duplikat gefunden: Protokoll Beitragsnachweis18072025_110102
+  Original: e923f1ab-ce5a-4832-8426-8a74f7c96bf4 (2026-01-17 08:40:47.032549+00:00)
+  Duplikate: 1
+    - e907d78b-0657-446b-96e9-0621eea00f9c (2026-01-17 08:40:47.347069+00:00)
+
+Duplikat gefunden: Differenzabrechnung (3. Korrektur)22112025_102800
+  Original: 669227fe-eef8-488c-befc-48d2d62c2ed5 (2026-01-17 08:48:05.310173+00:00)
+  Duplikate: 1
+    - 7c642cd9-4df1-446f-9063-f3debb18bdad (2026-01-17 08:48:06.097409+00:00)
+
+Duplikat gefunden: Korrekturlohnscheine (3. Korrektur)22112025_102900
+  Original: a23cc83d-61e7-46c2-a4fe-ce0e4a9553e2 (2026-01-17 09:03:47.591476+00:00)
+  Duplikate: 1
+    - 9a8b5924-dde0-4cea-a99b-eeef962d29d9 (2026-01-17 09:03:47.743676+00:00)
+
+Duplikat gefunden: Berechnung voraussichtliche Beitragsschuld18072025_110053
+  Original: 83553a5d-a26e-4d60-bf27-64b7a2e847d7 (2026-01-17 04:18:37.562635+00:00)
+  Duplikate: 1
+    - 8e359488-f899-4874-8a30-c2108e6ee111 (2026-01-17 04:22:39.363563+00:00)
+
+Duplikat gefunden: Differenzabrechnung (3. Korrektur)05012026_201125
+  Original: e955e25d-2a10-4ee8-9c02-c50270ab4ab7 (2026-01-17 02:05:40.152472+00:00)
+  Duplikate: 1
+    - d5404794-3455-4d8e-8551-a7eebca6b93f (2026-01-17 02:09:34.369949+00:00)
+
+Duplikat gefunden: Korrekturlohnscheine (7. Korrektur)09012026_082148
+  Original: baed236d-e69b-40a5-b283-97d27ad47ccc (2026-01-17 09:32:03.903011+00:00)
+  Duplikate: 1
+    - be5b2fbd-4087-4f49-873c-3449618a0a39 (2026-01-17 09:32:06.130753+00:00)
+
+Duplikat gefunden: Differenzabrechnung (7. Korrektur)09012026_082145
+  Original: f8ef5f5a-80b8-41e8-975a-d15be7f4e053 (2026-01-17 09:08:22.823563+00:00)
+  Duplikate: 1
+    - abab937f-1ea5-416c-afbe-aea1d1ec79e3 (2026-01-17 09:08:23.479858+00:00)
+
+Duplikat gefunden: Beitragsnachweis18072025_110043
+  Original: b5be376c-9f75-4ce2-9a2e-b7f0798980ff (2026-01-16 23:55:36.102870+00:00)
+  Duplikate: 1
+    - 9ea423e1-38e2-4e9e-9547-347ea31ed91f (2026-01-17 00:02:21.658343+00:00)
+
+Duplikat gefunden: Erstattungsantrag U108102025_113935
+  Original: ac6ae1fe-d8cd-46a4-8d05-dcd26cd51258 (2026-01-17 09:13:03.637025+00:00)
+  Duplikate: 1
+    - 338e65e2-49e2-4066-ae45-933bc9b35132 (2026-01-17 09:13:04.434139+00:00)
+
+Duplikat gefunden: Lohnsteueranmeldung08102025_113338
+  Original: 8f3d67c2-cab4-4970-abc3-1d4f0e4442cc (2026-01-17 09:05:58.165013+00:00)
+  Duplikate: 1
+    - 99504a54-56da-49bb-a102-568872aa9df9 (2026-01-17 09:05:58.274011+00:00)
+
+Duplikat gefunden: Korrekturlohnscheine (1. Korrektur)11092025_090953
+  Original: 7f9ad282-165f-48a9-8919-b11675d7c1b5 (2026-01-17 04:41:06.236745+00:00)
+  Duplikate: 1
+    - 0f4f299b-4d51-412a-b11b-921e2d4cf390 (2026-01-17 04:46:02.622573+00:00)
+
+Duplikat gefunden: Differenzabrechnung (7. Korrektur)05012026_201205
+  Original: f970b748-dff3-41f2-a8bc-b57e0fee8653 (2026-01-17 09:29:38.123984+00:00)
+  Duplikate: 1
+    - be29bf4a-261c-4afa-8d61-7838479f1ce8 (2026-01-17 09:29:40.025028+00:00)
+
+Duplikat gefunden: Protokoll Beitragsnachweis24092025_090811
+  Original: 34e37a8c-2824-45f3-979c-7264a283804e (2026-01-17 08:55:44.522543+00:00)
+  Duplikate: 1
+    - 28e6f499-cd3c-4fb4-a6ee-f8b02e8fb5e7 (2026-01-17 08:55:45.432320+00:00)
+
+Duplikat gefunden: Differenzabrechnung (3. Korrektur)09012026_082119
+  Original: c80a208a-3b40-4c53-86e6-4841889cc1a0 (2026-01-17 00:39:12.868617+00:00)
+  Duplikate: 1
+    - 7791065d-6178-4d46-9eb3-1f97b87ddfb9 (2026-01-17 00:43:12.946792+00:00)
+
+Duplikat gefunden: Korrekturlohnscheine (6. Korrektur)26112025_210158
+  Original: 8a3bb020-bd26-47a9-922f-fccec9fe14d6 (2026-01-17 09:22:44.406727+00:00)
+  Duplikate: 1
+    - da148fc7-881f-4711-9928-d19079aebf82 (2026-01-17 09:22:45.225979+00:00)
+
+Duplikat gefunden: Differenzabrechnung (3. Korrektur)22112025_102857
+  Original: 51132a00-1c4d-4d72-8c78-614347a88ebc (2026-01-17 09:27:11.837059+00:00)
+  Duplikate: 1
+    - 9b22a8be-ab3e-4491-a54a-af17078b6bb7 (2026-01-17 09:27:13.582945+00:00)
+
+Duplikat gefunden: ZVK-LAK-Beitragsliste-Dachdecker (3. Korrektur)14102025_112955
+  Original: 7ed2e2ac-7614-482c-8f6a-5e316acc45c1 (2026-01-17 00:18:42.681264+00:00)
+  Duplikate: 1
+    - 69d2c9f4-c302-4e28-ad0c-79a838cf12db (2026-01-17 00:21:01.368852+00:00)
+
+Duplikat gefunden: Lohnjournal08102025_114756
+  Original: becadba2-82fd-448a-ba59-ebb272f51347 (2026-01-17 09:11:28.475745+00:00)
+  Duplikate: 1
+    - 16208946-da16-405c-9c84-04b8975399b6 (2026-01-17 09:11:28.962451+00:00)
+
+Duplikat gefunden: Korrekturlohnscheine (7. Korrektur)05012026_201208
+  Original: 963b45ef-ceaa-485d-afec-37f46bdf2531 (2026-01-17 09:17:52.268409+00:00)
+  Duplikate: 1
+    - 061273f5-4714-4698-9698-5327359d7025 (2026-01-17 09:17:52.933897+00:00)
+
+Duplikat gefunden: Korrekturlohnscheine (3. Korrektur)05012026_201128
+  Original: 28f38aad-70d3-44e1-87f8-12db19910912 (2026-01-17 00:08:14.472901+00:00)
+  Duplikate: 1
+    - fec18e4b-a252-47ce-af33-ae7094ca6707 (2026-01-17 00:10:48.307551+00:00)
+
+Duplikat gefunden: Lohnscheine08102025_114518
+  Original: 3354eed3-f231-495a-886b-32865da0ac53 (2026-01-17 09:15:28.297522+00:00)
+  Duplikate: 1
+    - 36e618b7-7112-4dc8-9879-3e42fa1d0c81 (2026-01-17 09:15:28.818791+00:00)
+
+Duplikat gefunden: Beitragsnachweis24092025_093420
+  Original: db394312-231d-4203-a319-188c049ae2af (2026-01-17 09:01:23.155982+00:00)
+  Duplikate: 1
+    - 0d12c5bc-4809-447c-bc77-a5370fa34b91 (2026-01-17 09:01:23.449723+00:00)
+
+Duplikat gefunden: Korrekturlohnscheine11082025_152912
+  Original: c4af38c8-f3aa-4646-a071-36b8339d4e07 (2026-01-17 08:43:10.809731+00:00)
+  Duplikate: 1
+    - b6c89dfd-f648-4451-8ef4-ee97527c8890 (2026-01-17 08:43:11.438229+00:00)
+
+Duplikat gefunden: Differenzabrechnung (3. Korrektur)11092025_121540
+  Original: 43a6d865-2738-4b2b-a3cd-5993a05bc1f4 (2026-01-17 01:22:29.506245+00:00)
+  Duplikate: 1
+    - be7bb37d-e7ee-4bf2-8540-980b8b0ead3c (2026-01-17 01:26:31.772402+00:00)
+
+==================================================
+30 Duplikate gelöscht.
+Attaching to sage-local-dms_celery_worker_1
+celery_worker_1  | /usr/local/lib/python3.11/site-packages/celery/platforms.py:841: SecurityWarning: You're running the worker with superuser privileges: this is
+celery_worker_1  | absolutely not recommended!
+celery_worker_1  | 
+celery_worker_1  | Please specify a different user using the --uid option.
+celery_worker_1  | 
+celery_worker_1  | User information: uid=0 euid=0 gid=0 egid=0
+celery_worker_1  | 
+celery_worker_1  |   warnings.warn(SecurityWarning(ROOT_DISCOURAGED.format(
+celery_worker_1  |  
+celery_worker_1  |  -------------- celery@42fe79af6217 v5.6.2 (recovery)
+celery_worker_1  | --- ***** ----- 
+celery_worker_1  | -- ******* ---- Linux-6.14.0-1017-azure-x86_64-with-glibc2.41 2026-01-17 11:11:49
+celery_worker_1  | - *** --- * --- 
+celery_worker_1  | - ** ---------- [config]
+celery_worker_1  | - ** ---------- .> app:         dms_project:0x7d648303b0d0
+celery_worker_1  | - ** ---------- .> transport:   redis://redis:6379/0
+celery_worker_1  | - ** ---------- .> results:     redis://redis:6379/0
+celery_worker_1  | - *** --- * --- .> concurrency: 1 (prefork)
+celery_worker_1  | -- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+celery_worker_1  | --- ***** ----- 
+celery_worker_1  |  -------------- [queues]
+celery_worker_1  |                 .> celery           exchange=celery(direct) key=celery
+celery_worker_1  |                 
+celery_worker_1  | 
+celery_worker_1  | [tasks]
+celery_worker_1  |   . dms.tasks.import_sage_cloud_leave_requests
+celery_worker_1  |   . dms.tasks.import_sage_cloud_timesheets
+celery_worker_1  |   . dms.tasks.poll_email_inbox
+celery_worker_1  |   . dms.tasks.scan_manual_input
+celery_worker_1  |   . dms.tasks.scan_sage_archive
+celery_worker_1  |   . dms.tasks.sync_sage_cloud_employees
+celery_worker_1  |   . dms_project.celery.debug_task
+celery_worker_1  | 
+celery_worker_1  | [2026-01-17 11:11:50,418: INFO/MainProcess] Connected to redis://redis:6379/0
+celery_worker_1  | [2026-01-17 11:11:50,472: INFO/MainProcess] mingle: searching for neighbors
+celery_worker_1  | [2026-01-17 11:11:51,507: INFO/MainProcess] mingle: all alone
+celery_worker_1  | [2026-01-17 11:11:51,543: INFO/MainProcess] celery@42fe79af6217 ready.
+celery_worker_1  | [2026-01-17 11:11:51,553: INFO/MainProcess] Task dms.tasks.scan_sage_archive[b1ae6411-d9f6-4356-826f-bb788ed4efa4] received
+celery_worker_1  | [SageScanner] Scan übersprungen - Redis-Lock aktiv
+celery_worker_1  | [2026-01-17 11:11:51,615: INFO/ForkPoolWorker-1] Task dms.tasks.scan_sage_archive[b1ae6411-d9f6-4356-826f-bb788ed4efa4] succeeded in 0.06006489700030215s: {'status': 'skipped', 'message': 'Another scan is already running (Redis lock)'}
+33 objects imported automatically (use -v 2 for details).
+
+Task gestartet: a207ccf3-596f-4972-bc15-caa4dbd87acd
+33 objects imported automatically (use -v 2 for details).
+
+RUNNING: 0/278 - 2026-01-17 10:15:21.764219+00:00
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ 
