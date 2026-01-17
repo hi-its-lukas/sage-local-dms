@@ -64,23 +64,23 @@ class Command(BaseCommand):
             {
                 'code': '05',
                 'name': 'Vergütung',
-                'description': 'Gehaltsabrechnungen, Boni, Prämien',
+                'description': 'Gehaltsabrechnungen, Lohnsteuer, Sozialversicherung, FiBu',
                 'retention_years': 10,
                 'retention_trigger': 'DOCUMENT_DATE',
                 'is_mandatory': True,
                 'sort_order': 50,
                 'children': [
                     {'code': '05.01', 'name': 'Gehaltsabrechnungen', 'retention_years': 10},
-                    {'code': '05.02', 'name': 'Gehaltsvereinbarungen', 'retention_years': 10},
-                    {'code': '05.03', 'name': 'Bonusvereinbarungen', 'retention_years': 10},
-                    {'code': '05.04', 'name': 'Prämien', 'retention_years': 10},
-                    {'code': '05.05', 'name': 'Firmenwagen', 'retention_years': 10},
+                    {'code': '05.02', 'name': 'Lohnsteuer & Finanzamt', 'retention_years': 10},
+                    {'code': '05.03', 'name': 'Sozialversicherung & Meldewesen', 'retention_years': 10},
+                    {'code': '05.04', 'name': 'Finanzbuchhaltung', 'retention_years': 10},
+                    {'code': '05.05', 'name': 'Altersvorsorge & ZVK', 'retention_years': 10},
                 ]
             },
             {
                 'code': '06',
                 'name': 'Arbeitszeit & Urlaub',
-                'description': 'Arbeitszeitnachweise, Urlaubsanträge, Überstunden',
+                'description': 'Arbeitszeitnachweise, Urlaubsanträge, Fehlzeiten',
                 'retention_years': 3,
                 'retention_trigger': 'DOCUMENT_DATE',
                 'is_mandatory': False,
@@ -88,7 +88,7 @@ class Command(BaseCommand):
                 'children': [
                     {'code': '06.01', 'name': 'Arbeitszeitnachweise', 'retention_years': 3},
                     {'code': '06.02', 'name': 'Urlaubsanträge', 'retention_years': 3},
-                    {'code': '06.03', 'name': 'Überstundennachweise', 'retention_years': 3},
+                    {'code': '06.03', 'name': 'Fehlzeiten & Kurzarbeit', 'retention_years': 3},
                     {'code': '06.04', 'name': 'Gleitzeitkonten', 'retention_years': 3},
                 ]
             },

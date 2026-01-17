@@ -39,19 +39,19 @@
     <div class="stat-card">
         <div class="stat-card-header">
             <div class="stat-card-icon" style="background: #fff3e0; color: #f57c00;">
-                <span class="material-icons">link</span>
+                <span class="material-icons">auto_fix_high</span>
             </div>
         </div>
-        <h3 style="font-size: 18px; margin-bottom: 8px;">Dokumenttypen verknüpfen</h3>
-        <p style="margin-bottom: 16px;">Verknüpft DocumentTypes mit den passenden FileCategories</p>
+        <h3 style="font-size: 18px; margin-bottom: 8px;">Kategorien korrigieren</h3>
+        <p style="margin-bottom: 16px;">Korrigiert falsche Dokumenttyp-zu-Kategorie-Zuordnungen</p>
         <div style="margin-bottom: 12px; padding: 12px; background: var(--surface); border-radius: var(--radius-md); font-size: 13px;">
             <strong>{{ stats.document_types }}</strong> Dokumenttypen, <strong>{{ stats.linked_types }}</strong> verknüpft
         </div>
-        <form method="post" action="{% url 'dms:admin_run_link_doctypes' %}">
+        <form method="post" action="{% url 'dms:admin_run_fix_categories' %}">
             {% csrf_token %}
             <button type="submit" class="btn">
-                <span class="material-icons">sync_alt</span>
-                Verknüpfen
+                <span class="material-icons">healing</span>
+                Kategorien reparieren
             </button>
         </form>
     </div>

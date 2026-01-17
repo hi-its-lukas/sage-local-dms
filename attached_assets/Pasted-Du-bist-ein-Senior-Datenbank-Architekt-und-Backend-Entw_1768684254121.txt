@@ -1,0 +1,64 @@
+Du bist ein Senior Datenbank-Architekt und Backend-Entwickler. Ich habe ein Problem in meinem Dokumentenmanagement-System (DMS) für die Lohnbuchhaltung. Die aktuellen Zuordnungen von "Dokumententypen" zu "Aktenkategorien" sind logisch falsch und inkonsistent (z.B. sind Beitragsnachweise als "Bonusvereinbarungen" kategorisiert oder FiBu-Daten als "Prämien").
+
+Bitte erstelle ein **SQL-Update-Script** (oder ein Python-Script für eine Migration), das diese Daten bereinigt.
+
+### 1. Die Logik für das Remapping (Korrektur)
+Bitte aktualisiere die Tabelle `document_types` basierend auf folgendem Mapping. Falls die Ziel-Kategorie noch nicht existiert, muss sie im Script ebenfalls angelegt werden.
+
+**Ziel-Kategorie: 05.01 - Gehaltsabrechnungen**
+* LOHNSCHEINE
+* LOHNKONTO
+* LOHNJOURNAL
+* DIFFERENZABRECHNUNG
+* STUNDENLOHNZETTEL
+
+**Ziel-Kategorie: 05.02 - Lohnsteuer & Finanzamt**
+* LOHNSTEUERANMELDUNG (War falsch bei: Gehaltsvereinbarungen)
+* LOHNSTEUERBESCHEINIGUNG (War falsch bei: Gehaltsvereinbarungen)
+* ELSTAM
+* ELSTAM - MELDEPROTOKOLL
+* ELEKTRONISCHE LOHNSTEUERBESCHEINIGUNG
+
+**Ziel-Kategorie: 05.03 - Sozialversicherung & Meldewesen** (Neue Definition)
+* BEITRAGSNACHWEIS (War falsch bei: Bonus)
+* BEITRAGSLISTE (War falsch bei: Bonus)
+* BEITRAGSSCHULD
+* MELDEBESCHEINIGUNG (DEÜV) (War falsch bei: Steuer)
+* SOZIALVERSICHERUNGSAUSWEIS
+* ERSTATTUNGSANTRAG U1/U2
+
+**Ziel-Kategorie: 05.04 - Finanzbuchhaltung** (Neue Definition)
+* FIBU (War falsch bei: Prämien)
+* FIBU-JOURNAL
+* FIBU-BUCHUNGSJOURNAL
+* BUCHUNGSSTAPEL
+* SAGE_EXPORT
+
+**Ziel-Kategorie: 05.05 - Altersvorsorge & ZVK**
+* ZVK
+* ZVK-LAK-BEITRAGSLISTE
+* LOHNKONTO - ALTERSVORSORGE
+* BAV_VERTRAG
+
+**Ziel-Kategorie: 06.xx - Zeitwirtschaft & Fehlzeiten**
+* AU_BESCHEINIGUNG (Krankmeldung) (War falsch bei: 07.xx)
+* BERUFSGENOSSENSCHAFT (Unfallanzeigen)
+* ENTGELTBESCHEINIGUNG KIND KRANK
+* KUG (Kurzarbeitergeld)
+* SAISON-KUG ABRECHNUNGSLISTE
+* STUNDENKALENDARIUM
+* RESTURLAUB
+
+### 2. Fehlende Standard-Dokumente ergänzen (Upsert)
+Bitte füge dem Script Logik hinzu, um folgende in Deutschland übliche Dokumententypen zu erstellen, falls sie noch nicht existieren (INSERT IF NOT EXISTS):
+
+* **ARBEITSBESCHEINIGUNG** -> Kategorie: 05.03 - Sozialversicherung & Meldewesen
+* **A1_BESCHEINIGUNG** -> Kategorie: 05.03 - Sozialversicherung & Meldewesen
+* **PFAENDUNG_BESCHLUSS** -> Kategorie: 05.01 - Gehaltsabrechnungen (oder separate Kategorie "Pfändung")
+* **DARLEHENSVERTRAG** -> Kategorie: 05.02 - Gehaltsvereinbarungen
+* **DIENSTWAGEN_UEBERLASSUNG** -> Kategorie: 05.02 - Gehaltsvereinbarungen
+* **MINIJOB_BEFREIUNG** -> Kategorie: 05.03 - Sozialversicherung & Meldewesen
+
+### Anforderung an den Output:
+1. Erstelle ein SQL Script (PostgreSQL oder MySQL Syntax), das `UPDATE` Befehle für die Korrekturen und `INSERT` Befehle für die fehlenden Typen enthält.
+2. Kommentiere den Code, damit ich sehe, welche falsche Zuordnung korrigiert wird.

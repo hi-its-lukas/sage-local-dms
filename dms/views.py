@@ -1181,6 +1181,29 @@ def admin_run_link_doctypes(request):
 @login_required
 @permission_required('dms.change_systemsettings', raise_exception=True)
 @require_http_methods(['POST'])
+def admin_run_fix_categories(request):
+    """Run fix_doctype_categories management command"""
+    from django.core.management import call_command
+    from io import StringIO
+    
+    try:
+        out = StringIO()
+        call_command('fix_doctype_categories', stdout=out)
+        output = out.getvalue()
+        if 'aktualisiert' in output or 'korrigiert' in output:
+            messages.success(request, 'Dokumenttyp-Kategorien erfolgreich korrigiert.')
+        else:
+            messages.info(request, 'Keine Korrekturen erforderlich.')
+    except Exception as e:
+        if 'DRY RUN' not in str(e):
+            messages.error(request, f'Fehler: {str(e)}')
+    
+    return redirect('dms:admin_maintenance')
+
+
+@login_required
+@permission_required('dms.change_systemsettings', raise_exception=True)
+@require_http_methods(['POST'])
 def admin_run_file_documents(request):
     """File existing documents to personnel files"""
     from .models import Document, PersonnelFileEntry

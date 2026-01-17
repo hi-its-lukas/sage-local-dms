@@ -618,8 +618,8 @@ SAGE_DOCUMENT_TYPES = {
     'MELDEBESCHEINIGUNG': {
         'patterns': ['Meldebescheinigung'],
         'is_personnel': True,
-        'category': '03.04',
-        'description': 'SV-Meldebescheinigung'
+        'category': '05.03',
+        'description': 'SV-Meldebescheinigung (DEÜV)'
     },
     'ENTGELTBESCHEINIGUNG': {
         'patterns': ['Entgeltbescheinigung'],
@@ -660,8 +660,8 @@ SAGE_DOCUMENT_TYPES = {
     'BERUFSGENOSSENSCHAFT': {
         'patterns': ['Berufsgenossenschaftsliste', 'Jahreslohnnachweis Berufsgenossenschaft'],
         'is_personnel': False,
-        'category': '07.02',
-        'description': 'Berufsgenossenschaft'
+        'category': '07.05',
+        'description': 'Berufsgenossenschaft/Unfallmeldungen'
     },
     'ELSTAM': {
         'patterns': ['ELStAM'],
@@ -672,8 +672,8 @@ SAGE_DOCUMENT_TYPES = {
     'ERSTATTUNG': {
         'patterns': ['Erstattungsantrag'],
         'is_personnel': False,
-        'category': '07.01',
-        'description': 'Erstattungsantrag'
+        'category': '05.03',
+        'description': 'Erstattungsantrag U1/U2'
     },
     'KUG': {
         'patterns': ['Saison-KUG', 'Saison-Kug'],
@@ -684,14 +684,14 @@ SAGE_DOCUMENT_TYPES = {
     'STUNDENKALENDARIUM': {
         'patterns': ['Stundenkalendarium', 'Soll-Istprotokoll'],
         'is_personnel': False,
-        'category': '06.02',
-        'description': 'Zeitnachweis'
+        'category': '06.01',
+        'description': 'Arbeitszeitnachweise'
     },
     'ZVK': {
         'patterns': ['ZVK-LAK'],
         'is_personnel': False,
-        'category': '05.03',
-        'description': 'ZVK-Beitragsliste'
+        'category': '05.05',
+        'description': 'ZVK-Beitragsliste (Altersvorsorge)'
     },
     'DIFFERENZABRECHNUNG': {
         'patterns': ['Differenzabrechnung'],
