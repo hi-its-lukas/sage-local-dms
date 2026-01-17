@@ -108,7 +108,7 @@ def sage_sync_timesheets(request):
 def index(request):
     from .models import ScanJob
     
-    recent_documents = Document.objects.all()[:10]
+    recent_documents = Document.objects.select_related('employee', 'document_type').order_by('-updated_at')[:10]
     open_tasks = Task.objects.filter(status='OPEN')[:5]
     
     active_scans = ScanJob.objects.filter(status='RUNNING')
@@ -119,6 +119,7 @@ def index(request):
         'unassigned': Document.objects.filter(status='UNASSIGNED').count(),
         'review_needed': Document.objects.filter(status='REVIEW_NEEDED').count(),
         'open_tasks': Task.objects.filter(status='OPEN').count(),
+        'total_personnel_files': PersonnelFile.objects.count(),
     }
     
     return render(request, 'dms/index.html', {
@@ -279,25 +280,40 @@ def document_list(request):
     status = request.GET.get('status')
     source = request.GET.get('source')
     search = request.GET.get('search')
+    document_type = request.GET.get('document_type')
+    employee = request.GET.get('employee')
     
     if status:
         documents = documents.filter(status=status)
     if source:
         documents = documents.filter(source=source)
+    if document_type:
+        documents = documents.filter(document_type_id=document_type)
+    if employee:
+        documents = documents.filter(
+            Q(employee__first_name__icontains=employee) |
+            Q(employee__last_name__icontains=employee)
+        )
     if search:
         documents = documents.filter(
             Q(title__icontains=search) | 
             Q(original_filename__icontains=search)
         )
     
+    documents = documents.select_related('employee', 'document_type', 'owner').order_by('-created_at')
+    
     paginator = Paginator(documents, 25)
     page = request.GET.get('page', 1)
     documents = paginator.get_page(page)
+    
+    from .models import DocumentType
+    document_types = DocumentType.objects.filter(is_active=True)
     
     return render(request, 'dms/document_list.html', {
         'documents': documents,
         'status_choices': Document.STATUS_CHOICES,
         'source_choices': Document.SOURCE_CHOICES,
+        'document_types': document_types,
     })
 
 

@@ -1,107 +1,454 @@
 {% extends 'dms/base.html' %}
 
 {% block title %}Dokumente{% endblock %}
-{% block page_title %}Dokumente{% endblock %}
+{% block header_title %}Suche{% endblock %}
+
+{% block sub_header %}
+<div class="sub-header">
+    <div class="breadcrumb">
+        <a href="{% url 'dms:index' %}">Dashboard</a>
+        <span class="material-icons" style="font-size: 16px;">chevron_right</span>
+        <span>Suche</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .search-header-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--bg-page);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+    }
+    
+    .search-header-title {
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .search-panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    
+    .search-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .search-field {
+        flex: 1;
+    }
+    
+    .search-field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+    }
+    
+    .search-field input,
+    .search-field select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-family: inherit;
+        background: var(--bg-card);
+    }
+    
+    .search-field input:focus,
+    .search-field select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    
+    .search-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    
+    .expand-filters {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 13px;
+    }
+    
+    .expand-filters:hover {
+        color: var(--text-primary);
+    }
+    
+    .results-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .results-count {
+        font-size: 14px;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .results-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .view-toggle {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .view-toggle-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        cursor: pointer;
+        background: var(--bg-card);
+    }
+    
+    .view-toggle-btn:first-child {
+        border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    }
+    
+    .view-toggle-btn:last-child {
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        margin-left: -1px;
+    }
+    
+    .view-toggle-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    .column-config-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--bg-card);
+        color: var(--primary);
+        font-size: 13px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    
+    .column-config-btn:hover {
+        background: var(--bg-hover);
+    }
+    
+    .doc-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+    
+    .doc-table thead {
+        background: var(--bg-page);
+    }
+    
+    .doc-table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+    
+    .doc-table th.sortable {
+        cursor: pointer;
+    }
+    
+    .doc-table th.sortable:hover {
+        background: var(--bg-hover);
+    }
+    
+    .doc-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+    }
+    
+    .doc-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .doc-table tr:hover {
+        background: var(--bg-hover);
+    }
+    
+    .doc-table .checkbox-cell {
+        width: 40px;
+        text-align: center;
+    }
+    
+    .doc-icon {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .doc-icon.pdf { color: var(--error); }
+    .doc-icon.image { color: var(--success); }
+    .doc-icon.email { color: var(--warning); }
+    .doc-icon.default { color: var(--text-muted); }
+    
+    .doc-title-link {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .doc-title-link:hover {
+        text-decoration: underline;
+    }
+    
+    .grouping-hint {
+        background: var(--bg-page);
+        padding: 10px 16px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+    
+    .status-indicator.green { background: var(--success); }
+    .status-indicator.yellow { background: var(--warning); }
+    .status-indicator.red { background: var(--error); }
+    .status-indicator.blue { background: var(--primary); }
+    .status-indicator.gray { background: var(--text-muted); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h2>Dokumente</h2>
-        <a href="{% url 'dms:upload_page' %}" class="btn btn-success">
-            <span class="material-icons" style="font-size: 16px;">cloud_upload</span>
-            Neu hochladen
-        </a>
+<div class="search-panel">
+    <div class="search-header">
+        <div class="search-header-icon">
+            <span class="material-icons">folder</span>
+        </div>
+        <span class="search-header-title">Suchen in d.velop documents</span>
     </div>
     
-    <form method="get" class="filters">
-        <input type="text" name="search" class="form-control" style="width: 280px;" placeholder="Suchen..." value="{{ request.GET.search }}">
-        <select name="status" class="form-control" style="width: 160px;">
-            <option value="">Alle Status</option>
-            {% for value, label in status_choices %}
-            <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-        </select>
-        <select name="source" class="form-control" style="width: 160px;">
-            <option value="">Alle Quellen</option>
-            {% for value, label in source_choices %}
-            <option value="{{ value }}" {% if request.GET.source == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit" class="btn">
-            <span class="material-icons" style="font-size: 16px;">search</span>
-            Filtern
-        </button>
-        {% if request.GET.search or request.GET.status or request.GET.source %}
+    <form method="get">
+        <div class="search-row">
+            <div class="search-field" style="max-width: 200px;">
+                <label>Kategorie:</label>
+                <select name="document_type">
+                    <option value="">Kategorie auswählen</option>
+                    {% for dt in document_types %}
+                    <option value="{{ dt.id }}" {% if request.GET.document_type == dt.id|stringformat:'s' %}selected{% endif %}>{{ dt.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="search-field">
+                <label>Suchbegriff:</label>
+                <input type="text" name="search" placeholder="Suchbegriff eingeben" value="{{ request.GET.search }}">
+            </div>
+            <div class="search-field" style="max-width: 120px; display: flex; align-items: flex-end;">
+                <button type="submit" class="btn">
+                    <span class="material-icons" style="font-size: 16px;">search</span>
+                    SUCHEN
+                </button>
+            </div>
+        </div>
+        
+        <div class="expand-filters" onclick="document.getElementById('advancedFilters').style.display = document.getElementById('advancedFilters').style.display === 'none' ? 'block' : 'none'">
+            <span class="material-icons" style="font-size: 18px;">tune</span>
+            <span>Eigenschaften filtern:</span>
+        </div>
+        
+        <div id="advancedFilters" style="display: {% if request.GET.status or request.GET.source %}block{% else %}none{% endif %};">
+            <div class="search-row" style="margin-top: 16px;">
+                <div class="search-field">
+                    <label>Aktueller Status:</label>
+                    <select name="status">
+                        <option value="">Alle Status</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="search-field">
+                    <label>Quelle:</label>
+                    <select name="source">
+                        <option value="">Alle Quellen</option>
+                        {% for value, label in source_choices %}
+                        <option value="{{ value }}" {% if request.GET.source == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="search-field">
+                    <label>Mitarbeiter:</label>
+                    <input type="text" name="employee" placeholder="Name eingeben" value="{{ request.GET.employee }}">
+                </div>
+            </div>
+        </div>
+        
+        {% if request.GET.search or request.GET.status or request.GET.source or request.GET.document_type %}
+        <div class="search-actions">
             <a href="{% url 'dms:document_list' %}" class="btn btn-outline">
                 <span class="material-icons" style="font-size: 16px;">clear</span>
-                Zurücksetzen
+                Filter zurücksetzen
             </a>
+        </div>
         {% endif %}
     </form>
-    
-    {% if documents %}
-    <table>
-        <thead>
-            <tr>
-                <th>Titel</th>
-                <th>Typ</th>
-                <th>Status</th>
-                <th>Quelle</th>
-                <th>Mitarbeiter</th>
-                <th>Größe</th>
-                <th>Datum</th>
-                <th style="text-align: right;">Aktionen</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for doc in documents %}
-            <tr>
-                <td>
-                    <div style="font-weight: 500;">{{ doc.title }}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary);">{{ doc.original_filename }}</div>
-                </td>
-                <td>{{ doc.document_type.name|default:"-" }}</td>
-                <td>
-                    <span class="badge badge-{{ doc.status|lower }}">{{ doc.get_status_display }}</span>
-                </td>
-                <td style="color: var(--text-secondary);">{{ doc.get_source_display }}</td>
-                <td>{{ doc.employee.full_name|default:"-" }}</td>
-                <td style="color: var(--text-secondary);">{{ doc.file_size_display }}</td>
-                <td style="color: var(--text-secondary);">{{ doc.created_at|date:"d.m.Y" }}</td>
-                <td style="text-align: right;">
-                    <a href="{% url 'dms:document_detail' doc.pk %}" class="btn btn-sm btn-outline">
-                        <span class="material-icons" style="font-size: 14px;">visibility</span>
-                    </a>
-                    <a href="{% url 'dms:document_download' doc.pk %}" class="btn btn-sm">
-                        <span class="material-icons" style="font-size: 14px;">download</span>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    
-    {% if documents.has_other_pages %}
-    <div class="pagination">
-        {% if documents.has_previous %}
-            <a href="?page={{ documents.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}">
-                <span class="material-icons" style="font-size: 16px; vertical-align: middle;">chevron_left</span>
-                Zurück
-            </a>
-        {% endif %}
-        
-        <span class="current">Seite {{ documents.number }} von {{ documents.paginator.num_pages }}</span>
-        
-        {% if documents.has_next %}
-            <a href="?page={{ documents.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}">
-                Weiter
-                <span class="material-icons" style="font-size: 16px; vertical-align: middle;">chevron_right</span>
-            </a>
-        {% endif %}
+</div>
+
+{% if documents %}
+<div class="results-header">
+    <div class="results-count">
+        <span class="material-icons" style="font-size: 18px;">refresh</span>
+        {{ documents.paginator.count }} Ergebnisse
     </div>
+    <div class="results-actions">
+        <span class="column-config-btn">
+            <span class="material-icons" style="font-size: 18px;">tune</span>
+            ANSICHT ANPASSEN
+        </span>
+        <div class="view-toggle">
+            <span class="view-toggle-btn active">
+                <span class="material-icons" style="font-size: 18px;">view_list</span>
+            </span>
+            <span class="view-toggle-btn">
+                <span class="material-icons" style="font-size: 18px;">grid_view</span>
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="grouping-hint">
+    <span class="material-icons" style="font-size: 16px;">info_outline</span>
+    Ziehen Sie die Spalten hierhin, um die angezeigten Suchergebnisse zu gruppieren.
+</div>
+
+<table class="doc-table">
+    <thead>
+        <tr>
+            <th class="checkbox-cell">
+                <input type="checkbox">
+            </th>
+            <th style="width: 30px;"></th>
+            <th class="sortable">Titel <span class="material-icons" style="font-size: 14px; vertical-align: middle;">unfold_more</span></th>
+            <th class="sortable">Kategorie</th>
+            <th style="width: 30px;">St.</th>
+            <th style="width: 30px;">Fa.</th>
+            <th class="sortable">Mitarbeiter</th>
+            <th class="sortable">Quelle</th>
+            <th class="sortable">Belegdatum</th>
+            <th style="width: 50px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for doc in documents %}
+        <tr>
+            <td class="checkbox-cell">
+                <input type="checkbox">
+            </td>
+            <td>
+                <div class="doc-icon {% if doc.mime_type == 'application/pdf' %}pdf{% elif doc.mime_type|slice:':5' == 'image' %}image{% else %}default{% endif %}">
+                    <span class="material-icons" style="font-size: 18px;">{% if doc.mime_type == 'application/pdf' %}picture_as_pdf{% elif doc.mime_type|slice:':5' == 'image' %}image{% elif doc.source == 'EMAIL' %}email{% else %}description{% endif %}</span>
+                </div>
+            </td>
+            <td>
+                <a href="{% url 'dms:document_detail' doc.pk %}" class="doc-title-link">{{ doc.title|truncatechars:50 }}</a>
+            </td>
+            <td style="color: var(--text-secondary);">{{ doc.document_type.name|default:"-" }}</td>
+            <td>
+                <span class="status-indicator {% if doc.status == 'ACTIVE' %}green{% elif doc.status == 'REVIEW_NEEDED' %}red{% elif doc.status == 'UNASSIGNED' %}yellow{% else %}gray{% endif %}"></span>
+            </td>
+            <td></td>
+            <td style="color: var(--text-secondary);">{{ doc.employee.full_name|default:"-"|truncatechars:20 }}</td>
+            <td style="color: var(--text-secondary);">{{ doc.get_source_display }}</td>
+            <td style="color: var(--text-secondary);">{{ doc.created_at|date:"d.m.Y" }}</td>
+            <td>
+                <span class="material-icons" style="font-size: 18px; color: var(--text-muted); cursor: pointer;">more_vert</span>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if documents.has_other_pages %}
+<div class="pagination">
+    {% if documents.has_previous %}
+        <a href="?page={{ documents.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.document_type %}&document_type={{ request.GET.document_type }}{% endif %}">
+            <span class="material-icons" style="font-size: 16px; vertical-align: middle;">chevron_left</span>
+            Zurück
+        </a>
     {% endif %}
     
-    {% else %}
+    <span class="current">Seite {{ documents.number }} von {{ documents.paginator.num_pages }}</span>
+    
+    {% if documents.has_next %}
+        <a href="?page={{ documents.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.document_type %}&document_type={{ request.GET.document_type }}{% endif %}">
+            Weiter
+            <span class="material-icons" style="font-size: 16px; vertical-align: middle;">chevron_right</span>
+        </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="card">
     <div class="empty-state">
         <span class="material-icons">folder_off</span>
         <h3>Keine Dokumente gefunden</h3>
@@ -111,6 +458,6 @@
             Dokument hochladen
         </a>
     </div>
-    {% endif %}
 </div>
+{% endif %}
 {% endblock %}

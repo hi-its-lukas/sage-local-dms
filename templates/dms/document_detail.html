@@ -1,93 +1,757 @@
 {% extends 'dms/base.html' %}
 
 {% block title %}{{ document.title }}{% endblock %}
+{% block header_title %}Details: {{ document.title|truncatechars:40 }}{% endblock %}
+
+{% block sub_header %}
+<div class="sub-header">
+    <div class="breadcrumb">
+        <a href="{% url 'dms:index' %}">Dashboard</a>
+        <span class="material-icons" style="font-size: 16px;">chevron_right</span>
+        <a href="{% url 'dms:document_list' %}">Dokumente</a>
+        <span class="material-icons" style="font-size: 16px;">chevron_right</span>
+        <span>{{ document.title|truncatechars:30 }}</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 0;
+        height: calc(100vh - 140px);
+        margin: -24px;
+    }
+    
+    .preview-panel {
+        background: #1a1a1a;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .preview-toolbar {
+        background: var(--header-bg);
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .preview-toolbar .color-dots {
+        display: flex;
+        gap: 4px;
+    }
+    
+    .preview-toolbar .color-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+    }
+    
+    .preview-toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+    }
+    
+    .preview-toolbar-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .preview-toolbar-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.7);
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+    }
+    
+    .preview-toolbar-icon:hover {
+        background: rgba(255,255,255,0.1);
+        color: white;
+    }
+    
+    .preview-navigation {
+        background: #2d2d2d;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .preview-page-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255,255,255,0.8);
+        font-size: 13px;
+    }
+    
+    .preview-page-input {
+        width: 40px;
+        padding: 4px 8px;
+        background: #1a1a1a;
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: var(--radius-sm);
+        color: white;
+        text-align: center;
+        font-size: 13px;
+    }
+    
+    .preview-zoom {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255,255,255,0.8);
+        font-size: 13px;
+    }
+    
+    .preview-content {
+        flex: 1;
+        overflow: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .preview-content iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
+    }
+    
+    .preview-content img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    
+    .properties-panel {
+        background: var(--bg-card);
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .properties-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .properties-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .properties-header-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .properties-header-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+    }
+    
+    .properties-header-btn:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+    }
+    
+    .properties-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-page);
+    }
+    
+    .properties-tab {
+        padding: 12px 16px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    
+    .properties-tab:hover {
+        color: var(--text-primary);
+        background: var(--bg-hover);
+    }
+    
+    .properties-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        background: var(--bg-card);
+    }
+    
+    .properties-tab .material-icons {
+        font-size: 20px;
+    }
+    
+    .properties-tab-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    
+    .properties-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .category-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: var(--bg-page);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+    
+    .category-badge .material-icons {
+        color: var(--text-secondary);
+    }
+    
+    .properties-section {
+        margin-bottom: 24px;
+    }
+    
+    .properties-section-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .properties-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    
+    .property-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .property-label {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+    
+    .property-value {
+        font-size: 13px;
+        color: var(--text-primary);
+    }
+    
+    .property-value.empty {
+        color: var(--text-muted);
+        font-style: italic;
+    }
+    
+    .notes-input {
+        width: 100%;
+        min-height: 100px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-family: inherit;
+        font-size: 13px;
+        resize: vertical;
+    }
+    
+    .notes-save-btn {
+        margin-top: 12px;
+        padding: 8px 16px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        cursor: pointer;
+    }
+    
+    .version-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .version-item:last-child {
+        border-bottom: none;
+    }
+    
+    .version-icon {
+        width: 36px;
+        height: 36px;
+        background: var(--error-bg);
+        color: var(--error);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .version-info {
+        flex: 1;
+    }
+    
+    .version-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    
+    .version-meta {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--bg-page);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+    }
+    
+    .activity-content {
+        flex: 1;
+    }
+    
+    .activity-text {
+        font-size: 13px;
+        color: var(--text-primary);
+    }
+    
+    .activity-time {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+    
+    .sidebar-actions {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px;
+        background: var(--bg-card);
+        border-left: 1px solid var(--border);
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
+    }
+    
+    .sidebar-action-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+    }
+    
+    .sidebar-action-btn:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+    }
+    
+    @media (max-width: 1024px) {
+        .detail-layout {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+        
+        .preview-panel {
+            height: 500px;
+        }
+        
+        .properties-panel {
+            border-left: none;
+            border-top: 1px solid var(--border);
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: start;">
-        <div>
-            <h2>{{ document.title }}</h2>
-            <p style="color: #666;">{{ document.original_filename }}</p>
+<div class="detail-layout">
+    <div class="preview-panel">
+        <div class="preview-toolbar">
+            <div class="color-dots">
+                <div class="color-dot" style="background: #e53e3e;"></div>
+                <div class="color-dot" style="background: #dd6b20;"></div>
+                <div class="color-dot" style="background: #38a169;"></div>
+                <div class="color-dot" style="background: #3182ce;"></div>
+            </div>
+            <div class="preview-toolbar-actions">
+                <a href="{% url 'dms:document_edit' document.pk %}" class="preview-toolbar-btn">
+                    <span class="material-icons" style="font-size: 16px;">check</span>
+                </a>
+                <a href="{% url 'dms:document_download' document.pk %}" class="preview-toolbar-icon" title="Herunterladen">
+                    <span class="material-icons">download</span>
+                </a>
+                <span class="preview-toolbar-icon" title="Vollbild">
+                    <span class="material-icons">fullscreen</span>
+                </span>
+                <span class="preview-toolbar-icon" title="Liste">
+                    <span class="material-icons">view_list</span>
+                </span>
+                <span class="preview-toolbar-icon" title="Aktualisieren">
+                    <span class="material-icons">refresh</span>
+                </span>
+            </div>
         </div>
-        <div>
-            <a href="{% url 'dms:document_edit' document.pk %}" class="btn btn-primary">Bearbeiten</a>
-            <a href="{% url 'dms:document_download' document.pk %}" class="btn btn-success">Herunterladen</a>
-            <a href="{% url 'dms:document_list' %}" class="btn">Zurück zur Liste</a>
+        
+        <div class="preview-navigation">
+            <span class="preview-toolbar-icon" title="Thumbnails">
+                <span class="material-icons">view_module</span>
+            </span>
+            <div class="preview-page-info">
+                <input type="text" class="preview-page-input" value="1">
+                <span>/ 1</span>
+            </div>
+            <div class="preview-zoom">
+                <span>100%</span>
+                <span class="material-icons" style="font-size: 16px;">arrow_drop_down</span>
+            </div>
+            <span class="preview-toolbar-icon" title="Notizen">
+                <span class="material-icons">sticky_note_2</span>
+            </span>
+            <span class="preview-toolbar-icon" title="Suchen">
+                <span class="material-icons">search</span>
+            </span>
+            <span class="preview-toolbar-icon" title="Mehr">
+                <span class="material-icons">more_vert</span>
+            </span>
         </div>
-    </div>
-</div>
-
-{% if document.mime_type == 'application/pdf' %}
-<div class="card" style="margin-bottom: 20px;">
-    <h2>Dokumentvorschau</h2>
-    <iframe src="{% url 'dms:document_view' document.pk %}" style="width: 100%; height: 800px; border: 1px solid #ddd; border-radius: 4px;"></iframe>
-</div>
-{% elif document.mime_type|slice:":6" == 'image/' %}
-<div class="card" style="margin-bottom: 20px;">
-    <h2>Dokumentvorschau</h2>
-    <img src="{% url 'dms:document_view' document.pk %}" style="max-width: 100%; height: auto; border-radius: 4px;" alt="{{ document.title }}">
-</div>
-{% endif %}
-
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-    <div class="card">
-        <h2>Dokumentinformationen</h2>
-        <table>
-            <tr><th style="width: 140px;">ID</th><td>{{ document.id }}</td></tr>
-            <tr><th>Status</th><td><span class="badge badge-{{ document.status|lower }}">{{ document.get_status_display }}</span></td></tr>
-            <tr><th>Quelle</th><td>{{ document.get_source_display }}</td></tr>
-            <tr><th>Typ</th><td>{{ document.document_type.name|default:"Nicht zugewiesen" }}</td></tr>
-            <tr><th>MIME-Typ</th><td>{{ document.mime_type }}</td></tr>
-            <tr><th>Größe</th><td>{{ document.file_size_display }}</td></tr>
-        </table>
+        
+        <div class="preview-content">
+            {% if document.mime_type == 'application/pdf' %}
+            <iframe src="{% url 'dms:document_view' document.pk %}"></iframe>
+            {% elif document.mime_type|slice:":6" == 'image/' %}
+            <img src="{% url 'dms:document_view' document.pk %}" alt="{{ document.title }}">
+            {% else %}
+            <div style="text-align: center; color: rgba(255,255,255,0.5);">
+                <span class="material-icons" style="font-size: 64px;">description</span>
+                <p style="margin-top: 12px;">Keine Vorschau verfügbar</p>
+                <a href="{% url 'dms:document_download' document.pk %}" class="btn" style="margin-top: 16px;">
+                    <span class="material-icons">download</span>
+                    Herunterladen
+                </a>
+            </div>
+            {% endif %}
+        </div>
     </div>
     
-    <div class="card">
-        <h2>Zuweisung</h2>
-        <table>
-            <tr><th style="width: 140px;">Mitarbeiter</th><td>{{ document.employee.full_name|default:"Nicht zugewiesen" }}</td></tr>
-            <tr><th>Besitzer</th><td>{{ document.owner.username|default:"System" }}</td></tr>
-            <tr><th>Erstellt</th><td>{{ document.created_at|date:"d.m.Y H:i" }}</td></tr>
-            <tr><th>Aktualisiert</th><td>{{ document.updated_at|date:"d.m.Y H:i" }}</td></tr>
-            {% if document.archived_at %}
-            <tr><th>Archiviert</th><td>{{ document.archived_at|date:"d.m.Y H:i" }}</td></tr>
-            {% endif %}
-        </table>
+    <div class="properties-panel">
+        <div class="properties-header">
+            <span class="properties-title">Details zum Dokument</span>
+            <div class="properties-header-actions">
+                <a href="{% url 'dms:document_edit' document.pk %}" class="properties-header-btn" title="Bearbeiten">
+                    <span class="material-icons">edit</span>
+                </a>
+                <a href="{% url 'dms:document_list' %}" class="properties-header-btn" title="Schließen">
+                    <span class="material-icons">close</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="properties-tabs">
+            <div class="properties-tab active" data-tab="eigenschaften">
+                <span class="material-icons">info</span>
+                <span class="properties-tab-label">Eigenschaften</span>
+            </div>
+            <div class="properties-tab" data-tab="notizen">
+                <span class="material-icons">note</span>
+                <span class="properties-tab-label">Notizen ({% if document.notes %}1{% else %}0{% endif %})</span>
+            </div>
+            <div class="properties-tab" data-tab="versionen">
+                <span class="material-icons">history</span>
+                <span class="properties-tab-label">Versionen (1)</span>
+            </div>
+            <div class="properties-tab" data-tab="verknuepfungen">
+                <span class="material-icons">link</span>
+                <span class="properties-tab-label">Verknüpfungen</span>
+            </div>
+            <div class="properties-tab" data-tab="aktivitaeten">
+                <span class="material-icons">schedule</span>
+                <span class="properties-tab-label">Aktivitäten</span>
+            </div>
+        </div>
+        
+        <div class="properties-body">
+            <div class="tab-content active" id="eigenschaften">
+                <div class="category-badge">
+                    <span class="material-icons">folder</span>
+                    {{ document.document_type.name|default:"Nicht klassifiziert" }}
+                </div>
+                
+                <div class="properties-section">
+                    <div class="properties-section-title">
+                        Erweiterte Eigenschaften
+                        <span class="material-icons" style="font-size: 16px; cursor: pointer;">expand_less</span>
+                    </div>
+                    <div class="properties-grid">
+                        <div class="property-item">
+                            <span class="property-label">Mitarbeiter</span>
+                            <span class="property-value {% if not document.employee %}empty{% endif %}">{{ document.employee.full_name|default:"Nicht zugewiesen" }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Status</span>
+                            <span class="property-value"><span class="status-dot {% if document.status == 'ACTIVE' %}green{% elif document.status == 'REVIEW_NEEDED' %}red{% else %}yellow{% endif %}"></span>{{ document.get_status_display }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Belegdatum</span>
+                            <span class="property-value">{{ document.created_at|date:"d.m.Y" }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Quelle</span>
+                            <span class="property-value">{{ document.get_source_display }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="properties-section">
+                    <div class="properties-section-title">
+                        Allgemeine Eigenschaften
+                        <span class="material-icons" style="font-size: 16px; cursor: pointer;">expand_less</span>
+                    </div>
+                    <div class="properties-grid">
+                        <div class="property-item">
+                            <span class="property-label">Geändert am</span>
+                            <span class="property-value">{{ document.updated_at|date:"d.m.Y H:i:s" }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Datei geändert am</span>
+                            <span class="property-value">{{ document.updated_at|date:"d.m.Y H:i:s" }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Bearbeitet von</span>
+                            <span class="property-value">{{ document.owner.username|default:"System" }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Im Besitz von</span>
+                            <span class="property-value">{{ document.owner.username|default:"System" }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Titel</span>
+                            <span class="property-value">{{ document.title }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Dateiname</span>
+                            <span class="property-value">{{ document.original_filename }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Dateityp</span>
+                            <span class="property-value">{{ document.mime_type }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Dokument-ID</span>
+                            <span class="property-value file-number">{{ document.id|truncatechars:12 }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Erstellt am</span>
+                            <span class="property-value">{{ document.created_at|date:"d.m.Y H:i:s" }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Größe</span>
+                            <span class="property-value">{{ document.file_size_display }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="notizen">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <textarea class="notes-input" placeholder="Bitte geben Sie hier Ihre neue Notiz ein.">{{ document.notes|default:"" }}</textarea>
+                    <button type="submit" class="notes-save-btn">NOTIZ SPEICHERN</button>
+                </form>
+                
+                {% if document.notes %}
+                <div style="margin-top: 24px;">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <span class="material-icons" style="font-size: 16px;">note</span>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ document.notes }}</div>
+                            <div class="activity-time">{{ document.updated_at|date:"d.m.Y H:i" }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p style="margin-top: 24px; color: var(--text-muted); text-align: center;">Keine Notizen vorhanden.</p>
+                {% endif %}
+            </div>
+            
+            <div class="tab-content" id="versionen">
+                <p style="margin-bottom: 16px; color: var(--text-secondary);">1 Version verfügbar</p>
+                
+                <div class="version-item">
+                    <div class="version-icon">
+                        <span class="material-icons">picture_as_pdf</span>
+                    </div>
+                    <div class="version-info">
+                        <div class="version-title">{{ document.get_status_display }} - Version 1</div>
+                        <div class="version-meta">Wird bearbeitet von: {{ document.owner.username|default:"System" }}</div>
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 12px;">{{ document.created_at|date:"d.m.Y H:i:s" }}</div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="verknuepfungen">
+                {% if document.employee and document.employee.personnelfile_set.exists %}
+                <p style="margin-bottom: 16px; color: var(--text-secondary);">ist in einer Akte enthalten</p>
+                {% for pf in document.employee.personnelfile_set.all %}
+                <a href="{% url 'dms:personnel_file_detail' pf.pk %}" class="version-item" style="text-decoration: none; color: inherit;">
+                    <div class="version-icon" style="background: var(--info-bg); color: var(--info);">
+                        <span class="material-icons">folder_shared</span>
+                    </div>
+                    <div class="version-info">
+                        <div class="version-title">{{ document.employee.full_name }}</div>
+                        <div class="version-meta">Personalakte</div>
+                    </div>
+                </a>
+                {% endfor %}
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center;">Keine Verknüpfungen vorhanden.</p>
+                {% endif %}
+            </div>
+            
+            <div class="tab-content" id="aktivitaeten">
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <span class="material-icons" style="font-size: 16px;">add_circle</span>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">Dokument wurde erstellt</div>
+                        <div class="activity-time">{{ document.owner.username|default:"Systembenutzer" }}, {{ document.created_at|date:"d.m.Y, H:i:s" }}</div>
+                    </div>
+                </div>
+                
+                {% if document.created_at != document.updated_at %}
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <span class="material-icons" style="font-size: 16px;">edit</span>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">Dokument wurde bearbeitet</div>
+                        <div class="activity-time">{{ document.owner.username|default:"Systembenutzer" }}, {{ document.updated_at|date:"d.m.Y, H:i:s" }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <span class="material-icons" style="font-size: 16px;">upload</span>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">Element wurde importiert</div>
+                        <div class="activity-time">{{ document.owner.username|default:"Systembenutzer" }}, {{ document.created_at|date:"d.m.Y, H:i:s" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
 
-{% if document.notes %}
-<div class="card">
-    <h2>Notizen</h2>
-    <p>{{ document.notes }}</p>
-</div>
-{% endif %}
-
-{% if document.metadata %}
-<div class="card">
-    <h2>Metadaten</h2>
-    <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto;">{{ document.metadata|pprint }}</pre>
-</div>
-{% endif %}
-
-{% if document.tasks.exists %}
-<div class="card">
-    <h2>Zugehörige Aufgaben</h2>
-    <table>
-        <thead>
-            <tr><th>Titel</th><th>Status</th><th>Priorität</th><th>Zugewiesen an</th></tr>
-        </thead>
-        <tbody>
-            {% for task in document.tasks.all %}
-            <tr>
-                <td>{{ task.title }}</td>
-                <td>{{ task.get_status_display }}</td>
-                <td>{{ task.get_priority_display }}</td>
-                <td>{{ task.assigned_to.username|default:"-" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% endif %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.properties-tab');
+    const contents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-tab');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            
+            this.classList.add('active');
+            document.getElementById(targetId).classList.add('active');
+        });
+    });
+});
+</script>
 {% endblock %}

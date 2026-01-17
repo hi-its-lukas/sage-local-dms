@@ -1,127 +1,273 @@
 {% extends 'dms/base.html' %}
 
 {% block title %}Dashboard{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block header_title %}Dashboard{% endblock %}
+
+{% block sub_header %}
+<div class="sub-header">
+    <span class="sub-header-title">d.velop Default Dashboard</span>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="stats">
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon">
-                <span class="material-icons">description</span>
+<div class="widget-grid">
+    <div class="widget">
+        <div class="widget-header">
+            <div class="widget-icon blue">
+                <span class="material-icons">search</span>
+            </div>
+            <div class="widget-title-group">
+                <div class="widget-title">Suche</div>
+                <div class="widget-subtitle">Suche nach Dokumenten, E-Mails oder Akten</div>
             </div>
         </div>
-        <h3>{{ stats.total_documents }}</h3>
-        <p>Dokumente gesamt</p>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon" style="background: #fff8e1; color: var(--warning);">
-                <span class="material-icons">help_outline</span>
-            </div>
+        <div class="widget-body">
+            <form action="{% url 'dms:document_list' %}" method="get">
+                <div class="search-input-wrapper">
+                    <span class="material-icons search-input-icon">search</span>
+                    <input type="text" name="search" class="search-input" placeholder="Was möchten Sie finden?">
+                </div>
+            </form>
+            <a href="{% url 'dms:document_list' %}" class="search-link">Erweiterte Suche</a>
         </div>
-        <h3>{{ stats.unassigned }}</h3>
-        <p>Nicht zugewiesen</p>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon" style="background: #ffebee; color: var(--error);">
-                <span class="material-icons">warning</span>
-            </div>
-        </div>
-        <h3>{{ stats.review_needed }}</h3>
-        <p>Prüfung erforderlich</p>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon" style="background: #e8f5e9; color: var(--success);">
-                <span class="material-icons">task_alt</span>
-            </div>
-        </div>
-        <h3>{{ stats.open_tasks }}</h3>
-        <p>Offene Aufgaben</p>
-    </div>
-</div>
-
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-    <div class="card">
-        <div class="card-header">
-            <h2>Aktuelle Dokumente</h2>
-            <a href="{% url 'dms:document_list' %}" class="btn btn-sm btn-outline">Alle anzeigen</a>
-        </div>
-        {% if recent_documents %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Titel</th>
-                    <th>Status</th>
-                    <th>Quelle</th>
-                    <th>Datum</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for doc in recent_documents %}
-                <tr>
-                    <td style="font-weight: 500;">{{ doc.title }}</td>
-                    <td>
-                        <span class="badge badge-{{ doc.status|lower }}">{{ doc.get_status_display }}</span>
-                    </td>
-                    <td style="color: var(--text-secondary);">{{ doc.get_source_display }}</td>
-                    <td style="color: var(--text-secondary);">{{ doc.created_at|date:"d.m.Y" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="empty-state">
-            <span class="material-icons">inbox</span>
-            <h3>Keine Dokumente</h3>
-            <p>Laden Sie Ihr erstes Dokument hoch</p>
-            <a href="{% url 'dms:upload_page' %}" class="btn" style="margin-top: 16px;">
-                <span class="material-icons">cloud_upload</span>
-                Dokument hochladen
-            </a>
-        </div>
-        {% endif %}
     </div>
     
-    <div class="card">
-        <div class="card-header">
-            <h2>Offene Aufgaben</h2>
-            <a href="{% url 'dms:task_list' %}" class="btn btn-sm btn-outline">Alle</a>
-        </div>
-        {% if open_tasks %}
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-            {% for task in open_tasks %}
-            <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border-left: 3px solid {% if task.priority == 'HIGH' %}var(--error){% elif task.priority == 'MEDIUM' %}var(--warning){% else %}var(--primary){% endif %};">
-                <div style="font-weight: 500; margin-bottom: 4px;">{{ task.title }}</div>
-                <div style="font-size: 12px; color: var(--text-secondary);">
-                    <span class="badge badge-{% if task.priority == 'HIGH' %}error{% elif task.priority == 'MEDIUM' %}unassigned{% else %}active{% endif %}" style="font-size: 10px;">
-                        {{ task.get_priority_display }}
-                    </span>
-                </div>
+    <div class="widget">
+        <div class="widget-header">
+            <div class="widget-icon green">
+                <span class="material-icons">upload_file</span>
             </div>
-            {% endfor %}
+            <div class="widget-title-group">
+                <div class="widget-title">Import</div>
+                <div class="widget-subtitle">Dokumente importieren und mehr</div>
+            </div>
         </div>
-        {% else %}
-        <div class="empty-state" style="padding: 24px;">
-            <span class="material-icons">check_circle</span>
-            <p style="margin-top: 8px;">Keine offenen Aufgaben</p>
+        <div class="widget-body">
+            <a href="{% url 'dms:upload_page' %}" class="upload-zone">
+                <span class="material-icons">cloud_upload</span>
+                <div class="upload-zone-text">
+                    Drag & Drop. <span class="upload-zone-link">Alternativ hier klicken zum Hochladen.</span>
+                </div>
+            </a>
         </div>
-        {% endif %}
+    </div>
+    
+    <div class="widget">
+        <div class="widget-header">
+            <div class="widget-icon orange">
+                <span class="material-icons">checklist</span>
+            </div>
+            <div class="widget-title-group">
+                <div class="widget-title">Aufgaben</div>
+                <div class="widget-subtitle">Erledigen von ausstehenden Aufgaben</div>
+            </div>
+        </div>
+        <div class="widget-body">
+            {% if open_tasks %}
+            <ul class="recent-list">
+                {% for task in open_tasks|slice:":5" %}
+                <li class="recent-item">
+                    <span class="material-icons recent-item-icon" style="color: {% if task.priority == 'HIGH' %}var(--error){% elif task.priority == 'MEDIUM' %}var(--warning){% else %}var(--primary){% endif %}">assignment</span>
+                    <div class="recent-item-content">
+                        <div class="recent-item-title">{{ task.title }}</div>
+                        <div class="recent-item-date">{{ task.get_priority_display }}</div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="task-empty">
+                <svg width="100" height="70" viewBox="0 0 100 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="50" cy="65" rx="40" ry="5" fill="#e2e8f0"/>
+                    <path d="M30 65V35c0-5 5-10 10-15s10-10 10-20" stroke="#3182ce" stroke-width="4" fill="none"/>
+                    <circle cx="50" cy="15" r="10" fill="#3182ce"/>
+                    <path d="M50 65V40c0-5 5-10 10-15" stroke="#38b2ac" stroke-width="3" fill="none"/>
+                    <circle cx="60" cy="25" r="7" fill="#38b2ac"/>
+                    <path d="M70 65V45c0-3 3-6 5-10" stroke="#718096" stroke-width="2" fill="none"/>
+                    <circle cx="75" cy="35" r="5" fill="#718096"/>
+                </svg>
+                <div class="task-empty-text">Liste hat keine Einträge</div>
+                <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Möchten Sie die Liste erneut laden?</div>
+                <a href="" class="task-refresh-link">AKTUALISIEREN</a>
+            </div>
+            {% endif %}
+        </div>
+        <a href="{% url 'dms:task_list' %}" class="task-create-link">Aufgaben anzeigen</a>
+    </div>
+    
+    <div class="widget">
+        <div class="widget-header">
+            <div class="widget-icon teal">
+                <span class="material-icons">schedule</span>
+            </div>
+            <div class="widget-title-group">
+                <div class="widget-title">Zuletzt bearbeitet</div>
+                <div class="widget-subtitle">Anzeigen Ihrer zuletzt bearbeiteten Elemente</div>
+            </div>
+        </div>
+        <div class="widget-body">
+            {% if recent_documents %}
+            <ul class="recent-list">
+                {% for doc in recent_documents|slice:":6" %}
+                <a href="{% url 'dms:document_detail' doc.pk %}" class="recent-item">
+                    <span class="material-icons recent-item-icon">{% if doc.mime_type == 'application/pdf' %}picture_as_pdf{% else %}description{% endif %}</span>
+                    <div class="recent-item-content">
+                        <div class="recent-item-title">{{ doc.title|truncatechars:40 }}</div>
+                        <div class="recent-item-date">{{ doc.updated_at|date:"d.m.Y H:i:s" }}</div>
+                    </div>
+                </a>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="task-empty">
+                <span class="material-icons" style="font-size: 48px; color: var(--text-muted);">history</span>
+                <div class="task-empty-text" style="margin-top: 12px;">Keine kürzlich bearbeiteten Dokumente</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="widget">
+        <div class="widget-header">
+            <div class="widget-icon purple">
+                <span class="material-icons">document_scanner</span>
+            </div>
+            <div class="widget-title-group">
+                <div class="widget-title">Scannen</div>
+                <div class="widget-subtitle">Scannen von Dokumenten</div>
+            </div>
+        </div>
+        <div class="widget-body compact">
+            <a href="{% url 'dms:sage_sync_dashboard' %}" class="menu-link">
+                <span class="material-icons">sync</span>
+                <div class="menu-link-content">
+                    <div class="menu-link-title">Sage-Archiv scannen</div>
+                    <div class="menu-link-desc">Import aus dem Sage-Archivordner starten</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <div class="widget">
+        <div class="widget-header">
+            <div class="widget-icon gray">
+                <span class="material-icons">settings</span>
+            </div>
+            <div class="widget-title-group">
+                <div class="widget-title">Konfiguration</div>
+                <div class="widget-subtitle">Übersicht aller Konfigurationen</div>
+            </div>
+        </div>
+        <div class="widget-body compact">
+            <a href="{% url 'admin:index' %}" class="menu-link">
+                <span class="material-icons">admin_panel_settings</span>
+                <div class="menu-link-content">
+                    <div class="menu-link-title">Administration</div>
+                    <div class="menu-link-desc">Systemeinstellungen verwalten</div>
+                </div>
+            </a>
+            <a href="{% url 'dms:sage_sync_dashboard' %}" class="menu-link">
+                <span class="material-icons">cloud_sync</span>
+                <div class="menu-link-content">
+                    <div class="menu-link-title">Sage Cloud</div>
+                    <div class="menu-link-desc">Sage HR Cloud Synchronisation</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <div class="widget">
+        <div class="widget-header">
+            <div class="widget-icon blue">
+                <span class="material-icons">create_new_folder</span>
+            </div>
+            <div class="widget-title-group">
+                <div class="widget-title">Aktenerstellung</div>
+                <div class="widget-subtitle">Neue Akten zur Verfügung stellen</div>
+            </div>
+        </div>
+        <div class="widget-body compact">
+            <a href="{% url 'dms:personnel_file_list' %}" class="menu-link">
+                <span class="material-icons">folder_shared</span>
+                <div class="menu-link-content">
+                    <div class="menu-link-title">Personalakten</div>
+                    <div class="menu-link-desc">Personalakten verwalten und erstellen</div>
+                </div>
+            </a>
+            <a href="{% url 'dms:employee_list' %}" class="menu-link">
+                <span class="material-icons">people</span>
+                <div class="menu-link-content">
+                    <div class="menu-link-title">Mitarbeiter</div>
+                    <div class="menu-link-desc">Mitarbeiterliste anzeigen</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <div class="widget">
+        <div class="widget-header">
+            <div class="widget-icon green">
+                <span class="material-icons">add_circle</span>
+            </div>
+            <div class="widget-title-group">
+                <div class="widget-title">Ablage</div>
+                <div class="widget-subtitle">Neue Inhalte zur Verfügung stellen</div>
+            </div>
+        </div>
+        <div class="widget-body compact">
+            <a href="{% url 'dms:upload_page' %}" class="menu-link">
+                <span class="material-icons">upload_file</span>
+                <div class="menu-link-content">
+                    <div class="menu-link-title">Dokument hochladen</div>
+                    <div class="menu-link-desc">Neue Dokumente im System ablegen</div>
+                </div>
+            </a>
+            <a href="{% url 'dms:filing_plan' %}" class="menu-link">
+                <span class="material-icons">account_tree</span>
+                <div class="menu-link-content">
+                    <div class="menu-link-title">Aktenplan</div>
+                    <div class="menu-link-desc">Kategorien und Aufbewahrungsfristen</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <div class="widget">
+        <div class="widget-header">
+            <div class="widget-icon purple">
+                <span class="material-icons">help_outline</span>
+            </div>
+            <div class="widget-title-group">
+                <div class="widget-title">Hilfe</div>
+            </div>
+        </div>
+        <div class="widget-body compact">
+            <a href="{% url 'admin:dms_systemsettings_changelist' %}" class="menu-link">
+                <span class="material-icons">settings</span>
+                <div class="menu-link-content">
+                    <div class="menu-link-title">Systemeinstellungen</div>
+                    <div class="menu-link-desc">Alle Systemkonfigurationen</div>
+                </div>
+            </a>
+            <a href="{% url 'admin:index' %}" class="menu-link">
+                <span class="material-icons">support</span>
+                <div class="menu-link-content">
+                    <div class="menu-link-title">Administration</div>
+                    <div class="menu-link-desc">Django Admin-Bereich</div>
+                </div>
+            </a>
+        </div>
     </div>
 </div>
 
 {% if active_scans %}
 <div class="card" style="margin-top: 24px;">
-    <div class="card-header">
-        <h2>
-            <span class="material-icons" style="animation: spin 2s linear infinite; vertical-align: middle;">sync</span>
-            Aktive Verarbeitung
-        </h2>
-    </div>
+    <h2 style="display: flex; align-items: center; gap: 8px;">
+        <span class="material-icons" style="animation: spin 2s linear infinite;">sync</span>
+        Aktive Verarbeitung
+    </h2>
     {% for scan in active_scans %}
-    <div style="padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: 12px;">
+    <div style="padding: 16px; background: var(--bg-page); border-radius: var(--radius-md); margin-top: 16px;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
             <span style="font-weight: 500;">{{ scan.get_source_display }}</span>
             <span style="color: var(--text-secondary);">{{ scan.progress_percent }}%</span>
@@ -144,10 +290,8 @@
 
 {% if recent_scans %}
 <div class="card" style="margin-top: 24px;">
-    <div class="card-header">
-        <h2>Letzte Scan-Aufträge</h2>
-    </div>
-    <table>
+    <h2>Letzte Scan-Aufträge</h2>
+    <table style="margin-top: 16px;">
         <thead>
             <tr>
                 <th>Quelle</th>
@@ -163,7 +307,7 @@
             <tr>
                 <td>{{ scan.get_source_display }}</td>
                 <td>
-                    <span class="badge badge-{% if scan.status == 'COMPLETED' %}assigned{% elif scan.status == 'FAILED' %}error{% else %}unassigned{% endif %}">
+                    <span class="badge {% if scan.status == 'COMPLETED' %}badge-success{% elif scan.status == 'FAILED' %}badge-error{% else %}badge-warning{% endif %}">
                         {{ scan.get_status_display }}
                     </span>
                 </td>
@@ -178,27 +322,42 @@
 </div>
 {% endif %}
 
-<div class="card" style="margin-top: 24px;">
-    <div class="card-header">
-        <h2>Schnellaktionen</h2>
+<div class="stats" style="margin-top: 24px;">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon">
+                <span class="material-icons">description</span>
+            </div>
+        </div>
+        <h3>{{ stats.total_documents }}</h3>
+        <p>Dokumente gesamt</p>
     </div>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a href="{% url 'dms:upload_page' %}" class="btn btn-success">
-            <span class="material-icons">cloud_upload</span>
-            Dokument hochladen
-        </a>
-        <a href="{% url 'dms:document_list' %}?status=UNASSIGNED" class="btn">
-            <span class="material-icons">help_outline</span>
-            Nicht zugewiesene anzeigen
-        </a>
-        <a href="{% url 'dms:document_list' %}?status=REVIEW_NEEDED" class="btn btn-danger">
-            <span class="material-icons">warning</span>
-            Prüfung erforderlich
-        </a>
-        <a href="{% url 'dms:sage_sync_dashboard' %}" class="btn btn-outline">
-            <span class="material-icons">sync</span>
-            Sage synchronisieren
-        </a>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon" style="background: var(--warning-bg); color: var(--warning);">
+                <span class="material-icons">help_outline</span>
+            </div>
+        </div>
+        <h3>{{ stats.unassigned }}</h3>
+        <p>Nicht zugewiesen</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon" style="background: var(--error-bg); color: var(--error);">
+                <span class="material-icons">warning</span>
+            </div>
+        </div>
+        <h3>{{ stats.review_needed }}</h3>
+        <p>Prüfung erforderlich</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon" style="background: var(--success-bg); color: var(--success);">
+                <span class="material-icons">folder_shared</span>
+            </div>
+        </div>
+        <h3>{{ stats.total_personnel_files|default:"0" }}</h3>
+        <p>Personalakten</p>
     </div>
 </div>
 {% endblock %}
