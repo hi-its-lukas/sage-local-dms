@@ -330,7 +330,8 @@ class ScanJob(models.Model):
     def progress_percent(self):
         if self.total_files == 0:
             return 0
-        return int((self.processed_files + self.skipped_files + self.error_files) / self.total_files * 100)
+        percent = int((self.processed_files + self.error_files) / self.total_files * 100)
+        return min(percent, 100)
     
     @property
     def is_running(self):
