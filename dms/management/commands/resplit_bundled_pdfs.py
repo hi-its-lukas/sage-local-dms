@@ -40,22 +40,24 @@ class Command(BaseCommand):
             help='Nur ein bestimmtes Dokument verarbeiten (UUID)',
         )
         parser.add_argument(
-            '--one-page-per-doc',
+            '--group-pages',
             action='store_true',
-            help='Jede Seite als eigenes Dokument (kein Grouping)',
+            help='Gruppiert Seiten pro Mitarbeiter (Standard: jede Seite = 1 Dokument)',
         )
 
     def handle(self, *args, **options):
         dry_run = options.get('dry_run', False)
         timeout = options.get('timeout', 8)
         doc_id = options.get('doc_id')
-        one_page_per_doc = options.get('one_page_per_doc', False)
+        group_pages = options.get('group_pages', False)
         
         if dry_run:
             self.stdout.write(self.style.WARNING('=== DRY RUN ===\n'))
         
-        if one_page_per_doc:
-            self.stdout.write(self.style.WARNING('Modus: Eine Seite = Ein Dokument\n'))
+        if group_pages:
+            self.stdout.write(self.style.WARNING('Modus: Gruppierung nach Mitarbeiter\n'))
+        else:
+            self.stdout.write('Modus: Eine Seite = Ein Dokument\n')
         
         if doc_id:
             docs = Document.objects.filter(id=doc_id)
@@ -73,6 +75,7 @@ class Command(BaseCommand):
         skipped = 0
         
         for doc in docs:
+            one_page_per_doc = not group_pages
             result = self._process_document(doc, timeout, dry_run, one_page_per_doc)
             if result > 0:
                 split_count += result
