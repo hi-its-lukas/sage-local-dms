@@ -374,6 +374,42 @@ def document_view(request, pk):
 
 
 @login_required
+def document_page_thumbnail(request, pk, page_num):
+    """Generiert ein Thumbnail-Bild für eine PDF-Seite."""
+    import fitz
+    
+    document = get_object_or_404(Document, pk=pk)
+    
+    if not _can_access_document(request.user, document):
+        return HttpResponse('Permission denied', status=403)
+    
+    if document.mime_type != 'application/pdf':
+        return HttpResponse('Not a PDF', status=400)
+    
+    try:
+        decrypted_content = decrypt_data(document.encrypted_content)
+        pdf_doc = fitz.open(stream=decrypted_content, filetype='pdf')
+        
+        page_idx = page_num - 1
+        if page_idx < 0 or page_idx >= len(pdf_doc):
+            pdf_doc.close()
+            return HttpResponse('Page not found', status=404)
+        
+        page = pdf_doc[page_idx]
+        pix = page.get_pixmap(matrix=fitz.Matrix(0.5, 0.5))
+        img_data = pix.tobytes("png")
+        
+        pdf_doc.close()
+        
+        response = HttpResponse(img_data, content_type='image/png')
+        response['Cache-Control'] = 'public, max-age=3600'
+        return response
+        
+    except Exception as e:
+        return HttpResponse(f'Error: {str(e)}', status=500)
+
+
+@login_required
 def document_edit(request, pk):
     from .forms import DocumentEditForm
     

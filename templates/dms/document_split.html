@@ -190,12 +190,11 @@
     
     .page-thumb-img {
         width: 100%;
-        height: 120px;
+        height: auto;
+        min-height: 100px;
         background: var(--bg-page);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-secondary);
+        display: block;
+        object-fit: contain;
     }
     
     .page-thumb-label {
@@ -304,9 +303,10 @@
                     {% for page_num in page_range %}
                     <div class="page-thumb" data-page="{{ page_num }}">
                         <span class="page-thumb-number">{{ page_num }}</span>
-                        <div class="page-thumb-img">
-                            <span class="material-icons" style="font-size: 32px;">description</span>
-                        </div>
+                        <img class="page-thumb-img" 
+                             src="{% url 'dms:document_page_thumbnail' document.pk page_num %}" 
+                             alt="Seite {{ page_num }}"
+                             loading="lazy">
                         <div class="page-thumb-label">Seite {{ page_num }}</div>
                     </div>
                     {% endfor %}
