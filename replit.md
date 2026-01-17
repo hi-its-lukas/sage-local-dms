@@ -214,8 +214,46 @@ Das System unterstützt jetzt mehrere Mandanten, basierend auf der Sage-Archiv-O
 - `/admin/dms/tenantuser/` - Benutzer-Mandanten-Zuordnung
 - Alle Listen haben Mandanten-Filter
 
+## Paperless-ngx Features
+
+### Tags und Matching Rules
+
+Das System unterstützt jetzt automatische Dokumentklassifizierung:
+
+- **Tag**: Hierarchische Tags mit Farbcodierung und Eltern-Kind-Beziehungen
+- **DocumentTag**: Verknüpfung zwischen Dokumenten und Tags mit Zeitstempel
+- **MatchingRule**: Automatische Klassifizierung mit verschiedenen Algorithmen:
+  - ANY: Ein Wort muss enthalten sein
+  - ALL: Alle Wörter müssen enthalten sein
+  - EXACT: Exakter Phrasen-Match
+  - REGEX: Regulärer Ausdruck
+  - FUZZY: Ähnlichkeits-Match
+
+### Bulk-Bearbeitung
+
+- Mehrfachauswahl von Dokumenten mit Checkboxen
+- Aktionsleiste für Massenoperationen
+- Unterstützte Aktionen: Status setzen, Mitarbeiter zuweisen, Dokumenttyp ändern, Löschen
+
+### Volltext-Suche
+
+- PostgreSQL Full-Text Search mit SearchVector und SearchRank
+- Highlighting von Suchtreffern mit `<mark>` Tags
+- Ranking nach Relevanz
+- AJAX-Unterstützung für Auto-Complete
+
+### Performance-Optimierungen
+
+- Parallele Dokumentverarbeitung mit ThreadPoolExecutor (max 4 Worker)
+- Chunked Hash-Berechnung (64KB Chunks) für große Dateien
+- Pfad-basierter Deduplizierungs-Cache zur Vermeidung redundanter Hash-Berechnungen
+- Batched DB-Updates (alle 10 Dateien statt pro Datei)
+- Thread-sichere Zähler mit Lock-Mechanismen
+
 ## Letzte Änderungen
 
+- **Paperless-ngx Features**: Tags, Matching Rules, Bulk-Bearbeitung, Volltext-Suche
+- **Performance-Optimierungen**: Parallele Verarbeitung, Chunked Hashing, Path-Cache
 - **Mandantenfähigkeit**: Automatische Erkennung aus Sage-Ordnerstruktur (00000001, 00000002)
 - **Aktenlogik (d.3 one-Style)**: Personalakten, Aktenplan, Versionierung, Berechtigungen
 - **CSRF_TRUSTED_ORIGINS**: Konfigurierbar über Umgebungsvariable für Cloudflare

@@ -1,0 +1,183 @@
+{% extends 'dms/base.html' %}
+{% load static %}
+
+{% block title %}Volltextsuche{% endblock %}
+{% block header_title %}Volltextsuche{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+    
+    .search-input-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 16px 20px 16px 48px;
+        font-size: 16px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        background: var(--bg-card);
+        transition: all 0.2s;
+    }
+    
+    .search-input:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+    
+    .result-count {
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+    }
+    
+    .search-result {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: all 0.2s;
+    }
+    
+    .search-result:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .result-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 8px;
+    }
+    
+    .result-title a {
+        color: inherit;
+        text-decoration: none;
+    }
+    
+    .result-title a:hover {
+        text-decoration: underline;
+    }
+    
+    .result-headline {
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+    
+    .result-headline mark {
+        background: var(--warning);
+        color: var(--text-primary);
+        padding: 0 2px;
+        border-radius: 2px;
+    }
+    
+    .result-meta {
+        display: flex;
+        gap: 16px;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    
+    .result-meta span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+    }
+    
+    .no-results .material-icons {
+        font-size: 48px;
+        margin-bottom: 16px;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <form method="get" action="">
+        <div class="search-input-wrapper">
+            <span class="material-icons search-icon">search</span>
+            <input type="text" 
+                   name="q" 
+                   class="search-input" 
+                   placeholder="Suchen Sie in allen Dokumenten..." 
+                   value="{{ query }}"
+                   autofocus>
+        </div>
+    </form>
+    
+    {% if query %}
+        <p class="result-count">{{ total_count }} Treffer für "{{ query }}"</p>
+        
+        {% if results %}
+            {% for doc in results %}
+            <div class="search-result">
+                <h3 class="result-title">
+                    <a href="{% url 'dms:document_detail' doc.id %}">{{ doc.title }}</a>
+                </h3>
+                {% if doc.headline %}
+                <div class="result-headline">
+                    {{ doc.headline|safe }}
+                </div>
+                {% endif %}
+                <div class="result-meta">
+                    {% if doc.document_type %}
+                    <span>
+                        <span class="material-icons" style="font-size: 14px;">category</span>
+                        {{ doc.document_type.name }}
+                    </span>
+                    {% endif %}
+                    {% if doc.employee %}
+                    <span>
+                        <span class="material-icons" style="font-size: 14px;">person</span>
+                        {{ doc.employee.full_name }}
+                    </span>
+                    {% endif %}
+                    <span>
+                        <span class="material-icons" style="font-size: 14px;">calendar_today</span>
+                        {{ doc.created_at|date:"d.m.Y" }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-results">
+                <span class="material-icons">search_off</span>
+                <h3>Keine Ergebnisse gefunden</h3>
+                <p>Versuchen Sie es mit anderen Suchbegriffen.</p>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="no-results">
+            <span class="material-icons">search</span>
+            <h3>Volltextsuche</h3>
+            <p>Geben Sie einen Suchbegriff ein, um in allen Dokumenten zu suchen.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

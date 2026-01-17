@@ -275,6 +275,56 @@
     .status-indicator.red { background: var(--error); }
     .status-indicator.blue { background: var(--primary); }
     .status-indicator.gray { background: var(--text-muted); }
+    
+    /* Bulk Action Bar */
+    .bulk-action-bar {
+        background: var(--primary);
+        color: white;
+        padding: 12px 20px;
+        border-radius: var(--radius-md);
+        margin-bottom: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .bulk-action-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    
+    .bulk-action-select,
+    .bulk-action-param {
+        padding: 8px 12px;
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: var(--radius-sm);
+        background: rgba(255,255,255,0.1);
+        color: white;
+        font-size: 13px;
+    }
+    
+    .bulk-action-select option,
+    .bulk-action-param option {
+        background: var(--bg-card);
+        color: var(--text-primary);
+    }
+    
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .doc-checkbox:checked + td,
+    tr:has(.doc-checkbox:checked) {
+        background: var(--primary-light) !important;
+    }
+    
+    tr.selected {
+        background: var(--primary-light) !important;
+    }
 </style>
 {% endblock %}
 
@@ -380,11 +430,42 @@
     Ziehen Sie die Spalten hierhin, um die angezeigten Suchergebnisse zu gruppieren.
 </div>
 
+<!-- Bulk Action Bar (hidden by default) -->
+<div id="bulk-action-bar" class="bulk-action-bar" style="display: none;">
+    <div class="bulk-action-content">
+        <span id="selected-count">0</span> Dokument(e) ausgewählt
+        <select id="bulk-action-select" class="bulk-action-select">
+            <option value="">-- Aktion wählen --</option>
+            <option value="set_status">Status setzen</option>
+            <option value="set_employee">Mitarbeiter zuweisen</option>
+            <option value="set_document_type">Dokumenttyp setzen</option>
+            <option value="delete">Löschen</option>
+        </select>
+        <select id="bulk-status" class="bulk-action-param" style="display: none;">
+            <option value="">-- Status --</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select id="bulk-employee" class="bulk-action-param" style="display: none;">
+            <option value="">-- Mitarbeiter --</option>
+        </select>
+        <select id="bulk-document-type" class="bulk-action-param" style="display: none;">
+            <option value="">-- Dokumenttyp --</option>
+            {% for dt in document_types %}
+            <option value="{{ dt.id }}">{{ dt.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="button" id="bulk-apply-btn" class="btn btn-sm">Anwenden</button>
+        <button type="button" id="bulk-cancel-btn" class="btn btn-sm btn-outline">Abbrechen</button>
+    </div>
+</div>
+
 <table class="doc-table">
     <thead>
         <tr>
             <th class="checkbox-cell">
-                <input type="checkbox">
+                <input type="checkbox" id="select-all-checkbox">
             </th>
             <th style="width: 30px;"></th>
             <th class="sortable">Titel <span class="material-icons" style="font-size: 14px; vertical-align: middle;">unfold_more</span></th>
@@ -399,9 +480,9 @@
     </thead>
     <tbody>
         {% for doc in documents %}
-        <tr>
+        <tr data-doc-id="{{ doc.id }}">
             <td class="checkbox-cell">
-                <input type="checkbox">
+                <input type="checkbox" class="doc-checkbox" value="{{ doc.id }}">
             </td>
             <td>
                 <div class="doc-icon {% if doc.mime_type == 'application/pdf' %}pdf{% elif doc.mime_type|slice:':5' == 'image' %}image{% else %}default{% endif %}">
@@ -460,4 +541,125 @@
     </div>
 </div>
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    const docCheckboxes = document.querySelectorAll('.doc-checkbox');
+    const bulkActionBar = document.getElementById('bulk-action-bar');
+    const selectedCountSpan = document.getElementById('selected-count');
+    const bulkActionSelect = document.getElementById('bulk-action-select');
+    const bulkStatusSelect = document.getElementById('bulk-status');
+    const bulkEmployeeSelect = document.getElementById('bulk-employee');
+    const bulkDocTypeSelect = document.getElementById('bulk-document-type');
+    const bulkApplyBtn = document.getElementById('bulk-apply-btn');
+    const bulkCancelBtn = document.getElementById('bulk-cancel-btn');
+
+    function getSelectedIds() {
+        return Array.from(docCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+    }
+
+    function updateBulkBar() {
+        const selected = getSelectedIds();
+        if (selected.length > 0) {
+            bulkActionBar.style.display = 'block';
+            selectedCountSpan.textContent = selected.length;
+        } else {
+            bulkActionBar.style.display = 'none';
+        }
+    }
+
+    function updateParamVisibility() {
+        const action = bulkActionSelect.value;
+        bulkStatusSelect.style.display = action === 'set_status' ? 'inline-block' : 'none';
+        bulkEmployeeSelect.style.display = action === 'set_employee' ? 'inline-block' : 'none';
+        bulkDocTypeSelect.style.display = action === 'set_document_type' ? 'inline-block' : 'none';
+    }
+
+    // Select All
+    selectAllCheckbox.addEventListener('change', function() {
+        docCheckboxes.forEach(cb => {
+            cb.checked = this.checked;
+            cb.closest('tr').classList.toggle('selected', this.checked);
+        });
+        updateBulkBar();
+    });
+
+    // Individual checkbox
+    docCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            this.closest('tr').classList.toggle('selected', this.checked);
+            const allChecked = Array.from(docCheckboxes).every(c => c.checked);
+            selectAllCheckbox.checked = allChecked;
+            updateBulkBar();
+        });
+    });
+
+    // Action selection
+    bulkActionSelect.addEventListener('change', updateParamVisibility);
+
+    // Cancel
+    bulkCancelBtn.addEventListener('click', function() {
+        docCheckboxes.forEach(cb => {
+            cb.checked = false;
+            cb.closest('tr').classList.remove('selected');
+        });
+        selectAllCheckbox.checked = false;
+        bulkActionSelect.value = '';
+        updateParamVisibility();
+        updateBulkBar();
+    });
+
+    // Apply bulk action
+    bulkApplyBtn.addEventListener('click', function() {
+        const ids = getSelectedIds();
+        const action = bulkActionSelect.value;
+        
+        if (!action) {
+            alert('Bitte wählen Sie eine Aktion.');
+            return;
+        }
+        
+        if (action === 'delete' && !confirm('Sind Sie sicher, dass Sie ' + ids.length + ' Dokument(e) löschen möchten?')) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('action', action);
+        formData.append('document_ids', JSON.stringify(ids));
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        
+        if (action === 'set_status') {
+            formData.append('status', bulkStatusSelect.value);
+        } else if (action === 'set_employee') {
+            formData.append('employee', bulkEmployeeSelect.value);
+        } else if (action === 'set_document_type') {
+            formData.append('document_type', bulkDocTypeSelect.value);
+        }
+
+        fetch('{% url "dms:bulk_edit_documents" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Fehler: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ein Fehler ist aufgetreten.');
+        });
+    });
+});
+</script>
 {% endblock %}

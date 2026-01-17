@@ -7,7 +7,7 @@ from .models import (
     ProcessedFile, Task, EmailConfig, SystemLog, SystemSettings,
     ImportedLeaveRequest, ImportedTimesheet,
     FileCategory, PersonnelFile, PersonnelFileEntry, DocumentVersion,
-    AccessPermission, AuditLog, ScanJob
+    AccessPermission, AuditLog, ScanJob, Tag, DocumentTag, MatchingRule
 )
 from .encryption import encrypt_data, decrypt_data
 
@@ -518,6 +518,58 @@ class ScanJobAdmin(admin.ModelAdmin):
     progress_display.short_description = 'Fortschritt'
 
 admin.site.register(ScanJob, ScanJobAdmin)
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ['name', 'color_preview', 'parent', 'tenant', 'is_inbox_tag', 'document_count']
+    list_filter = ['tenant', 'is_inbox_tag']
+    search_fields = ['name']
+    
+    def color_preview(self, obj):
+        return format_html(
+            '<span style="background-color: {}; padding: 2px 10px; border-radius: 3px;">&nbsp;</span> {}',
+            obj.color, obj.color
+        )
+    color_preview.short_description = 'Farbe'
+    
+    def document_count(self, obj):
+        return obj.tagged_documents.count()
+    document_count.short_description = 'Dokumente'
+
+
+@admin.register(DocumentTag)
+class DocumentTagAdmin(admin.ModelAdmin):
+    list_display = ['document', 'tag', 'added_at', 'added_by']
+    list_filter = ['tag', 'added_at']
+    search_fields = ['document__title', 'tag__name']
+    raw_id_fields = ['document']
+
+
+@admin.register(MatchingRule)
+class MatchingRuleAdmin(admin.ModelAdmin):
+    list_display = ['name', 'algorithm', 'is_active', 'priority', 'match_count', 'last_matched_at', 'tenant']
+    list_filter = ['tenant', 'is_active', 'algorithm']
+    search_fields = ['name', 'match_pattern']
+    filter_horizontal = ['assign_tags']
+    fieldsets = (
+        ('Grundeinstellungen', {
+            'fields': ('name', 'tenant', 'is_active', 'priority')
+        }),
+        ('Suchmuster', {
+            'fields': ('algorithm', 'match_pattern', 'is_case_sensitive'),
+            'description': 'Definieren Sie, wie Dokumente erkannt werden sollen.'
+        }),
+        ('Zuweisungen', {
+            'fields': ('assign_document_type', 'assign_employee', 'assign_tags', 'assign_status'),
+            'description': 'Was soll bei einem Treffer zugewiesen werden?'
+        }),
+        ('Statistik', {
+            'fields': ('match_count', 'last_matched_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    readonly_fields = ['match_count', 'last_matched_at']
 
 
 admin.site.site_header = 'DMS Administration'

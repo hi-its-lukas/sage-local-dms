@@ -712,3 +712,163 @@ def document_version_download(request, pk, version_number):
         return response
     except Exception:
         return HttpResponse('Fehler beim Herunterladen', status=500)
+
+
+@login_required
+@require_http_methods(['POST'])
+def bulk_edit_documents(request):
+    """
+    Paperless-ngx Style Bulk-Bearbeitung von Dokumenten.
+    Ermöglicht Massenänderungen von Status, Mitarbeiter, Dokumenttyp und Tags.
+    """
+    from .forms import BulkEditForm
+    from .models import Tag, DocumentTag
+    import json
+    
+    form = BulkEditForm(request.POST)
+    
+    if not form.is_valid():
+        return JsonResponse({
+            'success': False, 
+            'error': 'Ungültige Formulardaten',
+            'errors': form.errors
+        }, status=400)
+    
+    try:
+        document_ids = json.loads(form.cleaned_data['document_ids'])
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Ungültige Dokument-IDs'}, status=400)
+    
+    if not document_ids:
+        return JsonResponse({'success': False, 'error': 'Keine Dokumente ausgewählt'}, status=400)
+    
+    documents = Document.objects.filter(id__in=document_ids)
+    action = form.cleaned_data['action']
+    updated_count = 0
+    
+    try:
+        if action == 'set_status' and form.cleaned_data['status']:
+            updated_count = documents.update(status=form.cleaned_data['status'])
+            
+        elif action == 'set_employee':
+            employee = form.cleaned_data['employee']
+            updated_count = documents.update(
+                employee=employee,
+                status='ASSIGNED' if employee else 'UNASSIGNED'
+            )
+            
+        elif action == 'set_document_type':
+            updated_count = documents.update(document_type=form.cleaned_data['document_type'])
+            
+        elif action == 'add_tags':
+            tags = form.cleaned_data['tags']
+            for doc in documents:
+                for tag in tags:
+                    DocumentTag.objects.get_or_create(
+                        document=doc,
+                        tag=tag,
+                        defaults={'added_by': request.user}
+                    )
+                updated_count += 1
+                
+        elif action == 'remove_tags':
+            tags = form.cleaned_data['tags']
+            for doc in documents:
+                DocumentTag.objects.filter(document=doc, tag__in=tags).delete()
+                updated_count += 1
+                
+        elif action == 'delete':
+            if not request.user.has_perm('dms.delete_document'):
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Keine Berechtigung zum Löschen'
+                }, status=403)
+            updated_count = documents.count()
+            documents.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'{updated_count} Dokument(e) aktualisiert',
+            'updated_count': updated_count
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Fehler bei der Verarbeitung: {str(e)}'
+        }, status=500)
+
+
+@login_required
+def fulltext_search(request):
+    """
+    Paperless-ngx Style Volltext-Suche mit PostgreSQL Full-Text Search.
+    Unterstützt Highlighting und Ranking.
+    """
+    from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank, SearchHeadline
+    from django.db.models import F
+    
+    query = request.GET.get('q', '').strip()
+    
+    if not query:
+        return render(request, 'dms/fulltext_search.html', {
+            'query': '',
+            'results': [],
+            'total_count': 0,
+        })
+    
+    # PostgreSQL Full-Text Search
+    search_vector = SearchVector('title', weight='A') + \
+                    SearchVector('original_filename', weight='B') + \
+                    SearchVector('notes', weight='C')
+    
+    search_query = SearchQuery(query, config='german')
+    
+    results = Document.objects.annotate(
+        search=search_vector,
+        rank=SearchRank(search_vector, search_query),
+        headline=SearchHeadline(
+            'title',
+            search_query,
+            config='german',
+            start_sel='<mark>',
+            stop_sel='</mark>',
+            max_words=50,
+            min_words=20
+        )
+    ).filter(
+        search=search_query
+    ).order_by('-rank').select_related('employee', 'document_type')[:100]
+    
+    # Auto-Complete Vorschläge aus häufigen Dokumenttiteln
+    suggestions = []
+    if len(query) >= 2:
+        suggestions = Document.objects.filter(
+            title__icontains=query
+        ).values_list('title', flat=True).distinct()[:5]
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # AJAX-Response für Auto-Complete
+        return JsonResponse({
+            'suggestions': list(suggestions),
+            'results': [
+                {
+                    'id': str(doc.id),
+                    'title': doc.title,
+                    'headline': doc.headline if hasattr(doc, 'headline') else doc.title,
+                    'employee': doc.employee.full_name if doc.employee else None,
+                    'document_type': doc.document_type.name if doc.document_type else None,
+                    'created_at': doc.created_at.isoformat(),
+                    'rank': float(doc.rank) if hasattr(doc, 'rank') else 0,
+                }
+                for doc in results[:20]
+            ],
+            'total_count': results.count(),
+        })
+    
+    return render(request, 'dms/fulltext_search.html', {
+        'query': query,
+        'results': results,
+        'total_count': results.count(),
+        'suggestions': suggestions,
+    })

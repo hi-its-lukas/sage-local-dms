@@ -813,3 +813,129 @@ class AuditLog(models.Model):
         ordering = ['-timestamp']
         verbose_name = "Audit-Protokoll"
         verbose_name_plural = "Audit-Protokolle"
+
+
+class Tag(models.Model):
+    """Paperless-ngx-style Tags für Dokumentenkategorisierung"""
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='tags', null=True, blank=True)
+    name = models.CharField(max_length=100, verbose_name="Name")
+    color = models.CharField(max_length=7, default="#3B82F6", verbose_name="Farbe",
+                            help_text="Hex-Farbcode (z.B. #3B82F6)")
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
+                               related_name='children', verbose_name="Übergeordneter Tag")
+    is_inbox_tag = models.BooleanField(default=False, verbose_name="Inbox-Tag",
+                                       help_text="Wird automatisch bei neuen Dokumenten gesetzt")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        if self.parent:
+            return f"{self.parent.name} > {self.name}"
+        return self.name
+    
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"
+        constraints = [
+            models.UniqueConstraint(fields=['tenant', 'name'], name='unique_tag_per_tenant')
+        ]
+
+
+class DocumentTag(models.Model):
+    """Many-to-Many Verknüpfung zwischen Dokumenten und Tags"""
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='document_tags')
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, related_name='tagged_documents')
+    added_at = models.DateTimeField(auto_now_add=True)
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    class Meta:
+        unique_together = ['document', 'tag']
+        verbose_name = "Dokument-Tag"
+        verbose_name_plural = "Dokument-Tags"
+
+
+class MatchingRule(models.Model):
+    """Paperless-ngx-style Matching-Regeln für automatische Klassifizierung"""
+    
+    ALGORITHM_CHOICES = [
+        ('NONE', 'Keine Zuordnung'),
+        ('ANY', 'Beliebiges Wort'),
+        ('ALL', 'Alle Wörter'),
+        ('EXACT', 'Exakte Phrase'),
+        ('REGEX', 'Regulärer Ausdruck'),
+        ('FUZZY', 'Ähnlichkeitssuche'),
+    ]
+    
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='matching_rules', null=True, blank=True)
+    name = models.CharField(max_length=200, verbose_name="Regelname")
+    is_active = models.BooleanField(default=True, verbose_name="Aktiv")
+    priority = models.IntegerField(default=0, verbose_name="Priorität",
+                                   help_text="Höhere Werte = höhere Priorität")
+    
+    algorithm = models.CharField(max_length=20, choices=ALGORITHM_CHOICES, default='ANY',
+                                 verbose_name="Algorithmus")
+    match_pattern = models.TextField(verbose_name="Suchmuster",
+                                    help_text="Suchbegriffe oder Regex-Pattern")
+    is_case_sensitive = models.BooleanField(default=False, verbose_name="Groß-/Kleinschreibung beachten")
+    
+    # Was soll zugewiesen werden?
+    assign_document_type = models.ForeignKey(DocumentType, on_delete=models.SET_NULL, 
+                                             null=True, blank=True, verbose_name="Dokumenttyp zuweisen")
+    assign_employee = models.ForeignKey(Employee, on_delete=models.SET_NULL,
+                                        null=True, blank=True, verbose_name="Mitarbeiter zuweisen")
+    assign_tags = models.ManyToManyField(Tag, blank=True, verbose_name="Tags zuweisen")
+    assign_status = models.CharField(max_length=20, blank=True, verbose_name="Status setzen")
+    
+    # Statistik
+    match_count = models.IntegerField(default=0, verbose_name="Anzahl Treffer")
+    last_matched_at = models.DateTimeField(null=True, blank=True, verbose_name="Letzter Treffer")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.name} ({self.get_algorithm_display()})"
+    
+    def matches(self, text):
+        """Prüft, ob der Text zur Regel passt"""
+        import re
+        
+        if not text or not self.match_pattern:
+            return False
+        
+        if not self.is_case_sensitive:
+            text = text.lower()
+            pattern = self.match_pattern.lower()
+        else:
+            pattern = self.match_pattern
+        
+        if self.algorithm == 'NONE':
+            return False
+        elif self.algorithm == 'EXACT':
+            return pattern in text
+        elif self.algorithm == 'ANY':
+            words = pattern.split()
+            return any(word in text for word in words)
+        elif self.algorithm == 'ALL':
+            words = pattern.split()
+            return all(word in text for word in words)
+        elif self.algorithm == 'REGEX':
+            try:
+                flags = 0 if self.is_case_sensitive else re.IGNORECASE
+                return bool(re.search(self.match_pattern, text, flags))
+            except re.error:
+                return False
+        elif self.algorithm == 'FUZZY':
+            # Einfache Fuzzy-Suche: mindestens 80% der Wörter müssen vorkommen
+            words = pattern.split()
+            if not words:
+                return False
+            matches = sum(1 for word in words if word in text)
+            return (matches / len(words)) >= 0.8
+        
+        return False
+    
+    class Meta:
+        ordering = ['-priority', 'name']
+        verbose_name = "Matching-Regel"
+        verbose_name_plural = "Matching-Regeln"
