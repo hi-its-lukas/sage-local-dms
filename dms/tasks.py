@@ -618,7 +618,7 @@ SAGE_DOCUMENT_TYPES = {
     'MELDEBESCHEINIGUNG': {
         'patterns': ['Meldebescheinigung'],
         'is_personnel': True,
-        'category': '03.03',
+        'category': '03.04',
         'description': 'SV-Meldebescheinigung'
     },
     'ENTGELTBESCHEINIGUNG': {
