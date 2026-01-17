@@ -325,6 +325,193 @@
     tr.selected {
         background: var(--primary-light) !important;
     }
+    
+    /* Row Menu Button */
+    .row-menu-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: var(--radius-sm);
+    }
+    
+    .row-menu-btn:hover {
+        background: var(--bg-hover);
+    }
+    
+    /* Context Menu */
+    .context-menu {
+        position: fixed;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        min-width: 180px;
+        z-index: 1000;
+        padding: 4px 0;
+    }
+    
+    .context-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-size: 13px;
+    }
+    
+    .context-menu-item:hover {
+        background: var(--bg-hover);
+    }
+    
+    .context-menu-item.danger {
+        color: var(--error);
+    }
+    
+    .context-menu-item .material-icons {
+        font-size: 18px;
+    }
+    
+    .context-menu-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 4px 0;
+    }
+    
+    /* Modal */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+    }
+    
+    .modal-content {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        width: 90%;
+        max-height: 80vh;
+        overflow: auto;
+    }
+    
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .modal-header h3 {
+        margin: 0;
+        font-size: 16px;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-secondary);
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .modal-footer {
+        padding: 16px 20px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+    
+    /* Column Toggle */
+    .column-toggle-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .column-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    .column-toggle input {
+        width: 18px;
+        height: 18px;
+    }
+    
+    /* Grid View */
+    .grid-view {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+    }
+    
+    .grid-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        position: relative;
+        cursor: pointer;
+        transition: box-shadow 0.2s;
+    }
+    
+    .grid-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .grid-card-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--bg-page);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+    }
+    
+    .grid-card-icon .material-icons {
+        font-size: 24px;
+        color: var(--text-secondary);
+    }
+    
+    .grid-card-title {
+        font-weight: 500;
+        color: var(--text-primary);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 4px;
+    }
+    
+    .grid-card-title:hover {
+        color: var(--primary);
+    }
+    
+    .grid-card-meta {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+    
+    .grid-card .status-indicator {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+    }
 </style>
 {% endblock %}
 
@@ -409,6 +596,66 @@
         <span class="material-icons" style="font-size: 18px;">folder</span>
         {{ documents.paginator.count }} Ergebnisse
     </div>
+    <div class="results-actions">
+        <button type="button" class="column-config-btn" id="column-config-btn">
+            <span class="material-icons" style="font-size: 18px;">tune</span>
+            ANSICHT ANPASSEN
+        </button>
+        <div class="view-toggle">
+            <button type="button" class="view-toggle-btn active" id="view-list-btn" title="Listenansicht">
+                <span class="material-icons" style="font-size: 18px;">view_list</span>
+            </button>
+            <button type="button" class="view-toggle-btn" id="view-grid-btn" title="Kachelansicht">
+                <span class="material-icons" style="font-size: 18px;">grid_view</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Column Config Modal -->
+<div id="column-config-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3>Spalten anpassen</h3>
+            <button type="button" class="modal-close" onclick="document.getElementById('column-config-modal').style.display='none'">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="column-toggle-list">
+                <label class="column-toggle"><input type="checkbox" data-column="kategorie" checked> Kategorie</label>
+                <label class="column-toggle"><input type="checkbox" data-column="status" checked> Status</label>
+                <label class="column-toggle"><input type="checkbox" data-column="mitarbeiter" checked> Mitarbeiter</label>
+                <label class="column-toggle"><input type="checkbox" data-column="quelle" checked> Quelle</label>
+                <label class="column-toggle"><input type="checkbox" data-column="periode" checked> Periode</label>
+                <label class="column-toggle"><input type="checkbox" data-column="importdatum" checked> Importdatum</label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn" onclick="document.getElementById('column-config-modal').style.display='none'">Schließen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Row Context Menu -->
+<div id="row-context-menu" class="context-menu" style="display: none;">
+    <a href="#" class="context-menu-item" data-action="view">
+        <span class="material-icons">visibility</span> Öffnen
+    </a>
+    <a href="#" class="context-menu-item" data-action="download">
+        <span class="material-icons">download</span> Herunterladen
+    </a>
+    <div class="context-menu-divider"></div>
+    <a href="#" class="context-menu-item" data-action="assign">
+        <span class="material-icons">person_add</span> Mitarbeiter zuweisen
+    </a>
+    <a href="#" class="context-menu-item" data-action="split">
+        <span class="material-icons">call_split</span> Dokument teilen
+    </a>
+    <div class="context-menu-divider"></div>
+    <a href="#" class="context-menu-item danger" data-action="delete">
+        <span class="material-icons">delete</span> Löschen
+    </a>
 </div>
 
 <!-- Bulk Action Bar (hidden by default) -->
@@ -455,13 +702,14 @@
             <th style="width: 30px;">Fa.</th>
             <th class="sortable">Mitarbeiter</th>
             <th class="sortable">Quelle</th>
-            <th class="sortable">Periode</th>
-            <th class="sortable">Importdatum</th>
+            <th class="sortable col-periode">Periode</th>
+            <th class="sortable col-importdatum">Importdatum</th>
+            <th style="width: 50px;"></th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="document-list-body">
         {% for doc in documents %}
-        <tr data-doc-id="{{ doc.id }}">
+        <tr data-doc-id="{{ doc.id }}" data-doc-url="{% url 'dms:document_detail' doc.pk %}" data-download-url="{% url 'dms:document_download' doc.pk %}" data-split-url="{% url 'dms:document_split' doc.pk %}">
             <td class="checkbox-cell">
                 <input type="checkbox" class="doc-checkbox" value="{{ doc.id }}">
             </td>
@@ -473,19 +721,41 @@
             <td>
                 <a href="{% url 'dms:document_detail' doc.pk %}" class="doc-title-link">{{ doc.title|truncatechars:50 }}</a>
             </td>
-            <td style="color: var(--text-secondary);">{{ doc.document_type.name|default:"-" }}</td>
-            <td>
+            <td class="col-kategorie" style="color: var(--text-secondary);">{{ doc.document_type.name|default:"-" }}</td>
+            <td class="col-status">
                 <span class="status-indicator {% if doc.status == 'ACTIVE' %}green{% elif doc.status == 'REVIEW_NEEDED' %}red{% elif doc.status == 'UNASSIGNED' %}yellow{% else %}gray{% endif %}"></span>
             </td>
             <td></td>
-            <td style="color: var(--text-secondary);">{{ doc.employee.full_name|default:"-"|truncatechars:20 }}</td>
-            <td style="color: var(--text-secondary);">{{ doc.get_source_display }}</td>
-            <td style="color: var(--text-secondary);">{{ doc.period_display }}</td>
-            <td style="color: var(--text-secondary);">{{ doc.created_at|date:"d.m.Y" }}</td>
+            <td class="col-mitarbeiter" style="color: var(--text-secondary);">{{ doc.employee.full_name|default:"-"|truncatechars:20 }}</td>
+            <td class="col-quelle" style="color: var(--text-secondary);">{{ doc.get_source_display }}</td>
+            <td class="col-periode" style="color: var(--text-secondary);">{{ doc.period_display }}</td>
+            <td class="col-importdatum" style="color: var(--text-secondary);">{{ doc.created_at|date:"d.m.Y" }}</td>
+            <td>
+                <button type="button" class="row-menu-btn" data-doc-id="{{ doc.id }}">
+                    <span class="material-icons" style="font-size: 18px; color: var(--text-muted);">more_vert</span>
+                </button>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Grid View Container (hidden by default) -->
+<div id="grid-view-container" class="grid-view" style="display: none;">
+    {% for doc in documents %}
+    <div class="grid-card" data-doc-id="{{ doc.id }}">
+        <div class="grid-card-icon">
+            <span class="material-icons">{% if doc.mime_type == 'application/pdf' %}picture_as_pdf{% elif doc.mime_type|slice:':5' == 'image' %}image{% elif doc.source == 'EMAIL' %}email{% else %}description{% endif %}</span>
+        </div>
+        <div class="grid-card-content">
+            <a href="{% url 'dms:document_detail' doc.pk %}" class="grid-card-title">{{ doc.title|truncatechars:30 }}</a>
+            <div class="grid-card-meta">{{ doc.document_type.name|default:"Nicht klassifiziert" }}</div>
+            <div class="grid-card-meta">{{ doc.period_display }} - {{ doc.created_at|date:"d.m.Y" }}</div>
+        </div>
+        <span class="status-indicator {% if doc.status == 'ASSIGNED' %}green{% elif doc.status == 'REVIEW_NEEDED' %}red{% elif doc.status == 'UNASSIGNED' %}yellow{% else %}gray{% endif %}"></span>
+    </div>
+    {% endfor %}
+</div>
 
 {% if documents.has_other_pages %}
 <div class="pagination">
@@ -637,6 +907,137 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error:', error);
             alert('Ein Fehler ist aufgetreten.');
+        });
+    });
+
+    // === View Toggle (List/Grid) ===
+    const viewListBtn = document.getElementById('view-list-btn');
+    const viewGridBtn = document.getElementById('view-grid-btn');
+    const docTable = document.querySelector('.doc-table');
+    const gridContainer = document.getElementById('grid-view-container');
+    
+    if (viewListBtn && viewGridBtn) {
+        viewListBtn.addEventListener('click', function() {
+            viewListBtn.classList.add('active');
+            viewGridBtn.classList.remove('active');
+            docTable.style.display = 'table';
+            gridContainer.style.display = 'none';
+            localStorage.setItem('dms-view-mode', 'list');
+        });
+        
+        viewGridBtn.addEventListener('click', function() {
+            viewGridBtn.classList.add('active');
+            viewListBtn.classList.remove('active');
+            docTable.style.display = 'none';
+            gridContainer.style.display = 'grid';
+            localStorage.setItem('dms-view-mode', 'grid');
+        });
+        
+        // Restore preference
+        const savedView = localStorage.getItem('dms-view-mode');
+        if (savedView === 'grid') {
+            viewGridBtn.click();
+        }
+    }
+    
+    // === Column Config Modal ===
+    const columnConfigBtn = document.getElementById('column-config-btn');
+    const columnConfigModal = document.getElementById('column-config-modal');
+    
+    if (columnConfigBtn && columnConfigModal) {
+        columnConfigBtn.addEventListener('click', function() {
+            columnConfigModal.style.display = 'flex';
+        });
+        
+        columnConfigModal.addEventListener('click', function(e) {
+            if (e.target === columnConfigModal) {
+                columnConfigModal.style.display = 'none';
+            }
+        });
+        
+        // Column toggles
+        const columnToggles = columnConfigModal.querySelectorAll('.column-toggle input');
+        columnToggles.forEach(toggle => {
+            const colName = toggle.dataset.column;
+            const saved = localStorage.getItem('dms-col-' + colName);
+            if (saved === 'hidden') {
+                toggle.checked = false;
+                toggleColumn(colName, false);
+            }
+            
+            toggle.addEventListener('change', function() {
+                toggleColumn(colName, this.checked);
+                localStorage.setItem('dms-col-' + colName, this.checked ? 'visible' : 'hidden');
+            });
+        });
+    }
+    
+    function toggleColumn(colName, visible) {
+        const cells = document.querySelectorAll('.col-' + colName);
+        cells.forEach(cell => {
+            cell.style.display = visible ? '' : 'none';
+        });
+    }
+    
+    // === Context Menu ===
+    const contextMenu = document.getElementById('row-context-menu');
+    let activeDocId = null;
+    let activeDocRow = null;
+    
+    document.querySelectorAll('.row-menu-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const row = this.closest('tr');
+            activeDocId = row.dataset.docId;
+            activeDocRow = row;
+            
+            const rect = this.getBoundingClientRect();
+            contextMenu.style.top = rect.bottom + 'px';
+            contextMenu.style.left = (rect.left - 150) + 'px';
+            contextMenu.style.display = 'block';
+        });
+    });
+    
+    document.addEventListener('click', function() {
+        contextMenu.style.display = 'none';
+    });
+    
+    contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const action = this.dataset.action;
+            
+            if (!activeDocRow) return;
+            
+            switch(action) {
+                case 'view':
+                    window.location.href = activeDocRow.dataset.docUrl;
+                    break;
+                case 'download':
+                    window.location.href = activeDocRow.dataset.downloadUrl;
+                    break;
+                case 'split':
+                    window.location.href = activeDocRow.dataset.splitUrl;
+                    break;
+                case 'assign':
+                    window.location.href = activeDocRow.dataset.docUrl + '?assign=1';
+                    break;
+                case 'delete':
+                    if (confirm('Dokument wirklich löschen?')) {
+                        const formData = new FormData();
+                        formData.append('action', 'delete');
+                        formData.append('document_ids', JSON.stringify([activeDocId]));
+                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                        
+                        fetch('{% url "dms:bulk_edit_documents" %}', {
+                            method: 'POST',
+                            body: formData
+                        }).then(() => window.location.reload());
+                    }
+                    break;
+            }
+            
+            contextMenu.style.display = 'none';
         });
     });
 });
