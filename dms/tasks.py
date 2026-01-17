@@ -327,6 +327,11 @@ def scan_sage_archive(self):
     Personalunterlagen (Lohnscheine, etc.) werden via DataMatrix-Code getrennt.
     Firmendokumente (Beitragsnachweis, etc.) werden nach Dateiname klassifiziert.
     """
+    existing_job = ScanJob.objects.filter(source='SAGE', status='RUNNING').first()
+    if existing_job:
+        log_system_event('INFO', 'SageScanner', f"Scan übersprungen - bereits aktiver Job: {existing_job.id}")
+        return {'status': 'skipped', 'message': 'Another scan is already running', 'existing_job_id': str(existing_job.id)}
+    
     sage_path = Path(settings.SAGE_ARCHIVE_PATH)
     
     if not sage_path.exists():
@@ -544,6 +549,11 @@ def scan_sage_archive(self):
 
 @shared_task(bind=True, max_retries=3)
 def scan_manual_input(self):
+    existing_job = ScanJob.objects.filter(source='MANUAL', status='RUNNING').first()
+    if existing_job:
+        log_system_event('INFO', 'ManualScanner', f"Scan übersprungen - bereits aktiver Job: {existing_job.id}")
+        return {'status': 'skipped', 'message': 'Another scan is already running', 'existing_job_id': str(existing_job.id)}
+    
     manual_path = Path(settings.MANUAL_INPUT_PATH)
     processed_path = manual_path / 'processed'
     
