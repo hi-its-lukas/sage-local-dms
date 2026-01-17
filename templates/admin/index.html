@@ -2,9 +2,23 @@
 {% load i18n static %}
 
 {% block content %}
+<style>
+.admin-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+@media (max-width: 1200px) {
+    .admin-dashboard-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
 <div id="content-main">
     
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+    <div class="admin-dashboard-grid">
         <div style="background: linear-gradient(135deg, #0066b3, #00a3a3); border-radius: 16px; padding: 28px; color: white;">
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center;">
