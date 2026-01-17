@@ -20,7 +20,7 @@ CSRF_TRUSTED_ORIGINS = _csrf_origins
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 INSTALLED_APPS = [
-    'jazzmin',
+    # 'jazzmin',  # Deaktiviert - eigenes Admin-Template wird verwendet
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
