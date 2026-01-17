@@ -31,7 +31,7 @@ services:
 
   celery_worker:
     build: .
-    command: celery -A dms_project worker -l INFO
+    command: celery -A dms_project worker -l INFO --concurrency=1
     volumes:
       - /srv/sage_archiv:/data/sage_archive
       - /srv/manual_scan:/data/manual_input
