@@ -959,7 +959,7 @@ def document_split(request, pk):
                 return redirect('dms:document_split', pk=pk)
             
             from .encryption import encrypt_data as enc_data, calculate_sha256_chunked
-            from .tasks import auto_classify_document, log_system_event, parse_month_folder_to_date
+            from .tasks import auto_classify_document, log_system_event, parse_month_folder
             
             decrypted_content = decrypt_data(document.encrypted_content)
             pdf_doc = fitz.open(stream=decrypted_content, filetype='pdf')
@@ -1004,6 +1004,7 @@ def document_split(request, pk):
                 emp_suffix = f"_MA{split_employee.employee_id}" if split_employee else f"_S{start_page + 1}-{end_page}"
                 split_filename = f"{document.title}{emp_suffix}.pdf"
                 
+                period_year, period_month = parse_month_folder(month_folder)
                 split_doc = Document.objects.create(
                     tenant=document.tenant,
                     title=f"{document.title} (S.{start_page + 1}-{end_page})",
@@ -1017,7 +1018,8 @@ def document_split(request, pk):
                     source=document.source,
                     sha256_hash=split_hash,
                     metadata=metadata,
-                    document_date=parse_month_folder_to_date(month_folder)
+                    period_year=period_year,
+                    period_month=period_month
                 )
                 
                 auto_classify_document(split_doc, tenant=document.tenant)

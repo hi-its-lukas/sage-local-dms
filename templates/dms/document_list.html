@@ -406,28 +406,9 @@
 {% if documents %}
 <div class="results-header">
     <div class="results-count">
-        <span class="material-icons" style="font-size: 18px;">refresh</span>
+        <span class="material-icons" style="font-size: 18px;">folder</span>
         {{ documents.paginator.count }} Ergebnisse
     </div>
-    <div class="results-actions">
-        <span class="column-config-btn">
-            <span class="material-icons" style="font-size: 18px;">tune</span>
-            ANSICHT ANPASSEN
-        </span>
-        <div class="view-toggle">
-            <span class="view-toggle-btn active">
-                <span class="material-icons" style="font-size: 18px;">view_list</span>
-            </span>
-            <span class="view-toggle-btn">
-                <span class="material-icons" style="font-size: 18px;">grid_view</span>
-            </span>
-        </div>
-    </div>
-</div>
-
-<div class="grouping-hint">
-    <span class="material-icons" style="font-size: 16px;">info_outline</span>
-    Ziehen Sie die Spalten hierhin, um die angezeigten Suchergebnisse zu gruppieren.
 </div>
 
 <!-- Bulk Action Bar (hidden by default) -->
@@ -474,8 +455,8 @@
             <th style="width: 30px;">Fa.</th>
             <th class="sortable">Mitarbeiter</th>
             <th class="sortable">Quelle</th>
-            <th class="sortable">Belegdatum</th>
-            <th style="width: 50px;"></th>
+            <th class="sortable">Periode</th>
+            <th class="sortable">Importdatum</th>
         </tr>
     </thead>
     <tbody>
@@ -499,10 +480,8 @@
             <td></td>
             <td style="color: var(--text-secondary);">{{ doc.employee.full_name|default:"-"|truncatechars:20 }}</td>
             <td style="color: var(--text-secondary);">{{ doc.get_source_display }}</td>
+            <td style="color: var(--text-secondary);">{{ doc.period_display }}</td>
             <td style="color: var(--text-secondary);">{{ doc.created_at|date:"d.m.Y" }}</td>
-            <td>
-                <span class="material-icons" style="font-size: 18px; color: var(--text-muted); cursor: pointer;">more_vert</span>
-            </td>
         </tr>
         {% endfor %}
     </tbody>

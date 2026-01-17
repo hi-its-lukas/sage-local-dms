@@ -487,22 +487,23 @@ def split_pdf_by_datamatrix(file_path, output_dir, timeout_per_page=5):
         return result
 
 
-def parse_month_folder_to_date(month_folder):
+def parse_month_folder(month_folder):
     """
-    Konvertiert YYYYMM Ordnername zu einem Datum (1. des Monats).
-    z.B. '202601' → date(2026, 1, 1)
+    Extrahiert Jahr und Monat aus YYYYMM Ordnername.
+    z.B. '202601' → (2026, 1)
+    
+    Returns: tuple (year, month) oder (None, None)
     """
     if not month_folder or len(month_folder) != 6:
-        return None
+        return None, None
     try:
         year = int(month_folder[:4])
         month = int(month_folder[4:6])
         if 1 <= month <= 12 and 2000 <= year <= 2100:
-            from datetime import date
-            return date(year, month, 1)
+            return year, month
     except (ValueError, TypeError):
         pass
-    return None
+    return None, None
 
 
 def find_employee_by_id(employee_id, tenant=None, mandant_code=None):
@@ -971,6 +972,7 @@ def _run_sage_scan(task_self):
                                     'month_folder': month_folder,
                                 }
                                 
+                                period_year, period_month = parse_month_folder(month_folder)
                                 split_doc = Document.objects.create(
                                     tenant=tenant,
                                     title=split_path.stem,
@@ -984,7 +986,8 @@ def _run_sage_scan(task_self):
                                     source='SAGE',
                                     sha256_hash=split_hash,
                                     metadata=split_metadata,
-                                    document_date=parse_month_folder_to_date(month_folder)
+                                    period_year=period_year,
+                                    period_month=period_month
                                 )
                                 
                                 auto_classify_document(split_doc, tenant=tenant)
@@ -1079,6 +1082,7 @@ def _run_sage_scan(task_self):
                 document_type_obj = get_or_create_document_type(doc_type, description, category, tenant)
             
             # DB-Operationen in einem Block
+            period_year, period_month = parse_month_folder(month_folder)
             document = Document.objects.create(
                 tenant=tenant,
                 title=file_path.stem,
@@ -1093,7 +1097,8 @@ def _run_sage_scan(task_self):
                 source='SAGE',
                 sha256_hash=file_hash,
                 metadata=metadata,
-                document_date=parse_month_folder_to_date(month_folder)
+                period_year=period_year,
+                period_month=period_month
             )
             
             ProcessedFile.objects.create(

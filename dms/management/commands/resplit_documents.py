@@ -8,7 +8,7 @@ from dms.tasks import (
     classify_sage_document,
     auto_classify_document,
     log_system_event,
-    parse_month_folder_to_date
+    parse_month_folder
 )
 from dms.encryption import encrypt_data, decrypt_data, calculate_sha256_chunked
 
@@ -128,6 +128,7 @@ class Command(BaseCommand):
                         'resplit_from_document_id': str(doc.id),
                     }
                     
+                    period_year, period_month = parse_month_folder(month_folder)
                     split_doc = Document.objects.create(
                         tenant=tenant,
                         title=split_path.stem,
@@ -141,7 +142,8 @@ class Command(BaseCommand):
                         source='SAGE',
                         sha256_hash=split_hash,
                         metadata=split_metadata,
-                        document_date=parse_month_folder_to_date(month_folder)
+                        period_year=period_year,
+                        period_month=period_month
                     )
                     
                     auto_classify_document(split_doc, tenant=tenant)

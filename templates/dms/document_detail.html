@@ -584,7 +584,11 @@
                             <span class="property-value"><span class="status-dot {% if document.status == 'ACTIVE' %}green{% elif document.status == 'REVIEW_NEEDED' %}red{% else %}yellow{% endif %}"></span>{{ document.get_status_display }}</span>
                         </div>
                         <div class="property-item">
-                            <span class="property-label">Belegdatum</span>
+                            <span class="property-label">Periode</span>
+                            <span class="property-value">{{ document.period_display }}</span>
+                        </div>
+                        <div class="property-item">
+                            <span class="property-label">Importdatum</span>
                             <span class="property-value">{{ document.created_at|date:"d.m.Y" }}</span>
                         </div>
                         <div class="property-item">
