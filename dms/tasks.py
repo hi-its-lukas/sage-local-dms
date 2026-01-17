@@ -3,6 +3,8 @@ import logging
 import magic
 from pathlib import Path
 from datetime import datetime
+import redis
+from contextlib import contextmanager
 
 from celery import shared_task
 from django.conf import settings
@@ -14,6 +16,34 @@ from .ocr import process_document_with_ocr, classify_document, extract_employee_
 import re
 
 logger = logging.getLogger('dms')
+
+_redis_client = None
+
+def get_redis_client():
+    global _redis_client
+    if _redis_client is None:
+        redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+        _redis_client = redis.from_url(redis_url)
+    return _redis_client
+
+@contextmanager
+def distributed_lock(lock_name, timeout=3600):
+    """
+    Redis-basierter verteilter Lock.
+    Verhindert, dass zwei Celery-Worker gleichzeitig denselben Job starten.
+    """
+    client = get_redis_client()
+    lock_key = f"dms:lock:{lock_name}"
+    lock = client.lock(lock_key, timeout=timeout, blocking=False)
+    acquired = lock.acquire(blocking=False)
+    try:
+        yield acquired
+    finally:
+        if acquired:
+            try:
+                lock.release()
+            except redis.exceptions.LockError:
+                pass
 
 
 def log_system_event(level, source, message, details=None):
@@ -327,21 +357,21 @@ def scan_sage_archive(self):
     Personalunterlagen (Lohnscheine, etc.) werden via DataMatrix-Code getrennt.
     Firmendokumente (Beitragsnachweis, etc.) werden nach Dateiname klassifiziert.
     """
-    from django.db import transaction
-    
-    with transaction.atomic():
-        existing_job = ScanJob.objects.select_for_update(skip_locked=True).filter(
-            source='SAGE', status='RUNNING'
-        ).first()
-        if existing_job:
-            log_system_event('INFO', 'SageScanner', f"Scan übersprungen - bereits aktiver Job: {existing_job.id}")
-            return {'status': 'skipped', 'message': 'Another scan is already running', 'existing_job_id': str(existing_job.id)}
+    with distributed_lock('sage_scanner', timeout=7200) as acquired:
+        if not acquired:
+            log_system_event('INFO', 'SageScanner', "Scan übersprungen - Redis-Lock aktiv")
+            return {'status': 'skipped', 'message': 'Another scan is already running (Redis lock)'}
         
-        scan_job = ScanJob.objects.create(
-            source='SAGE',
-            status='RUNNING',
-            total_files=0
-        )
+        return _run_sage_scan(self)
+
+
+def _run_sage_scan(task_self):
+    """Eigentliche Scan-Logik, nur ausgeführt wenn Lock erhalten."""
+    scan_job = ScanJob.objects.create(
+        source='SAGE',
+        status='RUNNING',
+        total_files=0
+    )
     
     sage_path = Path(settings.SAGE_ARCHIVE_PATH)
     
@@ -552,27 +582,21 @@ def scan_sage_archive(self):
         scan_job.completed_at = timezone.now()
         scan_job.save()
         log_system_event('CRITICAL', 'SageScanner', f"Sage scan failed: {str(e)}")
-        raise self.retry(exc=e, countdown=60)
+        raise task_self.retry(exc=e, countdown=60)
 
 
 @shared_task(bind=True, max_retries=3)
 def scan_manual_input(self):
-    from django.db import transaction
-    
-    with transaction.atomic():
-        existing_job = ScanJob.objects.select_for_update(skip_locked=True).filter(
-            source='MANUAL', status='RUNNING'
-        ).first()
-        if existing_job:
-            log_system_event('INFO', 'ManualScanner', f"Scan übersprungen - bereits aktiver Job: {existing_job.id}")
-            return {'status': 'skipped', 'message': 'Another scan is already running', 'existing_job_id': str(existing_job.id)}
+    with distributed_lock('manual_scanner', timeout=3600) as acquired:
+        if not acquired:
+            log_system_event('INFO', 'ManualScanner', "Scan übersprungen - Redis-Lock aktiv")
+            return {'status': 'skipped', 'message': 'Another scan is already running (Redis lock)'}
         
-        scan_job = ScanJob.objects.create(
-            source='MANUAL',
-            status='RUNNING',
-            total_files=0
-        )
-    
+        return _run_manual_scan(self)
+
+
+def _run_manual_scan(task_self):
+    """Eigentliche Manual-Scan-Logik, nur ausgeführt wenn Lock erhalten."""
     manual_path = Path(settings.MANUAL_INPUT_PATH)
     processed_path = manual_path / 'processed'
     
@@ -689,7 +713,7 @@ def scan_manual_input(self):
         
     except Exception as e:
         log_system_event('CRITICAL', 'ManualScanner', f"Manual scan failed: {str(e)}")
-        raise self.retry(exc=e, countdown=60)
+        raise task_self.retry(exc=e, countdown=60)
 
 
 @shared_task(bind=True, max_retries=3)
