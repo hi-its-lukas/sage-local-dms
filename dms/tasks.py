@@ -398,7 +398,7 @@ def _run_sage_scan(task_self):
     tenant_folder_pattern = re.compile(r'^\d{8}$')
     month_folder_pattern = re.compile(r'^\d{6}$')
     
-    # Phase 1: Alle bekannten Hashes aus DB laden (pro Mandant)
+    # Phase 1: Alle bekannten Hashes aus DB laden (pro Mandant) - nur Hashes, kein Inhalt
     log_system_event('INFO', 'SageScanner', "Lade bekannte Dateien aus Datenbank...")
     known_hashes_by_tenant = {}
     for tenant in Tenant.objects.filter(is_active=True):
@@ -406,8 +406,8 @@ def _run_sage_scan(task_self):
             ProcessedFile.objects.filter(tenant=tenant).values_list('sha256_hash', flat=True)
         )
     
-    # Phase 2: Alle Dateien scannen und nur NEUE zählen
-    new_files = []  # Liste von (file_path, tenant_code, file_hash)
+    # Phase 2: Nur Dateipfade und neue Dateien ZÄHLEN (ohne Inhalt zu speichern!)
+    new_file_paths = []  # Liste von (file_path, tenant_code) - KEIN Inhalt!
     already_processed_count = 0
     
     scan_job.current_file = "Scanne Verzeichnis..."
@@ -420,6 +420,17 @@ def _run_sage_scan(task_self):
         tenant_code = tenant_folder.name
         known_hashes = known_hashes_by_tenant.get(tenant_code, set())
         
+        # Mandant erstellen falls nicht vorhanden
+        if tenant_code not in known_hashes_by_tenant:
+            tenant, created = Tenant.objects.get_or_create(
+                code=tenant_code,
+                defaults={'name': f'Mandant {tenant_code}', 'is_active': True}
+            )
+            if created:
+                log_system_event('INFO', 'SageScanner', f"Neuer Mandant erstellt: {tenant_code}")
+            known_hashes_by_tenant[tenant_code] = set()
+            known_hashes = set()
+        
         for file_path in tenant_folder.rglob('*'):
             if not file_path.is_file():
                 continue
@@ -429,24 +440,34 @@ def _run_sage_scan(task_self):
                 continue
             
             try:
+                # Nur Hash berechnen, Inhalt NICHT im Speicher halten
                 with open(file_path, 'rb') as f:
                     content = f.read()
                 file_hash = calculate_sha256(content)
+                del content  # Sofort freigeben!
                 
                 if file_hash in known_hashes:
                     already_processed_count += 1
                 else:
-                    new_files.append((file_path, tenant_code, file_hash, content))
+                    new_file_paths.append((file_path, tenant_code))
             except Exception as e:
                 logger.warning(f"Fehler beim Lesen von {file_path}: {e}")
     
     # Nur NEUE Dateien als total_files setzen
-    scan_job.total_files = len(new_files)
+    scan_job.total_files = len(new_file_paths)
     scan_job.skipped_files = already_processed_count
     scan_job.save(update_fields=['total_files', 'skipped_files'])
     
     log_system_event('INFO', 'SageScanner', 
-        f"Gefunden: {len(new_files)} neue Dateien, {already_processed_count} bereits verarbeitet")
+        f"Gefunden: {len(new_file_paths)} neue Dateien, {already_processed_count} bereits verarbeitet")
+    
+    # Wenn keine neuen Dateien, direkt beenden
+    if not new_file_paths:
+        scan_job.status = 'COMPLETED'
+        scan_job.completed_at = timezone.now()
+        scan_job.current_file = ''
+        scan_job.save()
+        return {'status': 'success', 'processed': 0, 'already_processed': already_processed_count}
     
     processed_count = 0
     error_count = 0
@@ -457,21 +478,32 @@ def _run_sage_scan(task_self):
     tenant_cache = {}
     
     try:
-        # Phase 3: Nur NEUE Dateien verarbeiten (bereits gehasht und gefiltert)
-        for file_path, tenant_code, file_hash, content in new_files:
+        # Phase 3: Neue Dateien EINZELN verarbeiten (Streaming - kein Vorladen)
+        for file_path, tenant_code in new_file_paths:
             # Mandant aus Cache oder DB holen
             if tenant_code not in tenant_cache:
-                tenant, created = Tenant.objects.get_or_create(
+                tenant, _ = Tenant.objects.get_or_create(
                     code=tenant_code,
                     defaults={'name': f'Mandant {tenant_code}', 'is_active': True}
                 )
                 tenant_cache[tenant_code] = tenant
-                if created:
-                    log_system_event('INFO', 'SageScanner', f"Neuer Mandant erstellt: {tenant_code}")
             
             tenant = tenant_cache[tenant_code]
             
             try:
+                # Datei jetzt lesen (Streaming - eine nach der anderen)
+                with open(file_path, 'rb') as f:
+                    content = f.read()
+                file_hash = calculate_sha256(content)
+                
+                # Nochmal prüfen ob nicht inzwischen verarbeitet (race condition)
+                if ProcessedFile.objects.filter(tenant=tenant, sha256_hash=file_hash).exists():
+                    already_processed_count += 1
+                    scan_job.skipped_files = already_processed_count
+                    scan_job.save(update_fields=['skipped_files'])
+                    del content
+                    continue
+                
                 # Monatsordner aus Pfad extrahieren
                 tenant_folder = sage_path / tenant_code
                 month_folder = None
@@ -482,6 +514,10 @@ def _run_sage_scan(task_self):
                         month_folder = path_parts[0]
                 except ValueError:
                     pass
+                
+                # Fortschritt aktualisieren
+                scan_job.current_file = file_path.name[:100]
+                scan_job.save(update_fields=['current_file'])
                 
                 encrypted_content = encrypt_data(content)
                 mime_type = get_mime_type(str(file_path))
@@ -566,6 +602,10 @@ def _run_sage_scan(task_self):
                     original_path=str(file_path),
                     document=document
                 )
+                
+                # Speicher freigeben
+                del content
+                del encrypted_content
                 
                 processed_count += 1
                 if is_personnel:
