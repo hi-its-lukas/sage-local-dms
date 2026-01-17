@@ -39,10 +39,45 @@ def calculate_sha256(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def calculate_sha256_chunked(file_path, chunk_size=65536):
+    """
+    Berechnet SHA256 eines Files per Streaming ohne gesamte Datei in RAM zu laden.
+    Paperless-ngx-Style: 64KB Chunks für optimale Performance.
+    """
+    sha256_hash = hashlib.sha256()
+    with open(file_path, 'rb') as f:
+        for chunk in iter(lambda: f.read(chunk_size), b''):
+            sha256_hash.update(chunk)
+    return sha256_hash.hexdigest()
+
+
 def encrypt_file(file_path):
     with open(file_path, 'rb') as f:
         data = f.read()
     return encrypt_data(data), calculate_sha256(data)
+
+
+def encrypt_file_streaming(file_path, chunk_size=1048576):
+    """
+    Verschlüsselt Datei und berechnet Hash in einem Durchgang.
+    1MB Chunks für Verschlüsselung, 64KB für Hash.
+    
+    Returns: (encrypted_bytes, sha256_hash, file_size)
+    """
+    sha256_hash = hashlib.sha256()
+    chunks = []
+    file_size = 0
+    
+    with open(file_path, 'rb') as f:
+        for chunk in iter(lambda: f.read(chunk_size), b''):
+            sha256_hash.update(chunk)
+            chunks.append(chunk)
+            file_size += len(chunk)
+    
+    content = b''.join(chunks)
+    encrypted = encrypt_data(content)
+    
+    return encrypted, sha256_hash.hexdigest(), file_size
 
 
 def decrypt_to_bytes(encrypted_data):

@@ -11,7 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from .models import Document, ProcessedFile, Employee, Task, EmailConfig, SystemLog, Tenant, ScanJob
-from .encryption import encrypt_data, decrypt_data, calculate_sha256, encrypt_file
+from .encryption import encrypt_data, decrypt_data, calculate_sha256, encrypt_file, calculate_sha256_chunked, encrypt_file_streaming
 from .ocr import process_document_with_ocr, classify_document, extract_employee_info
 import re
 
@@ -390,7 +390,16 @@ def scan_sage_archive(self):
 
 
 def _run_sage_scan(task_self):
-    """Eigentliche Scan-Logik, nur ausgeführt wenn Lock erhalten."""
+    """
+    Optimierte Scan-Logik nach paperless-ngx Vorbild:
+    - Chunked Hash-Berechnung (kein voller RAM-Load)
+    - Pfad-basierte Deduplizierung
+    - Parallele Verarbeitung mit ThreadPoolExecutor
+    - Weniger DB-Roundtrips
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import threading
+    
     scan_job = ScanJob.objects.create(
         source='SAGE',
         status='RUNNING',
@@ -410,16 +419,21 @@ def _run_sage_scan(task_self):
     tenant_folder_pattern = re.compile(r'^\d{8}$')
     month_folder_pattern = re.compile(r'^\d{6}$')
     
-    # Phase 1: Alle bekannten Hashes aus DB laden (pro Mandant) - nur Hashes, kein Inhalt
+    # Phase 1: Bekannte Pfade UND Hashes laden (schneller Lookup)
     log_system_event('INFO', 'SageScanner', "Lade bekannte Dateien aus Datenbank...")
+    
+    known_paths = set(ProcessedFile.objects.values_list('original_path', flat=True))
     known_hashes_by_tenant = {}
+    tenant_cache = {}
+    
     for tenant in Tenant.objects.filter(is_active=True):
+        tenant_cache[tenant.code] = tenant
         known_hashes_by_tenant[tenant.code] = set(
             ProcessedFile.objects.filter(tenant=tenant).values_list('sha256_hash', flat=True)
         )
     
-    # Phase 2: Nur Dateipfade und neue Dateien ZÄHLEN (ohne Inhalt zu speichern!)
-    new_file_paths = []  # Liste von (file_path, tenant_code) - KEIN Inhalt!
+    # Phase 2: Dateien sammeln - NUR PFADE, kein Hash berechnen für bekannte Pfade!
+    new_file_paths = []
     already_processed_count = 0
     
     scan_job.current_file = "Scanne Verzeichnis..."
@@ -430,18 +444,17 @@ def _run_sage_scan(task_self):
             continue
         
         tenant_code = tenant_folder.name
-        known_hashes = known_hashes_by_tenant.get(tenant_code, set())
         
         # Mandant erstellen falls nicht vorhanden
-        if tenant_code not in known_hashes_by_tenant:
+        if tenant_code not in tenant_cache:
             tenant, created = Tenant.objects.get_or_create(
                 code=tenant_code,
                 defaults={'name': f'Mandant {tenant_code}', 'is_active': True}
             )
+            tenant_cache[tenant_code] = tenant
+            known_hashes_by_tenant[tenant_code] = set()
             if created:
                 log_system_event('INFO', 'SageScanner', f"Neuer Mandant erstellt: {tenant_code}")
-            known_hashes_by_tenant[tenant_code] = set()
-            known_hashes = set()
         
         for file_path in tenant_folder.rglob('*'):
             if not file_path.is_file():
@@ -451,29 +464,20 @@ def _run_sage_scan(task_self):
             if file_path.suffix.lower() not in supported_extensions:
                 continue
             
-            try:
-                # Nur Hash berechnen, Inhalt NICHT im Speicher halten
-                with open(file_path, 'rb') as f:
-                    content = f.read()
-                file_hash = calculate_sha256(content)
-                del content  # Sofort freigeben!
-                
-                if file_hash in known_hashes:
-                    already_processed_count += 1
-                else:
-                    new_file_paths.append((file_path, tenant_code))
-            except Exception as e:
-                logger.warning(f"Fehler beim Lesen von {file_path}: {e}")
+            # OPTIMIZATION: Pfad-basierter Quick-Check - KEIN Hash für bekannte Pfade!
+            path_str = str(file_path)
+            if path_str in known_paths:
+                already_processed_count += 1
+            else:
+                new_file_paths.append((file_path, tenant_code))
     
-    # Nur NEUE Dateien als total_files setzen
     scan_job.total_files = len(new_file_paths)
     scan_job.skipped_files = already_processed_count
     scan_job.save(update_fields=['total_files', 'skipped_files'])
     
     log_system_event('INFO', 'SageScanner', 
-        f"Gefunden: {len(new_file_paths)} neue Dateien, {already_processed_count} bereits verarbeitet")
+        f"Gefunden: {len(new_file_paths)} neue Dateien, {already_processed_count} bereits verarbeitet (Pfad-Check)")
     
-    # Wenn keine neuen Dateien, direkt beenden
     if not new_file_paths:
         scan_job.status = 'COMPLETED'
         scan_job.completed_at = timezone.now()
@@ -481,170 +485,209 @@ def _run_sage_scan(task_self):
         scan_job.save()
         return {'status': 'success', 'processed': 0, 'already_processed': already_processed_count}
     
+    # Shared counters with thread-safe lock
     processed_count = 0
     error_count = 0
     personnel_docs = 0
     company_docs = 0
+    counter_lock = threading.Lock()
+    hashes_lock = threading.Lock()  # Lock für known_hashes Modifikation
     
-    # Mandanten-Cache für schnellen Zugriff
-    tenant_cache = {}
-    
-    try:
-        # Phase 3: Neue Dateien EINZELN verarbeiten (Streaming - kein Vorladen)
-        for file_path, tenant_code in new_file_paths:
-            # Mandant aus Cache oder DB holen
-            if tenant_code not in tenant_cache:
-                tenant, _ = Tenant.objects.get_or_create(
-                    code=tenant_code,
-                    defaults={'name': f'Mandant {tenant_code}', 'is_active': True}
-                )
-                tenant_cache[tenant_code] = tenant
+    def process_single_file(file_info):
+        """Verarbeitet eine einzelne Datei - thread-safe"""
+        nonlocal processed_count, error_count, personnel_docs, company_docs, already_processed_count
+        
+        file_path, tenant_code = file_info
+        tenant = tenant_cache[tenant_code]
+        
+        try:
+            # OPTIMIZATION: Chunked Hash ohne volle Datei in RAM
+            file_hash = calculate_sha256_chunked(str(file_path))
             
-            tenant = tenant_cache[tenant_code]
+            # Thread-safe Hash-Check im Memory-Cache (keine verschachtelten Locks!)
+            is_known = False
+            with hashes_lock:
+                known_hashes = known_hashes_by_tenant.get(tenant_code, set())
+                is_known = file_hash in known_hashes
             
-            try:
-                # Datei jetzt lesen (Streaming - eine nach der anderen)
-                with open(file_path, 'rb') as f:
-                    content = f.read()
-                file_hash = calculate_sha256(content)
-                
-                # Nochmal prüfen ob nicht inzwischen verarbeitet (race condition)
-                if ProcessedFile.objects.filter(tenant=tenant, sha256_hash=file_hash).exists():
+            if is_known:
+                with counter_lock:
                     already_processed_count += 1
-                    scan_job.skipped_files = already_processed_count
-                    scan_job.save(update_fields=['skipped_files'])
-                    del content
-                    continue
-                
-                # Monatsordner aus Pfad extrahieren
+                return None
+            
+            # DB-Level Duplikat-Prüfung (race condition safety)
+            if ProcessedFile.objects.filter(tenant=tenant, sha256_hash=file_hash).exists():
+                with counter_lock:
+                    already_processed_count += 1
+                return None
+            
+            # Jetzt erst Datei laden für Verschlüsselung
+            with open(file_path, 'rb') as f:
+                content = f.read()
+            encrypted_content = encrypt_data(content)
+            file_size = len(content)
+            
+            # Monatsordner extrahieren
+            month_folder = None
+            try:
                 tenant_folder = sage_path / tenant_code
-                month_folder = None
-                try:
-                    relative_path = file_path.relative_to(tenant_folder)
-                    path_parts = relative_path.parts
-                    if len(path_parts) >= 2 and month_folder_pattern.match(path_parts[0]):
-                        month_folder = path_parts[0]
-                except ValueError:
-                    pass
+                relative_path = file_path.relative_to(tenant_folder)
+                path_parts = relative_path.parts
+                if len(path_parts) >= 2 and month_folder_pattern.match(path_parts[0]):
+                    month_folder = path_parts[0]
+            except ValueError:
+                pass
+            
+            mime_type = get_mime_type(str(file_path))
+            
+            employee = None
+            status = 'UNASSIGNED'
+            needs_review = False
+            dm_result = None
+            is_personnel = False
+            doc_type = 'UNBEKANNT'
+            category = None
+            description = 'Unbekanntes Dokument'
+            
+            if file_path.suffix.lower() == '.pdf':
+                dm_result = extract_employee_from_datamatrix(str(file_path))
                 
-                # Fortschritt aktualisieren
-                scan_job.current_file = file_path.name[:100]
-                scan_job.save(update_fields=['current_file'])
-                
-                encrypted_content = encrypt_data(content)
-                mime_type = get_mime_type(str(file_path))
-                
-                employee = None
-                status = 'UNASSIGNED'
-                needs_review = False
-                dm_result = None
-                is_personnel = False
-                doc_type = 'UNBEKANNT'
-                category = None
-                description = 'Unbekanntes Dokument'
-                
-                if file_path.suffix.lower() == '.pdf':
-                    dm_result = extract_employee_from_datamatrix(str(file_path))
+                if dm_result['success'] and dm_result['employee_ids']:
+                    is_personnel = True
+                    for emp_id in dm_result['employee_ids']:
+                        employee = find_employee_by_id(emp_id, tenant=tenant)
+                        if employee:
+                            status = 'ASSIGNED'
+                            break
                     
-                    if dm_result['success'] and dm_result['employee_ids']:
-                        is_personnel = True
-                        for emp_id in dm_result['employee_ids']:
-                            employee = find_employee_by_id(emp_id, tenant=tenant)
-                            if employee:
-                                status = 'ASSIGNED'
-                                break
-                        
-                        if not employee:
-                            needs_review = True
-                            status = 'REVIEW_NEEDED'
-                        
-                        doc_type, _, category, description = classify_sage_document(file_path.name)
-                    elif dm_result['success'] and dm_result['codes']:
-                        is_personnel = True
+                    if not employee:
                         needs_review = True
                         status = 'REVIEW_NEEDED'
-                        doc_type, _, category, description = classify_sage_document(file_path.name)
-                    else:
-                        doc_type, is_personnel, category, description = classify_sage_document(file_path.name)
-                        if is_personnel:
-                            needs_review = True
-                            status = 'REVIEW_NEEDED'
-                        else:
-                            status = 'COMPANY'
+                    
+                    doc_type, _, category, description = classify_sage_document(file_path.name)
+                elif dm_result['success'] and dm_result['codes']:
+                    is_personnel = True
+                    needs_review = True
+                    status = 'REVIEW_NEEDED'
+                    doc_type, _, category, description = classify_sage_document(file_path.name)
                 else:
                     doc_type, is_personnel, category, description = classify_sage_document(file_path.name)
-                    status = 'COMPANY' if not is_personnel else 'UNASSIGNED'
-                
-                metadata = {
-                    'original_path': str(file_path),
-                    'needs_review': needs_review,
-                    'tenant_code': tenant_code,
-                    'doc_type': doc_type,
-                    'doc_type_description': description,
-                    'is_personnel_document': is_personnel,
-                    'category_code': category,
-                    'month_folder': month_folder,
+                    if is_personnel:
+                        needs_review = True
+                        status = 'REVIEW_NEEDED'
+                    else:
+                        status = 'COMPANY'
+            else:
+                doc_type, is_personnel, category, description = classify_sage_document(file_path.name)
+                status = 'COMPANY' if not is_personnel else 'UNASSIGNED'
+            
+            metadata = {
+                'original_path': str(file_path),
+                'needs_review': needs_review,
+                'tenant_code': tenant_code,
+                'doc_type': doc_type,
+                'doc_type_description': description,
+                'is_personnel_document': is_personnel,
+                'category_code': category,
+                'month_folder': month_folder,
+            }
+            
+            if dm_result:
+                metadata['datamatrix'] = {
+                    'success': dm_result['success'],
+                    'codes_found': len(dm_result['codes']),
+                    'employee_ids': dm_result['employee_ids'],
                 }
-                
-                if dm_result:
-                    metadata['datamatrix'] = {
-                        'success': dm_result['success'],
-                        'codes_found': len(dm_result['codes']),
-                        'employee_ids': dm_result['employee_ids'],
-                    }
-                
-                document = Document.objects.create(
-                    tenant=tenant,
-                    title=file_path.stem,
-                    original_filename=file_path.name,
-                    file_extension=file_path.suffix,
-                    mime_type=mime_type,
-                    encrypted_content=encrypted_content,
-                    file_size=len(content),
-                    employee=employee,
-                    status=status,
-                    source='SAGE',
-                    sha256_hash=file_hash,
-                    metadata=metadata
-                )
-                
-                ProcessedFile.objects.create(
-                    tenant=tenant,
-                    sha256_hash=file_hash,
-                    original_path=str(file_path),
-                    document=document
-                )
-                
-                # Speicher freigeben
-                del content
-                del encrypted_content
-                
+            
+            # DB-Operationen in einem Block
+            document = Document.objects.create(
+                tenant=tenant,
+                title=file_path.stem,
+                original_filename=file_path.name,
+                file_extension=file_path.suffix,
+                mime_type=mime_type,
+                encrypted_content=encrypted_content,
+                file_size=file_size,
+                employee=employee,
+                status=status,
+                source='SAGE',
+                sha256_hash=file_hash,
+                metadata=metadata
+            )
+            
+            ProcessedFile.objects.create(
+                tenant=tenant,
+                sha256_hash=file_hash,
+                original_path=str(file_path),
+                document=document
+            )
+            
+            # Speicher freigeben
+            del content
+            del encrypted_content
+            
+            # Hash zu known_hashes hinzufügen für Duplikat-Check (thread-safe)
+            with hashes_lock:
+                if tenant_code not in known_hashes_by_tenant:
+                    known_hashes_by_tenant[tenant_code] = set()
+                known_hashes_by_tenant[tenant_code].add(file_hash)
+            
+            with counter_lock:
                 processed_count += 1
                 if is_personnel:
                     personnel_docs += 1
                 else:
                     company_docs += 1
-                
-                scan_job.processed_files = processed_count
-                scan_job.save(update_fields=['processed_files'])
-                
-                if needs_review:
-                    log_system_event('WARNING', 'SageScanner', 
-                        f"File requires review (DataMatrix issue): {file_path.name}",
-                        {'document_id': str(document.id), 'tenant': tenant_code})
-                
-            except Exception as e:
+            
+            return {'success': True, 'is_personnel': is_personnel, 'needs_review': needs_review, 
+                    'filename': file_path.name, 'doc_id': str(document.id), 'tenant': tenant_code}
+            
+        except Exception as e:
+            with counter_lock:
                 error_count += 1
-                scan_job.error_files = error_count
-                scan_job.save(update_fields=['error_files'])
-                log_system_event('ERROR', 'SageScanner', 
-                    f"Failed to process file: {file_path.name}",
-                    {'error': str(e), 'tenant': tenant_code})
+            logger.error(f"Fehler bei {file_path}: {e}")
+            return {'success': False, 'error': str(e), 'filename': file_path.name}
+    
+    # Phase 3: Parallele Verarbeitung mit ThreadPoolExecutor
+    # PAPERLESS-NGX Style: max 4 Workers, begrenzt durch CPU-Cores
+    import os
+    max_workers = min(4, max(1, os.cpu_count() or 2))
+    
+    log_system_event('INFO', 'SageScanner', f"Starte parallele Verarbeitung mit {max_workers} Threads")
+    
+    try:
+        # Progress-Updates alle 10 Dateien statt bei jeder Datei
+        update_interval = 10
+        files_since_update = 0
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(process_single_file, f): f for f in new_file_paths}
+            
+            for future in as_completed(futures):
+                result = future.result()
+                files_since_update += 1
+                
+                # Fortschritt nur alle X Dateien aktualisieren (weniger DB-Writes)
+                if files_since_update >= update_interval:
+                    scan_job.processed_files = processed_count
+                    scan_job.error_files = error_count
+                    scan_job.skipped_files = already_processed_count
+                    if result and result.get('filename'):
+                        scan_job.current_file = result['filename'][:100]
+                    scan_job.save(update_fields=['processed_files', 'error_files', 'skipped_files', 'current_file'])
+                    files_since_update = 0
+                
+                # Logging für Review-Fälle
+                if result and result.get('needs_review'):
+                    log_system_event('WARNING', 'SageScanner', 
+                        f"File requires review: {result['filename']}",
+                        {'document_id': result.get('doc_id'), 'tenant': result.get('tenant')})
         
         scan_job.status = 'COMPLETED'
         scan_job.completed_at = timezone.now()
         scan_job.processed_files = processed_count
         scan_job.error_files = error_count
+        scan_job.skipped_files = already_processed_count
         scan_job.current_file = ''
         scan_job.save()
         
@@ -705,10 +748,8 @@ def _run_manual_scan(task_self):
                 continue
             
             try:
-                with open(file_path, 'rb') as f:
-                    content = f.read()
-                
-                file_hash = calculate_sha256(content)
+                # OPTIMIZATION: Chunked Hash ohne volle Datei in RAM
+                file_hash = calculate_sha256_chunked(str(file_path))
                 
                 if ProcessedFile.objects.filter(sha256_hash=file_hash).exists():
                     dest_path = processed_path / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_dup_{file_path.name}"
@@ -717,6 +758,10 @@ def _run_manual_scan(task_self):
                         f"Skipped duplicate file: {file_path.name}",
                         {'hash': file_hash[:16]})
                     continue
+                
+                # Jetzt erst Datei laden (nach Duplikat-Check)
+                with open(file_path, 'rb') as f:
+                    content = f.read()
                 
                 encrypted_content = encrypt_data(content)
                 mime_type = get_mime_type(str(file_path))
