@@ -633,6 +633,44 @@ def classify_sage_document(filename):
     return ('UNBEKANNT', False, None, 'Unbekanntes Dokument')
 
 
+def get_or_create_document_type(doc_type_name, description, category_code, tenant=None):
+    """
+    Holt oder erstellt einen DocumentType basierend auf der Sage-Klassifizierung.
+    Verknüpft automatisch mit der passenden FileCategory.
+    """
+    from dms.models import DocumentType, FileCategory
+    
+    doc_type_obj, created = DocumentType.objects.get_or_create(
+        name=doc_type_name,
+        tenant=tenant,
+        defaults={
+            'description': description or '',
+            'is_active': True,
+        }
+    )
+    
+    if category_code and not doc_type_obj.file_category:
+        try:
+            file_category = FileCategory.objects.filter(
+                code=category_code
+            ).first()
+            if not file_category:
+                file_category = FileCategory.objects.filter(
+                    code__startswith=category_code.split('.')[0]
+                ).first()
+            if file_category:
+                doc_type_obj.file_category = file_category
+                doc_type_obj.save(update_fields=['file_category'])
+                logger.info(f"DocumentType '{doc_type_name}' mit FileCategory '{file_category.code}' verknüpft")
+        except Exception as e:
+            logger.warning(f"Konnte FileCategory für {category_code} nicht zuordnen: {e}")
+    
+    if created:
+        logger.info(f"Neuer DocumentType erstellt: {doc_type_name}")
+    
+    return doc_type_obj
+
+
 @shared_task(bind=True, max_retries=3)
 def scan_sage_archive(self):
     """
@@ -955,6 +993,11 @@ def _run_sage_scan(task_self):
                     'employee_ids': dm_result['employee_ids'],
                 }
             
+            # DocumentType aus Sage-Klassifizierung holen oder erstellen
+            document_type_obj = None
+            if doc_type and doc_type != 'UNBEKANNT':
+                document_type_obj = get_or_create_document_type(doc_type, description, category, tenant)
+            
             # DB-Operationen in einem Block
             document = Document.objects.create(
                 tenant=tenant,
@@ -965,6 +1008,7 @@ def _run_sage_scan(task_self):
                 encrypted_content=encrypted_content,
                 file_size=file_size,
                 employee=employee,
+                document_type=document_type_obj,
                 status=status,
                 source='SAGE',
                 sha256_hash=file_hash,
