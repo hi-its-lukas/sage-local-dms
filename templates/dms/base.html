@@ -1108,24 +1108,45 @@
         
         if (!appGridBtn || !quickMenu) return;
         
-        // Toggle button
+        let menuOpen = false;
+        let justOpened = false;
+        
+        function openMenu() {
+            quickMenu.classList.add('active');
+            menuOpen = true;
+            justOpened = true;
+            setTimeout(function() { justOpened = false; }, 100);
+        }
+        
+        function closeMenu() {
+            quickMenu.classList.remove('active');
+            menuOpen = false;
+        }
+        
         appGridBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            quickMenu.classList.toggle('active');
-        });
-        
-        // Click outside closes menu
-        document.addEventListener('click', function(e) {
-            if (!quickMenu.contains(e.target) && !appGridBtn.contains(e.target)) {
-                quickMenu.classList.remove('active');
+            if (menuOpen) {
+                closeMenu();
+            } else {
+                openMenu();
             }
         });
         
-        // ESC key closes menu
+        appGridBtn.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (justOpened) return;
+            if (menuOpen && !quickMenu.contains(e.target) && !appGridBtn.contains(e.target)) {
+                closeMenu();
+            }
+        });
+        
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                quickMenu.classList.remove('active');
+            if (e.key === 'Escape' && menuOpen) {
+                closeMenu();
             }
         });
     })();
