@@ -1,0 +1,32 @@
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ docker compose logs web --tail=30
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/sql/query.py", line 1806, in names_to_path
+web-1  |     raise FieldError(
+web-1  | django.core.exceptions.FieldError: Cannot resolve keyword 'finished_at' into field. Choices are: completed_at, current_file, error_files, error_message, id, processed_files, skipped_files, source, started_at, status, total_files
+web-1  | 172.18.0.7 - - [18/Jan/2026:20:49:04 +0100] "GET /maintenance/ HTTP/1.0" 500 145 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+web-1  | 172.18.0.7 - - [18/Jan/2026:20:49:08 +0100] "GET / HTTP/1.0" 200 59562 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+web-1  | 172.18.0.7 - - [18/Jan/2026:20:49:09 +0100] "GET /maintenance/ HTTP/1.0" 500 145 "https://dms.hengl-bedachungen.de/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+web-1  | Internal Server Error: /maintenance/
+web-1  | Traceback (most recent call last):
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+web-1  |     response = get_response(request)
+web-1  |                ^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+web-1  |     response = wrapped_callback(request, *callback_args, **callback_kwargs)
+web-1  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+web-1  |     return view_func(request, *args, **kwargs)
+web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+web-1  |     return view_func(request, *args, **kwargs)
+web-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/app/dms/views.py", line 1149, in admin_maintenance
+web-1  |     last_scan_job = ScanJob.objects.filter(status='COMPLETED').order_by('-finished_at').first()
+web-1  |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/query.py", line 1727, in order_by
+web-1  |     obj.query.add_ordering(*field_names)
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/sql/query.py", line 2305, in add_ordering
+web-1  |     self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/db/models/sql/query.py", line 1806, in names_to_path
+web-1  |     raise FieldError(
+web-1  | django.core.exceptions.FieldError: Cannot resolve keyword 'finished_at' into field. Choices are: completed_at, current_file, error_files, error_message, id, processed_files, skipped_files, source, started_at, status, total_files
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ 
