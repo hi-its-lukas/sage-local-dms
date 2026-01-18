@@ -282,6 +282,13 @@ def document_list(request):
     search = request.GET.get('search')
     document_type = request.GET.get('document_type')
     employee = request.GET.get('employee')
+    tenant_id = request.GET.get('tenant')
+    file_type = request.GET.get('file_type')
+    filename = request.GET.get('filename')
+    period_year = request.GET.get('period_year')
+    period_month = request.GET.get('period_month')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
     
     if status:
         documents = documents.filter(status=status)
@@ -299,21 +306,44 @@ def document_list(request):
             Q(title__icontains=search) | 
             Q(original_filename__icontains=search)
         )
+    if tenant_id:
+        documents = documents.filter(tenant_id=tenant_id)
+    if file_type:
+        documents = documents.filter(file_extension=file_type)
+    if filename:
+        documents = documents.filter(original_filename__icontains=filename)
+    if period_year:
+        documents = documents.filter(period_year=int(period_year))
+    if period_month:
+        documents = documents.filter(period_month=int(period_month))
+    if date_from:
+        from datetime import datetime
+        documents = documents.filter(created_at__gte=datetime.strptime(date_from, '%Y-%m-%d'))
+    if date_to:
+        from datetime import datetime, timedelta
+        date_to_dt = datetime.strptime(date_to, '%Y-%m-%d') + timedelta(days=1)
+        documents = documents.filter(created_at__lt=date_to_dt)
     
-    documents = documents.select_related('employee', 'document_type', 'owner').order_by('-created_at')
+    documents = documents.select_related('employee', 'document_type', 'owner', 'tenant').order_by('-created_at')
     
     paginator = Paginator(documents, 25)
     page = request.GET.get('page', 1)
     documents = paginator.get_page(page)
     
-    from .models import DocumentType
+    from .models import DocumentType, Tenant
     document_types = DocumentType.objects.filter(is_active=True)
+    tenants = Tenant.objects.all().order_by('name')
+    
+    current_year = timezone.now().year
+    period_years = list(range(current_year, current_year - 5, -1))
     
     return render(request, 'dms/document_list.html', {
         'documents': documents,
         'status_choices': Document.STATUS_CHOICES,
         'source_choices': Document.SOURCE_CHOICES,
         'document_types': document_types,
+        'tenants': tenants,
+        'period_years': period_years,
     })
 
 

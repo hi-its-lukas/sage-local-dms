@@ -552,8 +552,9 @@
             <span>Eigenschaften filtern:</span>
         </div>
         
-        <div id="advancedFilters" style="display: {% if request.GET.status or request.GET.source %}block{% else %}none{% endif %};">
-            <div class="search-row" style="margin-top: 16px;">
+        <div id="advancedFilters" style="display: {% if request.GET.status or request.GET.source or request.GET.employee or request.GET.period_year or request.GET.tenant or request.GET.file_type or request.GET.date_from %}block{% else %}none{% endif %};">
+            <p style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin: 16px 0 12px 0;">Allgemein</p>
+            <div class="search-row">
                 <div class="search-field">
                     <label>Aktueller Status:</label>
                     <select name="status">
@@ -575,6 +576,73 @@
                 <div class="search-field">
                     <label>Mitarbeiter:</label>
                     <input type="text" name="employee" placeholder="Name eingeben" value="{{ request.GET.employee }}">
+                </div>
+            </div>
+            
+            <div class="search-row">
+                <div class="search-field">
+                    <label>Mandant:</label>
+                    <select name="tenant">
+                        <option value="">Alle Mandanten</option>
+                        {% for t in tenants %}
+                        <option value="{{ t.id }}" {% if request.GET.tenant == t.id|stringformat:'s' %}selected{% endif %}>{{ t.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="search-field">
+                    <label>Dateityp:</label>
+                    <select name="file_type">
+                        <option value="">Alle Dateitypen</option>
+                        <option value=".pdf" {% if request.GET.file_type == '.pdf' %}selected{% endif %}>PDF</option>
+                        <option value=".docx" {% if request.GET.file_type == '.docx' %}selected{% endif %}>Word</option>
+                        <option value=".xlsx" {% if request.GET.file_type == '.xlsx' %}selected{% endif %}>Excel</option>
+                        <option value=".jpg" {% if request.GET.file_type == '.jpg' %}selected{% endif %}>Bild (JPG)</option>
+                        <option value=".png" {% if request.GET.file_type == '.png' %}selected{% endif %}>Bild (PNG)</option>
+                        <option value=".tiff" {% if request.GET.file_type == '.tiff' %}selected{% endif %}>TIFF</option>
+                    </select>
+                </div>
+                <div class="search-field">
+                    <label>Dateiname enthält:</label>
+                    <input type="text" name="filename" placeholder="Dateiname" value="{{ request.GET.filename }}">
+                </div>
+            </div>
+            
+            <p style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin: 16px 0 12px 0;">Periode & Datum</p>
+            <div class="search-row">
+                <div class="search-field">
+                    <label>Periode Jahr:</label>
+                    <select name="period_year">
+                        <option value="">Alle Jahre</option>
+                        {% for year in period_years %}
+                        <option value="{{ year }}" {% if request.GET.period_year == year|stringformat:'s' %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="search-field">
+                    <label>Periode Monat:</label>
+                    <select name="period_month">
+                        <option value="">Alle Monate</option>
+                        <option value="1" {% if request.GET.period_month == '1' %}selected{% endif %}>Januar</option>
+                        <option value="2" {% if request.GET.period_month == '2' %}selected{% endif %}>Februar</option>
+                        <option value="3" {% if request.GET.period_month == '3' %}selected{% endif %}>März</option>
+                        <option value="4" {% if request.GET.period_month == '4' %}selected{% endif %}>April</option>
+                        <option value="5" {% if request.GET.period_month == '5' %}selected{% endif %}>Mai</option>
+                        <option value="6" {% if request.GET.period_month == '6' %}selected{% endif %}>Juni</option>
+                        <option value="7" {% if request.GET.period_month == '7' %}selected{% endif %}>Juli</option>
+                        <option value="8" {% if request.GET.period_month == '8' %}selected{% endif %}>August</option>
+                        <option value="9" {% if request.GET.period_month == '9' %}selected{% endif %}>September</option>
+                        <option value="10" {% if request.GET.period_month == '10' %}selected{% endif %}>Oktober</option>
+                        <option value="11" {% if request.GET.period_month == '11' %}selected{% endif %}>November</option>
+                        <option value="12" {% if request.GET.period_month == '12' %}selected{% endif %}>Dezember</option>
+                    </select>
+                </div>
+                <div class="search-field">
+                    <label>Erstellt von:</label>
+                    <input type="date" name="date_from" value="{{ request.GET.date_from }}">
+                </div>
+                <div class="search-field">
+                    <label>Erstellt bis:</label>
+                    <input type="date" name="date_to" value="{{ request.GET.date_to }}">
                 </div>
             </div>
         </div>
