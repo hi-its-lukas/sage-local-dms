@@ -901,12 +901,49 @@
             font-size: 13px;
         }
         
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 24px;
-            color: var(--text-muted);
-            font-size: 12px;
+        /* Status Bar */
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 24px;
+            background: var(--header-bg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            z-index: 500;
+        }
+        
+        .status-bar-left,
+        .status-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .status-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .status-bar-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+        
+        .status-bar-dot.warning {
+            background: var(--warning);
+        }
+        
+        .main-content {
+            padding-bottom: 40px;
         }
         
         /* Animations */
@@ -1063,9 +1100,18 @@
         {% block content %}{% endblock %}
     </main>
     
-    <footer>
-        <p>DMS - Dokumentenmanagementsystem</p>
-    </footer>
+    <div class="status-bar">
+        <div class="status-bar-left">
+            <span class="status-bar-item">
+                <span class="status-bar-dot"></span>
+                Verbunden
+            </span>
+            <span class="status-bar-item">DMS v1.0</span>
+        </div>
+        <div class="status-bar-right">
+            <span class="status-bar-item">{{ request.user.username }}</span>
+        </div>
+    </div>
     
     <script>
     document.addEventListener('DOMContentLoaded', function() {
