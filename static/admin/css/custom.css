@@ -1,0 +1,25 @@
+.main-header .navbar {
+    margin-left: 60px;
+}
+
+.main-header .navbar-nav.ml-auto {
+    margin-right: 0 !important;
+}
+
+.brand-link {
+    padding: 0.5rem 0.5rem;
+}
+
+.brand-link .brand-image {
+    max-height: 33px;
+    margin-left: 0;
+    margin-right: 0.5rem;
+}
+
+.sidebar-mini .main-header .navbar {
+    margin-left: 60px;
+}
+
+.sidebar-collapse .main-header .navbar {
+    margin-left: 60px;
+}
