@@ -16,6 +16,53 @@ from .ocr import process_document_with_ocr, classify_document, extract_employee_
 import re
 
 
+def create_review_task(document, source='UNKNOWN'):
+    """
+    Erstellt automatisch eine Aufgabe für Dokumente die manuelle Prüfung benötigen.
+    
+    Args:
+        document: Das Dokument das geprüft werden muss
+        source: Quelle des Dokuments (SAGE_ARCHIVE, EMAIL, MANUAL_SCAN, UPLOAD)
+    """
+    source_names = {
+        'SAGE_ARCHIVE': 'Sage-Archiv',
+        'EMAIL': 'E-Mail',
+        'MANUAL_SCAN': 'Manueller Scan',
+        'UPLOAD': 'Web-Upload',
+        'UNKNOWN': 'Import'
+    }
+    source_display = source_names.get(source, source)
+    
+    existing_task = Task.objects.filter(
+        document=document,
+        status__in=['OPEN', 'IN_PROGRESS']
+    ).first()
+    
+    if existing_task:
+        return existing_task
+    
+    task = Task.objects.create(
+        title=f"Dokument prüfen: {document.original_filename[:50]}",
+        description=f"Dieses Dokument aus {source_display} konnte nicht automatisch zugeordnet werden.\n\n"
+                    f"Bitte prüfen Sie:\n"
+                    f"- Mitarbeiter-Zuordnung\n"
+                    f"- Dokumenttyp\n"
+                    f"- Periode (Monat/Jahr)",
+        document=document,
+        priority=2,
+        status='OPEN'
+    )
+    
+    SystemLog.objects.create(
+        level='INFO',
+        source='TASK_CREATE',
+        message=f"Prüfaufgabe erstellt für: {document.original_filename}",
+        details={'document_id': str(document.id), 'task_id': str(task.id), 'source': source}
+    )
+    
+    return task
+
+
 def auto_classify_document(document, tenant=None):
     """
     Wendet Matching-Regeln auf ein Dokument an.
@@ -1062,6 +1109,11 @@ def _run_sage_scan(task_self):
                                 )
                                 
                                 auto_classify_document(split_doc, tenant=tenant)
+                                
+                                # Aufgabe erstellen bei REVIEW_NEEDED
+                                if split_status == 'REVIEW_NEEDED':
+                                    create_review_task(split_doc, source='SAGE_ARCHIVE')
+                                
                                 split_docs_created.append(str(split_doc.id))
                                 
                                 del split_content
@@ -1181,6 +1233,10 @@ def _run_sage_scan(task_self):
             
             # Auto-Klassifizierung anhand Matching-Regeln
             auto_classify_document(document, tenant=tenant)
+            
+            # Aufgabe erstellen bei REVIEW_NEEDED
+            if status == 'REVIEW_NEEDED':
+                create_review_task(document, source='SAGE_ARCHIVE')
             
             # Speicher freigeben
             del content
@@ -1384,6 +1440,10 @@ def _run_manual_scan(task_self):
                 dest_path = processed_path / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file_path.name}"
                 file_path.rename(dest_path)
                 
+                # Aufgabe erstellen wenn kein Mitarbeiter zugeordnet
+                if status == 'UNASSIGNED':
+                    create_review_task(document, source='MANUAL_SCAN')
+                
                 processed_count += 1
                 log_system_event('INFO', 'ManualScanner', 
                     f"Verarbeitet: {file_path.name} (Typ: {doc_type}, Konfidenz: {doc_type_confidence:.0%})",
@@ -1561,12 +1621,8 @@ Date: {message.received}
                     f"Failed to process attachment: {attachment.name}",
                     {'error': str(e)})
     
-    Task.objects.create(
-        title=f"Review Email: {message.subject}",
-        description=f"New email received from {message.sender.address}",
-        document=eml_doc,
-        priority=2
-    )
+    # Aufgabe für E-Mail-Prüfung erstellen
+    create_review_task(eml_doc, source='EMAIL')
     
     log_system_event('INFO', 'EmailPoller', 
         f"Processed email: {message.subject}",
