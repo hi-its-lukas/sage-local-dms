@@ -86,6 +86,127 @@
             background: rgba(255,255,255,0.1);
         }
         
+        .app-menu-container {
+            position: relative;
+        }
+        
+        .quick-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 8px;
+            width: 320px;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+            overflow: hidden;
+        }
+        
+        .quick-menu.active {
+            display: block;
+        }
+        
+        .quick-menu-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--header-bg);
+            color: white;
+        }
+        
+        .quick-menu-header .material-icons {
+            font-size: 20px;
+        }
+        
+        .quick-menu-header span:last-child {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        .quick-menu-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .quick-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: background 0.15s;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .quick-menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .quick-menu-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .quick-menu-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .quick-menu-icon.blue { background: var(--primary); }
+        .quick-menu-icon.green { background: var(--success); }
+        .quick-menu-icon.orange { background: var(--warning); }
+        .quick-menu-icon.purple { background: #7c3aed; }
+        .quick-menu-icon.red { background: var(--error); }
+        .quick-menu-icon.teal { background: #0d9488; }
+        
+        .quick-menu-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .quick-menu-label {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .quick-menu-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .quick-menu-star {
+            margin-left: auto;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        
+        .quick-menu-star:hover {
+            color: var(--warning);
+        }
+        
+        .quick-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1999;
+            display: none;
+        }
+        
+        .quick-menu-overlay.active {
+            display: block;
+        }
+        
         .header-title {
             color: var(--header-text);
             font-size: 18px;
@@ -804,10 +925,95 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <div id="quick-menu-overlay" class="quick-menu-overlay"></div>
     <header class="header">
         <div class="header-left">
-            <div class="app-grid-btn">
-                <span class="material-icons">apps</span>
+            <div class="app-menu-container">
+                <div class="app-grid-btn" id="app-grid-btn">
+                    <span class="material-icons">apps</span>
+                </div>
+                <div class="quick-menu" id="quick-menu">
+                    <div class="quick-menu-header">
+                        <span class="material-icons">home</span>
+                        <span>STARTSEITE</span>
+                    </div>
+                    <div class="quick-menu-body">
+                        <a href="{% url 'dms:upload_page' %}" class="quick-menu-item">
+                            <div class="quick-menu-icon blue">
+                                <span class="material-icons">add_circle</span>
+                            </div>
+                            <div class="quick-menu-text">
+                                <span class="quick-menu-label">Ablage</span>
+                                <span class="quick-menu-desc">Neue Inhalte zur Verfügung stellen</span>
+                            </div>
+                        </a>
+                        <a href="{% url 'dms:personnel_file_list' %}" class="quick-menu-item">
+                            <div class="quick-menu-icon teal">
+                                <span class="material-icons">folder_shared</span>
+                            </div>
+                            <div class="quick-menu-text">
+                                <span class="quick-menu-label">Personalakten</span>
+                                <span class="quick-menu-desc">Mitarbeiter-Akten verwalten</span>
+                            </div>
+                        </a>
+                        <a href="{% url 'dms:task_list' %}" class="quick-menu-item">
+                            <div class="quick-menu-icon orange">
+                                <span class="material-icons">task_alt</span>
+                            </div>
+                            <div class="quick-menu-text">
+                                <span class="quick-menu-label">Aufgaben</span>
+                                <span class="quick-menu-desc">Aufgaben erledigen</span>
+                            </div>
+                        </a>
+                        <a href="{% url 'dms:document_list' %}" class="quick-menu-item">
+                            <div class="quick-menu-icon purple">
+                                <span class="material-icons">search</span>
+                            </div>
+                            <div class="quick-menu-text">
+                                <span class="quick-menu-label">Suche</span>
+                                <span class="quick-menu-desc">Dokumente durchsuchen</span>
+                            </div>
+                        </a>
+                        <a href="{% url 'dms:employee_list' %}" class="quick-menu-item">
+                            <div class="quick-menu-icon green">
+                                <span class="material-icons">people</span>
+                            </div>
+                            <div class="quick-menu-text">
+                                <span class="quick-menu-label">Mitarbeiter</span>
+                                <span class="quick-menu-desc">Mitarbeiterliste anzeigen</span>
+                            </div>
+                        </a>
+                        <a href="{% url 'dms:filing_plan' %}" class="quick-menu-item">
+                            <div class="quick-menu-icon purple">
+                                <span class="material-icons">account_tree</span>
+                            </div>
+                            <div class="quick-menu-text">
+                                <span class="quick-menu-label">Aktenplan</span>
+                                <span class="quick-menu-desc">Kategorien & Aufbewahrungsfristen</span>
+                            </div>
+                        </a>
+                        <a href="{% url 'dms:system_logs' %}" class="quick-menu-item">
+                            <div class="quick-menu-icon teal">
+                                <span class="material-icons">receipt_long</span>
+                            </div>
+                            <div class="quick-menu-text">
+                                <span class="quick-menu-label">Protokolle</span>
+                                <span class="quick-menu-desc">Systemereignisse anzeigen</span>
+                            </div>
+                        </a>
+                        {% if perms.dms.change_systemsettings %}
+                        <a href="{% url 'dms:admin_maintenance' %}" class="quick-menu-item">
+                            <div class="quick-menu-icon red">
+                                <span class="material-icons">build</span>
+                            </div>
+                            <div class="quick-menu-text">
+                                <span class="quick-menu-label">Wartung</span>
+                                <span class="quick-menu-desc">Systemwartung & Konfiguration</span>
+                            </div>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
             <div class="header-title">
                 <span class="material-icons">folder_special</span>
@@ -863,14 +1069,36 @@
     
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // App Grid Button - Navigate to Dashboard
-        const appGridBtn = document.querySelector('.app-grid-btn');
+        const appGridBtn = document.getElementById('app-grid-btn');
+        const quickMenu = document.getElementById('quick-menu');
+        const overlay = document.getElementById('quick-menu-overlay');
+        
+        function toggleQuickMenu() {
+            quickMenu.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+        
+        function closeQuickMenu() {
+            quickMenu.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+        
         if (appGridBtn) {
-            appGridBtn.style.cursor = 'pointer';
-            appGridBtn.addEventListener('click', function() {
-                window.location.href = '/';
+            appGridBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleQuickMenu();
             });
         }
+        
+        if (overlay) {
+            overlay.addEventListener('click', closeQuickMenu);
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeQuickMenu();
+            }
+        });
     });
     </script>
     {% block extra_js %}{% endblock %}
