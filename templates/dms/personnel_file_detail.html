@@ -28,6 +28,7 @@
     .document-title { flex: 1; color: #2c3e50; text-decoration: none; }
     .document-title:hover { color: #3498db; text-decoration: underline; }
     .document-date { color: #666; font-size: 0.85rem; margin: 0 15px; }
+    .document-period { color: #3498db; font-size: 0.85rem; margin-right: 15px; font-weight: 500; }
     .retention-info { font-size: 0.8rem; color: #95a5a6; }
     .empty-category { color: #95a5a6; font-style: italic; padding: 10px 0; }
     .toggle-icon { transition: transform 0.2s; }
@@ -94,6 +95,9 @@
                             {% if entry.category.code == sub.code %}
                             <div class="document-item">
                                 <a href="{% url 'dms:document_detail' pk=entry.document.pk %}" class="document-title">{{ entry.document.title }}</a>
+                                {% if entry.document.period_year and entry.document.period_month %}
+                                <span class="document-period">{{ entry.document.period_month|stringformat:"02d" }}/{{ entry.document.period_year }}</span>
+                                {% endif %}
                                 <span class="document-date">{{ entry.document_date|date:"d.m.Y"|default:entry.created_at|date:"d.m.Y" }}</span>
                                 <a href="{% url 'dms:document_detail' pk=entry.document.pk %}" class="btn">Ansehen</a>
                             </div>
@@ -112,6 +116,9 @@
                             {% if entry.category.code == category.code %}
                             <div class="document-item">
                                 <a href="{% url 'dms:document_detail' pk=entry.document.pk %}" class="document-title">{{ entry.document.title }}</a>
+                                {% if entry.document.period_year and entry.document.period_month %}
+                                <span class="document-period">{{ entry.document.period_month|stringformat:"02d" }}/{{ entry.document.period_year }}</span>
+                                {% endif %}
                                 <span class="document-date">{{ entry.document_date|date:"d.m.Y"|default:entry.created_at|date:"d.m.Y" }}</span>
                                 <a href="{% url 'dms:document_detail' pk=entry.document.pk %}" class="btn">Ansehen</a>
                             </div>
