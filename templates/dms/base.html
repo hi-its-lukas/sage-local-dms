@@ -1114,45 +1114,64 @@
     </div>
     
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const appGridBtn = document.getElementById('app-grid-btn');
-        const quickMenu = document.getElementById('quick-menu');
-        const overlay = document.getElementById('quick-menu-overlay');
+    (function() {
+        let menuOpen = false;
         
-        function toggleQuickMenu() {
-            quickMenu.classList.toggle('active');
-            overlay.classList.toggle('active');
+        function openMenu() {
+            const quickMenu = document.getElementById('quick-menu');
+            const overlay = document.getElementById('quick-menu-overlay');
+            if (quickMenu && overlay) {
+                quickMenu.classList.add('active');
+                overlay.classList.add('active');
+                menuOpen = true;
+            }
         }
         
-        function closeQuickMenu() {
-            quickMenu.classList.remove('active');
-            overlay.classList.remove('active');
+        function closeMenu() {
+            const quickMenu = document.getElementById('quick-menu');
+            const overlay = document.getElementById('quick-menu-overlay');
+            if (quickMenu && overlay) {
+                quickMenu.classList.remove('active');
+                overlay.classList.remove('active');
+                menuOpen = false;
+            }
         }
         
-        if (appGridBtn) {
-            appGridBtn.addEventListener('click', function(e) {
+        document.addEventListener('click', function(e) {
+            const appGridBtn = document.getElementById('app-grid-btn');
+            const quickMenu = document.getElementById('quick-menu');
+            
+            if (!appGridBtn || !quickMenu) return;
+            
+            // Check if click is on the button
+            if (appGridBtn.contains(e.target)) {
                 e.preventDefault();
                 e.stopPropagation();
-                toggleQuickMenu();
-            });
-        }
-        
-        if (quickMenu) {
-            quickMenu.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        }
-        
-        if (overlay) {
-            overlay.addEventListener('click', closeQuickMenu);
-        }
+                if (menuOpen) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+                return;
+            }
+            
+            // Check if click is inside the menu
+            if (quickMenu.contains(e.target)) {
+                return; // Don't close
+            }
+            
+            // Click outside - close menu
+            if (menuOpen) {
+                closeMenu();
+            }
+        }, true);
         
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeQuickMenu();
+            if (e.key === 'Escape' && menuOpen) {
+                closeMenu();
             }
         });
-    });
+    })();
     </script>
     {% block extra_js %}{% endblock %}
 </body>
