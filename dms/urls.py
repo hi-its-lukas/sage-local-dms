@@ -45,4 +45,8 @@ urlpatterns = [
     path('maintenance/scan-sage/', views.admin_run_scan_sage, name='admin_run_scan_sage'),
     path('maintenance/cleanup-orphans/', views.admin_run_cleanup_orphans, name='admin_run_cleanup_orphans'),
     path('maintenance/reset-locks/', views.admin_run_reset_locks, name='admin_run_reset_locks'),
+    path('maintenance/create-sage-doctypes/', views.admin_run_create_sage_doctypes, name='admin_run_create_sage_doctypes'),
+    path('maintenance/resplit-pdfs/', views.admin_run_resplit_pdfs, name='admin_run_resplit_pdfs'),
+    path('maintenance/repair-employees/', views.admin_run_repair_employees, name='admin_run_repair_employees'),
+    path('maintenance/update-periods/', views.admin_run_update_periods, name='admin_run_update_periods'),
 ]

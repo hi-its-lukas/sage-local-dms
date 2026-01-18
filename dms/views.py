@@ -1342,3 +1342,79 @@ def admin_run_reset_locks(request):
         messages.error(request, f'Fehler: {str(e)}')
     
     return redirect('dms:admin_maintenance')
+
+
+@login_required
+@permission_required('dms.change_systemsettings', raise_exception=True)
+@require_http_methods(['POST'])
+def admin_run_create_sage_doctypes(request):
+    """Create Sage document types"""
+    from django.core.management import call_command
+    from io import StringIO
+    
+    try:
+        out = StringIO()
+        call_command('create_sage_doctypes', stdout=out)
+        messages.success(request, f'Sage Dokumenttypen erstellt. {out.getvalue()}')
+    except Exception as e:
+        messages.error(request, f'Fehler: {str(e)}')
+    
+    return redirect('dms:admin_maintenance')
+
+
+@login_required
+@permission_required('dms.change_systemsettings', raise_exception=True)
+@require_http_methods(['POST'])
+def admin_run_resplit_pdfs(request):
+    """Resplit bundled PDFs by employee"""
+    from django.core.management import call_command
+    from io import StringIO
+    
+    try:
+        out = StringIO()
+        call_command('resplit_bundled_pdfs', stdout=out)
+        output = out.getvalue()
+        if 'Fehler' in output or 'Error' in output:
+            messages.warning(request, f'PDF-Aufteilung mit Warnungen: {output[:500]}')
+        else:
+            messages.success(request, f'Gebündelte PDFs aufgeteilt. {output[:500]}')
+    except Exception as e:
+        messages.error(request, f'Fehler: {str(e)}')
+    
+    return redirect('dms:admin_maintenance')
+
+
+@login_required
+@permission_required('dms.change_systemsettings', raise_exception=True)
+@require_http_methods(['POST'])
+def admin_run_repair_employees(request):
+    """Repair employee assignments on documents"""
+    from django.core.management import call_command
+    from io import StringIO
+    
+    try:
+        out = StringIO()
+        call_command('repair_employee_assignments', stdout=out)
+        messages.success(request, f'Mitarbeiter-Zuordnungen repariert. {out.getvalue()[:500]}')
+    except Exception as e:
+        messages.error(request, f'Fehler: {str(e)}')
+    
+    return redirect('dms:admin_maintenance')
+
+
+@login_required
+@permission_required('dms.change_systemsettings', raise_exception=True)
+@require_http_methods(['POST'])
+def admin_run_update_periods(request):
+    """Update document periods from folder structure"""
+    from django.core.management import call_command
+    from io import StringIO
+    
+    try:
+        out = StringIO()
+        call_command('update_document_periods', stdout=out)
+        messages.success(request, f'Perioden aktualisiert. {out.getvalue()[:500]}')
+    except Exception as e:
+        messages.error(request, f'Fehler: {str(e)}')
+    
+    return redirect('dms:admin_maintenance')

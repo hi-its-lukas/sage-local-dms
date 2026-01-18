@@ -139,6 +139,90 @@
     </div>
 </div>
 
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon" style="background: #fff8e1; color: #ff8f00;">
+                <span class="material-icons">category</span>
+            </div>
+        </div>
+        <h3 style="font-size: 18px; margin-bottom: 8px;">Sage Dokumenttypen</h3>
+        <p style="margin-bottom: 16px;">Erstellt alle Standard-Dokumenttypen für Sage HR-Dokumente</p>
+        <div style="margin-bottom: 12px; padding: 12px; background: var(--surface); border-radius: var(--radius-md); font-size: 13px;">
+            <strong>{{ stats.document_types }}</strong> Dokumenttypen vorhanden
+        </div>
+        <form method="post" action="{% url 'dms:admin_run_create_sage_doctypes' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn">
+                <span class="material-icons">add_box</span>
+                Dokumenttypen erstellen
+            </button>
+        </form>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon" style="background: #e8eaf6; color: #3f51b5;">
+                <span class="material-icons">call_split</span>
+            </div>
+        </div>
+        <h3 style="font-size: 18px; margin-bottom: 8px;">PDFs aufteilen</h3>
+        <p style="margin-bottom: 16px;">Teilt gebündelte Lohn-PDFs nach Mitarbeitern auf (DataMatrix)</p>
+        <div style="margin-bottom: 12px; padding: 12px; background: var(--surface); border-radius: var(--radius-md); font-size: 13px;">
+            Verwendet DataMatrix-Codes zur Erkennung
+        </div>
+        <form method="post" action="{% url 'dms:admin_run_resplit_pdfs' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn">
+                <span class="material-icons">content_cut</span>
+                PDFs aufteilen
+            </button>
+        </form>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon" style="background: #e1f5fe; color: #0288d1;">
+                <span class="material-icons">person_search</span>
+            </div>
+        </div>
+        <h3 style="font-size: 18px; margin-bottom: 8px;">Mitarbeiter reparieren</h3>
+        <p style="margin-bottom: 16px;">Korrigiert fehlende oder falsche Mitarbeiter-Zuordnungen</p>
+        <div style="margin-bottom: 12px; padding: 12px; background: var(--surface); border-radius: var(--radius-md); font-size: 13px;">
+            Analysiert Dateinamen und Ordnerstruktur
+        </div>
+        <form method="post" action="{% url 'dms:admin_run_repair_employees' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn">
+                <span class="material-icons">build</span>
+                Zuordnungen reparieren
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <div class="stat-card-icon" style="background: #f3e5f5; color: #9c27b0;">
+                <span class="material-icons">calendar_month</span>
+            </div>
+        </div>
+        <h3 style="font-size: 18px; margin-bottom: 8px;">Perioden aktualisieren</h3>
+        <p style="margin-bottom: 16px;">Liest YYYYMM aus Ordnerstruktur und aktualisiert Dokument-Perioden</p>
+        <div style="margin-bottom: 12px; padding: 12px; background: var(--surface); border-radius: var(--radius-md); font-size: 13px;">
+            Analysiert Ordnerpfade wie /202501/ oder /2025-01/
+        </div>
+        <form method="post" action="{% url 'dms:admin_run_update_periods' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn">
+                <span class="material-icons">update</span>
+                Perioden aktualisieren
+            </button>
+        </form>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header">
         <h2>Systemstatus</h2>
