@@ -1,0 +1,93 @@
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ # Container-Status prüfen
+docker-compose ps
+
+# Logs anschauen
+docker-compose logs --tail=100 web
+Name   Command   State   Ports
+------------------------------
+Attaching to 
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ docker-compose up -d
+Creating network "sage-local-dms_default" with the default driver
+Pulling redis (redis:7-alpine)...
+7-alpine: Pulling from library/redis
+f637881d1138: Pull complete
+60c57c0072ef: Pull complete
+fc4343b4accd: Pull complete
+380e8aa8b1fd: Pull complete
+c70aae7b5e0d: Pull complete
+232f7549c9b0: Pull complete
+4f4fb700ef54: Pull complete
+d75b3becd998: Pull complete
+Digest: sha256:ee64a64eaab618d88051c3ade8f6352d11531fcf79d9a4818b9b183d8c1d18ba
+Status: Downloaded newer image for redis:7-alpine
+Building celery_beat
+[+] Building 1.2s (12/12) FINISHED                                                                       docker:default
+ => [internal] load build definition from Dockerfile                                                               0.0s
+ => => transferring dockerfile: 872B                                                                               0.0s
+ => [internal] load metadata for docker.io/library/python:3.11-slim                                                0.8s
+ => [internal] load .dockerignore                                                                                  0.0s
+ => => transferring context: 2B                                                                                    0.0s
+ => [1/7] FROM docker.io/library/python:3.11-slim@sha256:5be45dbade29bebd6886af6b438fd7e0b4eb7b611f39ba62b430263f  0.0s
+ => [internal] load build context                                                                                  0.2s
+ => => transferring context: 109.75kB                                                                              0.1s
+ => CACHED [2/7] WORKDIR /app                                                                                      0.0s
+ => CACHED [3/7] RUN apt-get update && apt-get install -y --no-install-recommends     libpq-dev     libmagic1      0.0s
+ => CACHED [4/7] COPY requirements.txt .                                                                           0.0s
+ => CACHED [5/7] RUN pip install --no-cache-dir -r requirements.txt                                                0.0s
+ => CACHED [6/7] COPY . .                                                                                          0.0s
+ => CACHED [7/7] RUN chmod +x entrypoint.sh                                                                        0.0s
+ => exporting to image                                                                                             0.0s
+ => => exporting layers                                                                                            0.0s
+ => => writing image sha256:1879290ca3175cc7b2c83f570e2fb1d3b91de670933cf80b47558481366a92d1                       0.0s
+ => => naming to docker.io/library/sage-local-dms_celery_beat                                                      0.0s
+WARNING: Image for service celery_beat was built because it did not already exist. To rebuild this image you must use `docker-compose build` or `docker-compose up --build`.
+Pulling nginx (nginx:alpine)...
+alpine: Pulling from library/nginx
+1074353eec0d: Already exists
+25f453064fd3: Pull complete
+567f84da6fbd: Pull complete
+da7c973d8b92: Pull complete
+33f95a0f3229: Pull complete
+085c5e5aaa8e: Pull complete
+0abf9e567266: Pull complete
+e096540205d5: Pull complete
+Digest: sha256:b0f7830b6bfaa1258f45d94c240ab668ced1b3651c8a222aefe6683447c7bf55
+Status: Downloaded newer image for nginx:alpine
+Creating sage-local-dms_db_1    ... done
+Creating sage-local-dms_redis_1 ... done
+Creating sage-local-dms_celery_worker_1 ... done
+Creating sage-local-dms_web_1           ... done
+Creating sage-local-dms_celery_beat_1   ... done
+Creating sage-local-dms_nginx_1         ... done
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ # Docker-Dienst beim Systemstart aktivieren
+sudo systemctl enable docker
+
+# Status prüfen
+sudo systemctl status docker
+● docker.service - Docker Application Container Engine
+     Loaded: loaded (/usr/lib/systemd/system/docker.service; enabled; preset: enabled)
+     Active: active (running) since Sat 2026-01-17 07:58:37 UTC; 2 days ago
+TriggeredBy: ● docker.socket
+       Docs: https://docs.docker.com
+   Main PID: 1344 (dockerd)
+      Tasks: 45
+     Memory: 2.8G (peak: 5.1G)
+        CPU: 22min 15.445s
+     CGroup: /system.slice/docker.service
+             ├─   1344 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+             ├─ 733296 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 5000 -container-ip 172.19.0.4 -cont>
+             ├─ 733302 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 5000 -container-ip 172.19.0.4 -container>
+             ├─1184069 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 8080 -container-ip 172.18.0.7 -cont>
+             └─1184074 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 8080 -container-ip 172.18.0.7 -container>
+
+Jan 19 11:16:02 azure-ubuntu-1 dockerd[1344]: time="2026-01-19T11:16:02.665401747Z" level=info msg="No non-localhost DN>
+Jan 19 11:16:11 azure-ubuntu-1 dockerd[1344]: time="2026-01-19T11:16:11.173469306Z" level=info msg="No non-localhost DN>
+Jan 19 11:16:52 azure-ubuntu-1 dockerd[1344]: time="2026-01-19T11:16:52.103050884Z" level=info msg="No non-localhost DN>
+Jan 19 11:17:30 azure-ubuntu-1 dockerd[1344]: time="2026-01-19T11:17:30.922966816Z" level=info msg="No non-localhost DN>
+Jan 19 11:38:33 azure-ubuntu-1 dockerd[1344]: time="2026-01-19T11:38:33.575865377Z" level=info msg="No non-localhost DN>
+Jan 19 11:38:33 azure-ubuntu-1 dockerd[1344]: time="2026-01-19T11:38:33.673160986Z" level=info msg="No non-localhost DN>
+Jan 19 11:38:34 azure-ubuntu-1 dockerd[1344]: time="2026-01-19T11:38:34.377163320Z" level=info msg="No non-localhost DN>
+Jan 19 11:38:34 azure-ubuntu-1 dockerd[1344]: time="2026-01-19T11:38:34.530832508Z" level=info msg="No non-localhost DN>
+Jan 19 11:38:34 azure-ubuntu-1 dockerd[1344]: time="2026-01-19T11:38:34.554684584Z" level=info msg="No non-localhost DN>
+Jan 19 11:38:35 azure-ubuntu-1 dockerd[1344]: time="2026-01-19T11:38:35.183222779Z" level=info msg="No non-localhost DN>
+lines 1-26/26 (END)
