@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_celery_beat',
+    'mfa',
     'dms',
 ]
 
@@ -124,6 +125,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'mfa.middleware.MfaMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -216,3 +218,9 @@ LOGGING = {
         },
     },
 }
+
+# MFA Settings (django-mfa3)
+MFA_FIDO2_RP_NAME = "Dokumentenmanagementsystem"
+MFA_FIDO2_RP_ID = os.environ.get('MFA_FIDO2_RP_ID', None)
+MFA_METHODS = ["FIDO2", "TOTP"]
+MFA_ENFORCE_MFA = True

@@ -23,3 +23,6 @@ python-dateutil
 pdf2image
 pytesseract
 django-jazzmin
+django-mfa3
+fido2
+pyotp
