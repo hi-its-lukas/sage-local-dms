@@ -1,0 +1,143 @@
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ cd ~/sage-local-dms
+git pull
+docker-compose up -d --build
+Already up to date.
+Building web
+[+] Building 8.1s (12/12) FINISHED                                                                       docker:default
+ => [internal] load build definition from Dockerfile                                                               0.0s
+ => => transferring dockerfile: 872B                                                                               0.0s
+ => [internal] load metadata for docker.io/library/python:3.11-slim                                                0.4s
+ => [internal] load .dockerignore                                                                                  0.0s
+ => => transferring context: 2B                                                                                    0.0s
+ => [1/7] FROM docker.io/library/python:3.11-slim@sha256:5be45dbade29bebd6886af6b438fd7e0b4eb7b611f39ba62b430263f  0.0s
+ => [internal] load build context                                                                                  0.2s
+ => => transferring context: 111.67kB                                                                              0.1s
+ => CACHED [2/7] WORKDIR /app                                                                                      0.0s
+ => CACHED [3/7] RUN apt-get update && apt-get install -y --no-install-recommends     libpq-dev     libmagic1      0.0s
+ => CACHED [4/7] COPY requirements.txt .                                                                           0.0s
+ => CACHED [5/7] RUN pip install --no-cache-dir -r requirements.txt                                                0.0s
+ => [6/7] COPY . .                                                                                                 3.4s
+ => [7/7] RUN chmod +x entrypoint.sh                                                                               0.4s
+ => exporting to image                                                                                             3.4s
+ => => exporting layers                                                                                            3.3s
+ => => writing image sha256:9abbf78ef0ce161c162a7008cec315408819f999859a3fad2c9bb80998d96161                       0.0s
+ => => naming to docker.io/library/sage-local-dms_web                                                              0.0s
+Building celery_worker
+[+] Building 0.6s (12/12) FINISHED                                                                       docker:default
+ => [internal] load build definition from Dockerfile                                                               0.0s
+ => => transferring dockerfile: 872B                                                                               0.0s
+ => [internal] load metadata for docker.io/library/python:3.11-slim                                                0.2s
+ => [internal] load .dockerignore                                                                                  0.0s
+ => => transferring context: 2B                                                                                    0.0s
+ => [1/7] FROM docker.io/library/python:3.11-slim@sha256:5be45dbade29bebd6886af6b438fd7e0b4eb7b611f39ba62b430263f  0.0s
+ => [internal] load build context                                                                                  0.1s
+ => => transferring context: 111.50kB                                                                              0.1s
+ => CACHED [2/7] WORKDIR /app                                                                                      0.0s
+ => CACHED [3/7] RUN apt-get update && apt-get install -y --no-install-recommends     libpq-dev     libmagic1      0.0s
+ => CACHED [4/7] COPY requirements.txt .                                                                           0.0s
+ => CACHED [5/7] RUN pip install --no-cache-dir -r requirements.txt                                                0.0s
+ => CACHED [6/7] COPY . .                                                                                          0.0s
+ => CACHED [7/7] RUN chmod +x entrypoint.sh                                                                        0.0s
+ => exporting to image                                                                                             0.0s
+ => => exporting layers                                                                                            0.0s
+ => => writing image sha256:9abbf78ef0ce161c162a7008cec315408819f999859a3fad2c9bb80998d96161                       0.0s
+ => => naming to docker.io/library/sage-local-dms_celery_worker                                                    0.0s
+Building celery_beat
+[+] Building 0.6s (12/12) FINISHED                                                                       docker:default
+ => [internal] load build definition from Dockerfile                                                               0.0s
+ => => transferring dockerfile: 872B                                                                               0.0s
+ => [internal] load metadata for docker.io/library/python:3.11-slim                                                0.2s
+ => [internal] load .dockerignore                                                                                  0.0s
+ => => transferring context: 2B                                                                                    0.0s
+ => [internal] load build context                                                                                  0.2s
+ => => transferring context: 111.50kB                                                                              0.1s
+ => [1/7] FROM docker.io/library/python:3.11-slim@sha256:5be45dbade29bebd6886af6b438fd7e0b4eb7b611f39ba62b430263f  0.0s
+ => CACHED [2/7] WORKDIR /app                                                                                      0.0s
+ => CACHED [3/7] RUN apt-get update && apt-get install -y --no-install-recommends     libpq-dev     libmagic1      0.0s
+ => CACHED [4/7] COPY requirements.txt .                                                                           0.0s
+ => CACHED [5/7] RUN pip install --no-cache-dir -r requirements.txt                                                0.0s
+ => CACHED [6/7] COPY . .                                                                                          0.0s
+ => CACHED [7/7] RUN chmod +x entrypoint.sh                                                                        0.0s
+ => exporting to image                                                                                             0.0s
+ => => exporting layers                                                                                            0.0s
+ => => writing image sha256:9abbf78ef0ce161c162a7008cec315408819f999859a3fad2c9bb80998d96161                       0.0s
+ => => naming to docker.io/library/sage-local-dms_celery_beat                                                      0.0s
+sage-local-dms_redis_1 is up-to-date
+sage-local-dms_db_1 is up-to-date
+Recreating c994d782c803_sage-local-dms_web_1 ... 
+Recreating sage-local-dms_celery_worker_1    ... 
+Recreating sage-local-dms_celery_beat_1      ... 
+
+ERROR: for c994d782c803_sage-local-dms_web_1  'ContainerConfig'
+
+ERROR: for sage-local-dms_celery_beat_1  'ContainerConfig'
+
+ERROR: for sage-local-dms_celery_worker_1  'ContainerConfig'
+
+ERROR: for web  'ContainerConfig'
+
+ERROR: for celery_beat  'ContainerConfig'
+
+ERROR: for celery_worker  'ContainerConfig'
+Traceback (most recent call last):
+  File "/usr/bin/docker-compose", line 33, in <module>
+    sys.exit(load_entry_point('docker-compose==1.29.2', 'console_scripts', 'docker-compose')())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 81, in main
+    command_func()
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 203, in perform_command
+    handler(command, command_options)
+  File "/usr/lib/python3/dist-packages/compose/metrics/decorator.py", line 18, in wrapper
+    result = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 1186, in up
+    to_attach = up(False)
+                ^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/cli/main.py", line 1166, in up
+    return self.project.up(
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/project.py", line 697, in up
+    results, errors = parallel.parallel_execute(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 108, in parallel_execute
+    raise error_to_reraise
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 206, in producer
+    result = func(obj)
+             ^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/project.py", line 679, in do
+    return service.execute_convergence_plan(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 579, in execute_convergence_plan
+    return self._execute_convergence_recreate(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 499, in _execute_convergence_recreate
+    containers, errors = parallel_execute(
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 108, in parallel_execute
+    raise error_to_reraise
+  File "/usr/lib/python3/dist-packages/compose/parallel.py", line 206, in producer
+    result = func(obj)
+             ^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 494, in recreate
+    return self.recreate_container(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 612, in recreate_container
+    new_container = self.create_container(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 330, in create_container
+    container_options = self._get_container_create_options(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 921, in _get_container_create_options
+    container_options, override_options = self._build_container_volume_options(
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 960, in _build_container_volume_options
+    binds, affinity = merge_volume_bindings(
+                      ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 1548, in merge_volume_bindings
+    old_volumes, old_mounts = get_container_data_volumes(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/compose/service.py", line 1579, in get_container_data_volumes
+    container.image_config['ContainerConfig'].get('Volumes') or {}
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+KeyError: 'ContainerConfig'
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ 
