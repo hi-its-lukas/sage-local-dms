@@ -10,10 +10,53 @@ from django.db.models import Q
 
 from .models import (
     Document, Employee, Task, PersonnelFile, PersonnelFileEntry,
-    FileCategory, DocumentVersion, AuditLog, SystemSettings, SystemLog
+    FileCategory, DocumentVersion, AuditLog, SystemSettings, SystemLog,
+    Tenant, TenantUser
 )
 from .encryption import encrypt_data, decrypt_data, calculate_sha256
 import magic
+
+
+def _get_user_tenants(user):
+    """Gibt die Mandanten zurück, auf die der Benutzer Zugriff hat."""
+    if user.is_superuser or user.has_perm('dms.view_all_documents'):
+        return Tenant.objects.filter(is_active=True)
+    return Tenant.objects.filter(
+        users__user=user,
+        is_active=True
+    )
+
+
+def _get_accessible_documents(user, base_queryset=None):
+    """
+    Gibt ein QuerySet von Dokumenten zurück, auf die der Benutzer Zugriff hat.
+    Berücksichtigt Mandanten-Zugehörigkeit, Eigentum und Berechtigungen.
+    """
+    if base_queryset is None:
+        base_queryset = Document.objects.all()
+    
+    if user.is_superuser or user.has_perm('dms.view_all_documents'):
+        return base_queryset
+    
+    user_tenants = _get_user_tenants(user)
+    
+    filters = Q(owner=user) | Q(tenant__in=user_tenants)
+    
+    if hasattr(user, 'employee_profile'):
+        filters |= Q(employee=user.employee_profile)
+    
+    return base_queryset.filter(filters)
+
+
+def _is_tenant_admin(user, tenant=None):
+    """Prüft, ob der Benutzer ein Mandanten-Admin ist."""
+    if user.is_superuser:
+        return True
+    if tenant:
+        return TenantUser.objects.filter(
+            user=user, tenant=tenant, is_admin=True
+        ).exists()
+    return TenantUser.objects.filter(user=user, is_admin=True).exists()
 
 
 @login_required
@@ -115,16 +158,20 @@ def index(request):
         status='FAILED', error_message='Timeout nach 2 Stunden'
     )
     
-    recent_documents = Document.objects.select_related('employee', 'document_type').order_by('-updated_at')[:10]
+    # SECURITY: Nur Dokumente anzeigen, auf die der Benutzer Zugriff hat
+    accessible_docs = _get_accessible_documents(request.user)
+    
+    recent_documents = accessible_docs.select_related('employee', 'document_type').order_by('-updated_at')[:10]
     open_tasks = Task.objects.filter(status='OPEN')[:5]
     
     active_scans = ScanJob.objects.filter(status='RUNNING')
     recent_scans = ScanJob.objects.exclude(status='RUNNING')[:3]
     
+    # SECURITY: Statistiken nur für zugängliche Dokumente
     stats = {
-        'total_documents': Document.objects.count(),
-        'unassigned': Document.objects.filter(status='UNASSIGNED').count(),
-        'review_needed': Document.objects.filter(status='REVIEW_NEEDED').count(),
+        'total_documents': accessible_docs.count(),
+        'unassigned': accessible_docs.filter(status='UNASSIGNED').count(),
+        'review_needed': accessible_docs.filter(status='REVIEW_NEEDED').count(),
         'open_tasks': Task.objects.filter(status='OPEN').count(),
         'total_personnel_files': PersonnelFile.objects.count(),
     }
@@ -222,13 +269,40 @@ def upload_file(request):
     
     try:
         content = uploaded_file.read()
+        
+        # SECURITY: Magic Bytes Validierung - prüfe tatsächlichen Dateityp
+        try:
+            detected_mime = magic.from_buffer(content, mime=True)
+        except Exception:
+            detected_mime = None
+        
+        # Mapping von Extensions zu erwarteten MIME-Typen
+        expected_mimes = {
+            '.pdf': ['application/pdf'],
+            '.doc': ['application/msword', 'application/vnd.ms-word'],
+            '.docx': ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'],
+            '.xls': ['application/vnd.ms-excel', 'application/excel'],
+            '.xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'],
+            '.jpg': ['image/jpeg'],
+            '.jpeg': ['image/jpeg'],
+            '.png': ['image/png'],
+            '.tiff': ['image/tiff'],
+            '.txt': ['text/plain', 'text/x-c', 'application/octet-stream'],
+        }
+        
+        # Validiere MIME-Typ gegen Extension
+        if detected_mime and file_ext in expected_mimes:
+            allowed_mimes = expected_mimes[file_ext]
+            if not any(detected_mime.startswith(m.split('/')[0]) for m in allowed_mimes) and detected_mime not in allowed_mimes:
+                return JsonResponse({
+                    'success': False, 
+                    'error': f'Dateiinhalt entspricht nicht der Dateiendung ({detected_mime} vs {file_ext})'
+                }, status=400)
+        
+        mime_type = detected_mime or uploaded_file.content_type or 'application/octet-stream'
+        
         file_hash = calculate_sha256(content)
         encrypted_content = encrypt_data(content)
-        
-        try:
-            mime_type = magic.from_buffer(content, mime=True)
-        except Exception:
-            mime_type = uploaded_file.content_type or 'application/octet-stream'
         
         title = request.POST.get('title', uploaded_file.name.rsplit('.', 1)[0])
         
@@ -642,7 +716,12 @@ def personnel_file_detail(request, pk):
             entries_by_category[cat_code] = []
         entries_by_category[cat_code].append(entry)
     
-    unassigned_documents = Document.objects.filter(status='UNASSIGNED').order_by('-created_at')[:50]
+    # SECURITY: Nur unzugeordnete Dokumente zeigen, auf die der Benutzer Zugriff hat
+    # Für normale Benutzer: nur eigene oder Mandanten-bezogene Dokumente
+    unassigned_documents = _get_accessible_documents(
+        request.user,
+        Document.objects.filter(status='UNASSIGNED')
+    ).order_by('-created_at')[:50]
     
     return render(request, 'dms/personnel_file_detail.html', {
         'personnel_file': personnel_file,
@@ -845,7 +924,28 @@ def bulk_edit_documents(request):
     if not document_ids:
         return JsonResponse({'success': False, 'error': 'Keine Dokumente ausgewählt'}, status=400)
     
-    documents = Document.objects.filter(id__in=document_ids)
+    # SECURITY: Nur Dokumente bearbeiten, auf die der Benutzer Zugriff hat
+    documents = _get_accessible_documents(
+        request.user,
+        Document.objects.filter(id__in=document_ids)
+    )
+    
+    # Prüfen, ob alle angeforderten Dokumente zugänglich sind
+    accessible_count = documents.count()
+    requested_count = len(document_ids)
+    if accessible_count != requested_count:
+        return JsonResponse({
+            'success': False,
+            'error': f'Zugriff auf {requested_count - accessible_count} Dokument(e) verweigert'
+        }, status=403)
+    
+    # Berechtigungsprüfung für Änderungen (nicht nur Löschen)
+    if not request.user.has_perm('dms.change_document'):
+        return JsonResponse({
+            'success': False, 
+            'error': 'Keine Berechtigung zum Bearbeiten von Dokumenten'
+        }, status=403)
+    
     action = form.cleaned_data['action']
     updated_count = 0
     
@@ -927,7 +1027,10 @@ def fulltext_search(request):
     
     search_query = SearchQuery(query, config='german')
     
-    results = Document.objects.annotate(
+    # SECURITY: Nur Dokumente durchsuchen, auf die der Benutzer Zugriff hat
+    accessible_docs = _get_accessible_documents(request.user)
+    
+    results = accessible_docs.annotate(
         search=search_vector,
         rank=SearchRank(search_vector, search_query),
         headline=SearchHeadline(
@@ -943,10 +1046,10 @@ def fulltext_search(request):
         search=search_query
     ).order_by('-rank').select_related('employee', 'document_type')[:100]
     
-    # Auto-Complete Vorschläge aus häufigen Dokumenttiteln
+    # SECURITY: Auto-Complete nur für zugängliche Dokumente
     suggestions = []
     if len(query) >= 2:
-        suggestions = Document.objects.filter(
+        suggestions = accessible_docs.filter(
             title__icontains=query
         ).values_list('title', flat=True).distinct()[:5]
     

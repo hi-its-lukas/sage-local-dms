@@ -1,14 +1,32 @@
 import os
+import sys
 from pathlib import Path
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-secret-key-change-in-production')
+# SECURITY: SECRET_KEY muss in Production gesetzt sein
+_secret_key = os.environ.get('DJANGO_SECRET_KEY', '')
+if not _secret_key:
+    if os.environ.get('DEBUG', 'False').lower() == 'true':
+        _secret_key = 'dev-only-insecure-key-not-for-production'
+    else:
+        print("FEHLER: DJANGO_SECRET_KEY muss in Production gesetzt sein!")
+        print("Generieren mit: python -c \"from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())\"")
+        sys.exit(1)
+SECRET_KEY = _secret_key
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',') if os.environ.get('ALLOWED_HOSTS') else ['*']
+# SECURITY: ALLOWED_HOSTS muss in Production explizit gesetzt sein
+_allowed_hosts = os.environ.get('ALLOWED_HOSTS', '')
+if _allowed_hosts:
+    ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(',') if h.strip()]
+elif DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.replit.dev', '.repl.co']
+else:
+    print("FEHLER: ALLOWED_HOSTS muss in Production gesetzt sein!")
+    sys.exit(1)
 
 # CSRF trusted origins - include custom domains from environment
 _csrf_origins = ['https://*.replit.dev', 'https://*.repl.co']

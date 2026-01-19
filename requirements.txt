@@ -26,3 +26,4 @@ django-jazzmin
 django-mfa3
 fido2
 pyotp
+bleach

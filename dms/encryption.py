@@ -51,7 +51,28 @@ def calculate_sha256_chunked(file_path, chunk_size=65536):
     return sha256_hash.hexdigest()
 
 
+# SECURITY: Maximale Dateigröße für Verschlüsselung (100 MB)
+# Fernet lädt alles in den RAM, daher muss ein Limit gesetzt werden
+MAX_ENCRYPTION_FILE_SIZE = 100 * 1024 * 1024  # 100 MB
+
+
 def encrypt_file(file_path):
+    """
+    Verschlüsselt eine Datei und berechnet den Hash.
+    
+    WARNUNG: Lädt die gesamte Datei in den Speicher.
+    Für große Dateien encrypt_file_streaming verwenden.
+    
+    Raises: ValueError wenn Datei zu groß ist
+    """
+    # SECURITY: Dateigröße prüfen bevor in RAM geladen wird
+    file_stats = os.stat(file_path)
+    if file_stats.st_size > MAX_ENCRYPTION_FILE_SIZE:
+        raise ValueError(
+            f"Datei zu groß für Verschlüsselung ({file_stats.st_size / 1024 / 1024:.1f} MB). "
+            f"Maximum: {MAX_ENCRYPTION_FILE_SIZE / 1024 / 1024:.0f} MB"
+        )
+    
     with open(file_path, 'rb') as f:
         data = f.read()
     return encrypt_data(data), calculate_sha256(data)
@@ -62,8 +83,22 @@ def encrypt_file_streaming(file_path, chunk_size=1048576):
     Verschlüsselt Datei und berechnet Hash in einem Durchgang.
     1MB Chunks für Verschlüsselung, 64KB für Hash.
     
+    WARNUNG: Fernet unterstützt kein echtes Streaming.
+    Die gesamte Datei wird in den Speicher geladen.
+    Dateigröße wird vorher geprüft.
+    
     Returns: (encrypted_bytes, sha256_hash, file_size)
+    
+    Raises: ValueError wenn Datei zu groß ist
     """
+    # SECURITY: Dateigröße prüfen bevor in RAM geladen wird
+    file_stats = os.stat(file_path)
+    if file_stats.st_size > MAX_ENCRYPTION_FILE_SIZE:
+        raise ValueError(
+            f"Datei zu groß für Verschlüsselung ({file_stats.st_size / 1024 / 1024:.1f} MB). "
+            f"Maximum: {MAX_ENCRYPTION_FILE_SIZE / 1024 / 1024:.0f} MB"
+        )
+    
     sha256_hash = hashlib.sha256()
     chunks = []
     file_size = 0

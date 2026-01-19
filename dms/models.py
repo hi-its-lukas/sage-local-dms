@@ -414,8 +414,30 @@ class SystemSettings(models.Model):
 
     @classmethod
     def load(cls):
-        obj, _ = cls.objects.get_or_create(pk=1)
-        return obj
+        """
+        Lädt die Singleton-Instanz thread-safe.
+        Verwendet get_or_create mit atomarem Lock.
+        """
+        from django.db import transaction
+        
+        try:
+            return cls.objects.get(pk=1)
+        except cls.DoesNotExist:
+            with transaction.atomic():
+                obj, _ = cls.objects.select_for_update().get_or_create(pk=1)
+                return obj
+    
+    @classmethod
+    def load_for_update(cls):
+        """
+        Lädt die Singleton-Instanz mit exklusivem Lock für Änderungen.
+        Muss innerhalb einer transaction.atomic() Block verwendet werden.
+        """
+        from django.db import transaction
+        
+        with transaction.atomic():
+            obj, _ = cls.objects.select_for_update().get_or_create(pk=1)
+            return obj
 
     def __str__(self):
         return "Systemeinstellungen"

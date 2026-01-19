@@ -1526,6 +1526,8 @@ def poll_email_inbox(self):
 
 def process_email_message(message, config):
     import pdfkit
+    import bleach
+    from django.utils.html import escape
     from email.utils import formataddr
     
     email_archive_path = Path(settings.EMAIL_ARCHIVE_PATH)
@@ -1534,12 +1536,15 @@ def process_email_message(message, config):
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     subject_safe = "".join(c for c in message.subject if c.isalnum() or c in (' ', '-', '_'))[:50]
     
+    # SECURITY: E-Mail-Body für .eml Datei bereinigen (Text-only)
+    safe_body = escape(message.body or '')
+    
     eml_content = f"""From: {message.sender.address}
 To: {config.target_mailbox}
 Subject: {message.subject}
 Date: {message.received}
 
-{message.body or ''}
+{safe_body}
 """
     
     eml_encrypted = encrypt_data(eml_content.encode('utf-8'))
@@ -1563,20 +1568,53 @@ Date: {message.received}
     )
     
     try:
+        # SECURITY FIX: HTML-Input sanitisieren um SSRF/LFI/XSS zu verhindern
+        # Nur sichere Tags erlauben, keine iframes, scripts, object, embed etc.
+        allowed_tags = ['b', 'i', 'u', 'p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 
+                        'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote', 'pre', 
+                        'code', 'table', 'thead', 'tbody', 'tr', 'td', 'th', 'hr', 'div', 'span']
+        allowed_attrs = {
+            'a': ['href', 'title'],
+            'td': ['colspan', 'rowspan'],
+            'th': ['colspan', 'rowspan'],
+        }
+        
+        # Entferne potentiell gefährliche HTML-Elemente
+        clean_body = bleach.clean(
+            message.body or '', 
+            tags=allowed_tags, 
+            attributes=allowed_attrs,
+            strip=True
+        )
+        
+        # Escape kritische Felder
+        safe_subject = escape(message.subject)
+        safe_sender = escape(message.sender.address)
+        safe_received = escape(str(message.received))
+        
         html_content = f"""
         <html>
         <head><style>body {{ font-family: Arial, sans-serif; }}</style></head>
         <body>
-        <h2>{message.subject}</h2>
-        <p><strong>From:</strong> {message.sender.address}</p>
-        <p><strong>Date:</strong> {message.received}</p>
+        <h2>{safe_subject}</h2>
+        <p><strong>From:</strong> {safe_sender}</p>
+        <p><strong>Date:</strong> {safe_received}</p>
         <hr>
-        {message.body or 'No content'}
+        {clean_body or 'Kein Inhalt'}
         </body>
         </html>
         """
         
-        pdf_content = pdfkit.from_string(html_content, False)
+        # SECURITY FIX: wkhtmltopdf Optionen härten gegen LFI und SSRF
+        pdfkit_options = {
+            'disable-local-file-access': None,
+            'disable-javascript': None,
+            'no-images': None,
+            'disable-external-links': None,
+            'quiet': None,
+        }
+        
+        pdf_content = pdfkit.from_string(html_content, False, options=pdfkit_options)
         pdf_encrypted = encrypt_data(pdf_content)
         pdf_hash = calculate_sha256(pdf_content)
         

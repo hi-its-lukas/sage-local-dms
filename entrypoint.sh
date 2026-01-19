@@ -23,12 +23,20 @@ echo "Prüfe Admin-Benutzer..."
 python manage.py shell << EOF
 from django.contrib.auth.models import User
 import os
+import sys
 
 username = os.environ.get('ADMIN_USERNAME', 'admin')
-password = os.environ.get('ADMIN_PASSWORD', 'admin123')
+password = os.environ.get('ADMIN_PASSWORD', '')
 email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
 
-if not User.objects.filter(username=username).exists():
+# SECURITY: Kein Default-Passwort mehr - muss explizit gesetzt werden
+if not password:
+    print("WARNUNG: ADMIN_PASSWORD nicht gesetzt. Admin wird nicht automatisch erstellt.")
+    print("Setzen Sie ADMIN_PASSWORD in der .env Datei oder verwenden Sie 'python manage.py createsuperuser'")
+elif password in ['admin123', 'password', '123456', 'admin']:
+    print("FEHLER: Unsicheres Standard-Passwort erkannt! Bitte ein sicheres Passwort in ADMIN_PASSWORD setzen.")
+    sys.exit(1)
+elif not User.objects.filter(username=username).exists():
     User.objects.create_superuser(username, email, password)
     print(f"Admin-Benutzer '{username}' erstellt.")
 else:
