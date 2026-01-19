@@ -1,0 +1,50 @@
+{% extends "mfa/base.html" %}
+{% block title %}Wiederherstellungscode{% endblock %}
+
+{% block content %}
+<div class="mfa-header">
+    <div class="mfa-logo">
+        <span class="material-icons">vpn_key</span>
+    </div>
+    <h1>Wiederherstellungscode</h1>
+    <p>Geben Sie einen Ihrer Wiederherstellungscodes ein, um sich anzumelden.</p>
+</div>
+
+{% for error in form.non_field_errors %}
+<div class="error-message">
+    <span class="material-icons">error_outline</span>
+    {{ error }}
+</div>
+{% endfor %}
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="id_code">Wiederherstellungscode</label>
+        <input type="text" 
+               name="code" 
+               id="id_code" 
+               class="code-input"
+               autocomplete="off"
+               placeholder="XXXXXXXX"
+               autofocus
+               required>
+    </div>
+    <button type="submit" class="btn btn-success">
+        <span class="material-icons">check</span>
+        Bestätigen
+    </button>
+</form>
+
+<div class="alternative-links">
+    <p>Alternative Methoden:</p>
+    <a href="{% url 'mfa:auth' 'FIDO2' %}">
+        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">fingerprint</span>
+        Passkey verwenden
+    </a>
+    <a href="{% url 'mfa:auth' 'TOTP' %}">
+        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">phone_android</span>
+        Authenticator-App verwenden
+    </a>
+</div>
+{% endblock %}

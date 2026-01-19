@@ -1,0 +1,49 @@
+{% extends "mfa/base.html" %}
+{% load static %}
+{% block title %}Passkey einrichten{% endblock %}
+
+{% block content %}
+<div class="mfa-header">
+    <div class="mfa-logo">
+        <span class="material-icons">fingerprint</span>
+    </div>
+    <h1>Passkey einrichten</h1>
+    <p>Verwenden Sie Windows Hello, Touch ID, Face ID oder einen Sicherheitsschlüssel.</p>
+</div>
+
+{% for error in form.non_field_errors %}
+<div class="error-message">
+    <span class="material-icons">error_outline</span>
+    {{ error }}
+</div>
+{% endfor %}
+
+<form data-fido2-create="{{ mfa_data }}" method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="id_name">Name für diesen Schlüssel</label>
+        <input type="text" 
+               name="name" 
+               id="id_name" 
+               placeholder="z.B. Windows Hello, MacBook, YubiKey"
+               value="{{ form.name.value|default:'' }}"
+               required>
+    </div>
+    {{ form.code.as_hidden }}
+    <button type="submit" class="btn btn-success">
+        <span class="material-icons">add</span>
+        Passkey erstellen
+    </button>
+</form>
+
+<div class="alternative-links">
+    <a href="{% url 'mfa:list' %}">
+        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">arrow_back</span>
+        Zurück zur Übersicht
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'mfa/fido2.js' %}" type="module"></script>
+{% endblock %}

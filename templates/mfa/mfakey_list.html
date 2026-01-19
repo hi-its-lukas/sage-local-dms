@@ -1,0 +1,79 @@
+{% extends "mfa/base.html" %}
+{% block title %}Sicherheitsschlüssel verwalten{% endblock %}
+
+{% block content %}
+<div class="mfa-header">
+    <div class="mfa-logo">
+        <span class="material-icons">security</span>
+    </div>
+    <h1>{% if object_list %}Ihre Sicherheitsschlüssel{% else %}Keine Schlüssel eingerichtet{% endif %}</h1>
+    <p>Zwei-Faktor-Authentifizierung bietet zusätzliche Sicherheit für Ihr Konto.</p>
+</div>
+
+{% if object_list|length == 1 %}
+<div class="warning-message">
+    <span class="material-icons">warning</span>
+    <div>
+        <strong>Achtung:</strong> Sie haben nur einen Schlüssel registriert. 
+        Wenn Sie den Zugang zu diesem Schlüssel verlieren, können Sie sich nicht mehr anmelden.
+        <a href="{% url 'mfa:create' 'recovery' %}">Wiederherstellungscode erstellen</a>
+    </div>
+</div>
+{% endif %}
+
+{% if object_list %}
+<ul class="key-list">
+    {% for key in object_list %}
+    <li>
+        <div class="key-info">
+            <span class="material-icons">
+                {% if key.method == 'FIDO2' %}fingerprint{% elif key.method == 'TOTP' %}phone_android{% else %}vpn_key{% endif %}
+            </span>
+            <div>
+                <span class="key-name">{{ key.name }}</span>
+                <span class="key-type">{{ key.method }}</span>
+            </div>
+        </div>
+        <a href="{% url 'mfa:delete' key.id %}" class="key-delete">
+            <span class="material-icons" style="font-size: 16px; vertical-align: middle;">delete</span>
+            Löschen
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if max_keys and user.mfakey_set.count >= max_keys %}
+<div class="warning-message">
+    <span class="material-icons">info</span>
+    <div>
+        Sie können maximal {{ max_keys }} Schlüssel haben. 
+        Bitte löschen Sie einen vorhandenen Schlüssel, bevor Sie einen neuen hinzufügen.
+    </div>
+</div>
+{% else %}
+<div class="action-buttons">
+    <a href="{% url 'mfa:create' 'FIDO2' %}" class="btn">
+        <span class="material-icons">fingerprint</span>
+        Passkey
+    </a>
+    <a href="{% url 'mfa:create' 'TOTP' %}" class="btn">
+        <span class="material-icons">phone_android</span>
+        Authenticator-App
+    </a>
+</div>
+<div style="margin-top: 12px;">
+    <a href="{% url 'mfa:create' 'recovery' %}" class="btn btn-secondary">
+        <span class="material-icons">vpn_key</span>
+        Wiederherstellungscode
+    </a>
+</div>
+{% endif %}
+
+<div class="alternative-links">
+    <a href="{% url 'dms:dashboard' %}">
+        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">arrow_back</span>
+        Zurück zum Dashboard
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "mfa/base.html" %}
+{% block title %}Authenticator-Code{% endblock %}
+
+{% block content %}
+<div class="mfa-header">
+    <div class="mfa-logo">
+        <span class="material-icons">phone_android</span>
+    </div>
+    <h1>Bestätigungscode eingeben</h1>
+    <p>Öffnen Sie Ihre Authenticator-App und geben Sie den 6-stelligen Code ein.</p>
+</div>
+
+{% for error in form.non_field_errors %}
+<div class="error-message">
+    <span class="material-icons">error_outline</span>
+    {{ error }}
+</div>
+{% endfor %}
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="id_code">Bestätigungscode</label>
+        <input type="text" 
+               name="code" 
+               id="id_code" 
+               class="code-input"
+               maxlength="6" 
+               pattern="[0-9]{6}" 
+               inputmode="numeric"
+               autocomplete="one-time-code"
+               placeholder="000000"
+               autofocus
+               required>
+    </div>
+    <button type="submit" class="btn btn-success">
+        <span class="material-icons">check</span>
+        Bestätigen
+    </button>
+</form>
+
+<div class="alternative-links">
+    <p>Alternative Methoden:</p>
+    <a href="{% url 'mfa:auth' 'FIDO2' %}">
+        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">fingerprint</span>
+        Passkey verwenden
+    </a>
+    <a href="{% url 'mfa:auth' 'recovery' %}">
+        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">vpn_key</span>
+        Wiederherstellungscode verwenden
+    </a>
+</div>
+{% endblock %}

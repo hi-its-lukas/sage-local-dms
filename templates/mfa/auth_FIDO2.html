@@ -1,0 +1,45 @@
+{% extends "mfa/base.html" %}
+{% load static %}
+{% block title %}Passkey-Authentifizierung{% endblock %}
+
+{% block content %}
+<div class="mfa-header">
+    <div class="mfa-logo">
+        <span class="material-icons">fingerprint</span>
+    </div>
+    <h1>Passkey verwenden</h1>
+    <p>Nutzen Sie Ihren Sicherheitsschlüssel, Windows Hello, Touch ID oder Face ID zur Anmeldung.</p>
+</div>
+
+{% for error in form.errors %}
+<div class="error-message">
+    <span class="material-icons">error_outline</span>
+    {{ error }}
+</div>
+{% endfor %}
+
+<form data-fido2-auth="{{ mfa_data }}" method="POST">
+    {% csrf_token %}
+    {{ form.code.as_hidden }}
+    <button type="submit" class="btn btn-success" autofocus>
+        <span class="material-icons">fingerprint</span>
+        Jetzt authentifizieren
+    </button>
+</form>
+
+<div class="alternative-links">
+    <p>Alternative Methoden:</p>
+    <a href="{% url 'mfa:auth' 'TOTP' %}">
+        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">phone_android</span>
+        Authenticator-App verwenden
+    </a>
+    <a href="{% url 'mfa:auth' 'recovery' %}">
+        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">vpn_key</span>
+        Wiederherstellungscode verwenden
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'mfa/fido2.js' %}" type="module"></script>
+{% endblock %}

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Zwei-Faktor-Authentifizierung{% endblock %} - DMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0066b3;
+            --primary-dark: #004d86;
+            --sidebar-bg: #1e2a38;
+            --accent: #00a3a3;
+            --success: #2e7d32;
+            --warning: #ed6c02;
+            --error: #d32f2f;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: linear-gradient(135deg, var(--sidebar-bg) 0%, var(--primary) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .mfa-container {
+            background: white;
+            padding: 48px 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 480px;
+        }
+        
+        .mfa-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .mfa-logo {
+            width: 64px;
+            height: 64px;
+            background: var(--primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .mfa-logo .material-icons {
+            font-size: 32px;
+            color: white;
+        }
+        
+        .mfa-header h1 {
+            color: var(--sidebar-bg);
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .mfa-header p {
+            color: #5f6368;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #dadce0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,102,179,0.15);
+        }
+        
+        .code-input {
+            text-align: center;
+            font-size: 24px !important;
+            letter-spacing: 8px;
+            font-weight: 600;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,179,0.3);
+        }
+        
+        .btn-secondary {
+            background: #f1f3f4;
+            color: #5f6368;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8eaed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-success:hover {
+            background: #1b5e20;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #d32f2f;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .warning-message {
+            background: #fff3e0;
+            color: #e65100;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            border: 1px solid #ffe0b2;
+        }
+        
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .alternative-links {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e8eaed;
+        }
+        
+        .alternative-links p {
+            color: #5f6368;
+            font-size: 13px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .alternative-links a {
+            display: block;
+            color: var(--primary);
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        
+        .alternative-links a:hover {
+            background: #f1f3f4;
+        }
+        
+        .key-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .key-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .key-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .key-info .material-icons {
+            color: var(--primary);
+        }
+        
+        .key-name {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .key-type {
+            font-size: 12px;
+            color: #5f6368;
+            background: #e8eaed;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+        
+        .key-delete {
+            color: var(--error);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .key-delete:hover {
+            background: #ffebee;
+        }
+        
+        .qr-code {
+            display: flex;
+            justify-content: center;
+            margin: 24px 0;
+            padding: 20px;
+            background: white;
+            border: 2px dashed #dadce0;
+            border-radius: 12px;
+        }
+        
+        .qr-code img {
+            max-width: 200px;
+        }
+        
+        .secret-code {
+            text-align: center;
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--sidebar-bg);
+            background: #f1f3f4;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+        }
+        
+        .recovery-codes {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .recovery-codes pre {
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 2;
+            text-align: center;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            color: #9aa0a6;
+            font-size: 12px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .action-buttons .btn {
+            flex: 1;
+            min-width: 140px;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="mfa-container">
+        {% block content %}{% endblock %}
+        
+        <div class="footer">
+            <p>DMS - HR & Unternehmensdokumente</p>
+        </div>
+    </div>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends "mfa/base.html" %}
+{% block title %}Wiederherstellungscodes erstellen{% endblock %}
+
+{% block content %}
+<div class="mfa-header">
+    <div class="mfa-logo">
+        <span class="material-icons">vpn_key</span>
+    </div>
+    <h1>Wiederherstellungscodes</h1>
+    <p>Diese Codes können verwendet werden, wenn Sie keinen Zugang zu Ihren anderen Authentifizierungsmethoden haben.</p>
+</div>
+
+{% for error in form.non_field_errors %}
+<div class="error-message">
+    <span class="material-icons">error_outline</span>
+    {{ error }}
+</div>
+{% endfor %}
+
+{% if mfa_data %}
+<div class="warning-message">
+    <span class="material-icons">warning</span>
+    <div>
+        <strong>Wichtig:</strong> Speichern Sie diese Codes an einem sicheren Ort. 
+        Jeder Code kann nur einmal verwendet werden.
+    </div>
+</div>
+
+<div class="recovery-codes">
+    <pre>{% for code in mfa_data %}{{ code }}
+{% endfor %}</pre>
+</div>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="id_name">Name für diese Codes</label>
+        <input type="text" 
+               name="name" 
+               id="id_name" 
+               placeholder="z.B. Backup-Codes Januar 2026"
+               value="{{ form.name.value|default:'Wiederherstellungscodes' }}"
+               required>
+    </div>
+    <input type="hidden" name="code" value="confirm">
+    <button type="submit" class="btn btn-success">
+        <span class="material-icons">save</span>
+        Codes gespeichert - Bestätigen
+    </button>
+</form>
+{% endif %}
+
+<div class="alternative-links">
+    <a href="{% url 'mfa:list' %}">
+        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">arrow_back</span>
+        Zurück zur Übersicht
+    </a>
+</div>
+{% endblock %}

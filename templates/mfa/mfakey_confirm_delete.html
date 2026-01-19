@@ -1,0 +1,32 @@
+{% extends "mfa/base.html" %}
+{% block title %}Schlüssel löschen{% endblock %}
+
+{% block content %}
+<div class="mfa-header">
+    <div class="mfa-logo" style="background: var(--error);">
+        <span class="material-icons">delete_forever</span>
+    </div>
+    <h1>Schlüssel löschen?</h1>
+    <p>Sind Sie sicher, dass Sie diesen Sicherheitsschlüssel löschen möchten?</p>
+</div>
+
+<div class="warning-message">
+    <span class="material-icons">warning</span>
+    <div>
+        <strong>{{ object.name }}</strong> ({{ object.method }})<br>
+        Diese Aktion kann nicht rückgängig gemacht werden.
+    </div>
+</div>
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn" style="background: var(--error);">
+        <span class="material-icons">delete</span>
+        Ja, Schlüssel löschen
+    </button>
+    <a href="{% url 'mfa:list' %}" class="btn btn-secondary">
+        <span class="material-icons">close</span>
+        Abbrechen
+    </a>
+</form>
+{% endblock %}
