@@ -250,8 +250,48 @@ Das System unterstützt jetzt automatische Dokumentklassifizierung:
 - Batched DB-Updates (alle 10 Dateien statt pro Datei)
 - Thread-sichere Zähler mit Lock-Mechanismen
 
+## Zwei-Faktor-Authentifizierung (MFA)
+
+Das System unterstützt jetzt Multi-Faktor-Authentifizierung mit django-mfa3:
+
+### Unterstützte Methoden
+
+- **FIDO2/WebAuthn (Passkeys)**: Windows Hello, Touch ID, Face ID, YubiKey
+- **TOTP (Authenticator-Apps)**: Google Authenticator, Microsoft Authenticator, Authy
+- **Wiederherstellungscodes**: Backup-Codes für Notfälle
+
+### Konfiguration
+
+```python
+# settings.py
+MFA_DOMAIN = "ihre-domain.de"  # Für Produktionsserver
+MFA_SITE_TITLE = "DMS - Dokumentenmanagementsystem"
+MFA_METHODS = ["FIDO2", "TOTP", "recovery"]
+MFA_MAX_KEYS_PER_ACCOUNT = 5
+```
+
+### URLs
+
+- `/mfa/` - Sicherheitsschlüssel verwalten
+- `/mfa/create/FIDO2/` - Passkey einrichten
+- `/mfa/create/TOTP/` - Authenticator-App einrichten
+- `/mfa/create/recovery/` - Wiederherstellungscodes erstellen
+
+### MFA-Pflicht
+
+Das System erzwingt MFA für alle Benutzer. Nach dem Login werden Benutzer ohne MFA automatisch zur Einrichtung weitergeleitet.
+
+### Docker-Umgebungsvariable
+
+```yaml
+environment:
+  - MFA_DOMAIN=ihre-domain.de
+```
+
 ## Letzte Änderungen
 
+- **Zwei-Faktor-Authentifizierung (MFA)**: WebAuthn/Passkeys + TOTP mit Pflicht-Durchsetzung
+- **Aktenplan-Filter**: Neuer Filter in der Dokumentensuche nach Aktenplan-Kategorie
 - **Paperless-ngx Features**: Tags, Matching Rules, Bulk-Bearbeitung, Volltext-Suche
 - **Performance-Optimierungen**: Parallele Verarbeitung, Chunked Hashing, Path-Cache
 - **Mandantenfähigkeit**: Automatische Erkennung aus Sage-Ordnerstruktur (00000001, 00000002)

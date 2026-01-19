@@ -1061,6 +1061,9 @@
                 <span class="material-icons">build</span>
             </a>
             {% endif %}
+            <a href="{% url 'mfa:list' %}" class="header-icon-btn" title="Zwei-Faktor-Authentifizierung">
+                <span class="material-icons">security</span>
+            </a>
             <div class="user-avatar" title="{{ request.user.username }}">
                 {{ request.user.username|slice:":2"|upper }}
             </div>
