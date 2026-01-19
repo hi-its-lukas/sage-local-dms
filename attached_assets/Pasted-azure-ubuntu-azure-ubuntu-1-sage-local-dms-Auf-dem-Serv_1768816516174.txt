@@ -1,0 +1,42 @@
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ # Auf dem Server
+cd ~/sage-local-dms
+
+# Debug temporär aktivieren
+docker compose exec web bash -c "sed -i 's/DEBUG=False/DEBUG=True/' /app/.env && kill -HUP 1"
+
+# Dann die Seite neu laden und Logs prüfen
+docker compose logs web --tail=20
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/template/defaulttags.py", line 480, in render
+web-1  |     url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+web-1  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/urls/base.py", line 98, in reverse
+web-1  |     resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+web-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web-1  |   File "/usr/local/lib/python3.11/site-packages/django/urls/resolvers.py", line 831, in _reverse_with_prefix
+web-1  |     raise NoReverseMatch(msg)
+web-1  | django.urls.exceptions.NoReverseMatch: Reverse for 'dashboard' not found. 'dashboard' is not a valid view function or pattern name.
+web-1  | 172.18.0.7 - - [19/Jan/2026:10:54:33 +0100] "GET /mfa/ HTTP/1.0" 500 145 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+web-1  | [2026-01-19 09:55:06 +0000] [1] [INFO] Handling signal: hup
+web-1  | [2026-01-19 09:55:06 +0000] [1] [INFO] Hang up: Master
+web-1  | [2026-01-19 09:55:06 +0000] [34] [INFO] Booting worker with pid: 34
+web-1  | [2026-01-19 09:55:06 +0000] [35] [INFO] Booting worker with pid: 35
+web-1  | [2026-01-19 09:55:06 +0000] [36] [INFO] Booting worker with pid: 36
+web-1  | [2026-01-19 10:55:06 +0100] [19] [INFO] Worker exiting (pid: 19)
+web-1  | [2026-01-19 10:55:06 +0100] [21] [INFO] Worker exiting (pid: 21)
+web-1  | [2026-01-19 10:55:06 +0100] [20] [INFO] Worker exiting (pid: 20)
+web-1  | [2026-01-19 10:55:06 +0100] [22] [INFO] Worker exiting (pid: 22)
+web-1  | [2026-01-19 09:55:06 +0000] [37] [INFO] Booting worker with pid: 37
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
