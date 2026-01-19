@@ -290,6 +290,13 @@ environment:
 
 ## Letzte Änderungen
 
+- **Sicherheits-Audit Fixes (Januar 2026)**:
+  - Fail-secure SECRET_KEY und ALLOWED_HOSTS in Produktion
+  - Mandanten-basierte Zugriffskontrolle für alle Dokumenten-Endpoints
+  - HTML-Sanitization (bleach) für E-Mail-zu-PDF-Konvertierung
+  - Magic Bytes Validierung für Datei-Uploads
+  - 100MB Dateigröße-Limit für Verschlüsselung (DoS-Schutz)
+  - Thread-sichere SystemSettings mit select_for_update
 - **Zwei-Faktor-Authentifizierung (MFA)**: WebAuthn/Passkeys + TOTP mit Pflicht-Durchsetzung
 - **Aktenplan-Filter**: Neuer Filter in der Dokumentensuche nach Aktenplan-Kategorie
 - **Paperless-ngx Features**: Tags, Matching Rules, Bulk-Bearbeitung, Volltext-Suche
