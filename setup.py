@@ -70,6 +70,10 @@ REDIS_URL=redis://redis:6379/0
 SAGE_ARCHIVE_PATH=/data/sage_archive
 MANUAL_INPUT_PATH=/data/manual_input
 EMAIL_ARCHIVE_PATH=/data/email_archive
+
+# MFA Domain (für WebAuthn/Passkeys)
+# WICHTIG: Für Produktion auf echte Domain setzen, z.B.: MFA_DOMAIN=dms.example.com
+MFA_DOMAIN=localhost
 """
     
     with open(env_path, 'w') as f:
