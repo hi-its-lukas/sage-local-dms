@@ -1,0 +1,66 @@
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ docker-compose logs --tail=100 web
+Attaching to sage-local-dms_web_1
+web_1            | DMS wird gestartet...
+web_1            | Warte auf Datenbank...
+web_1            | Connection to db (172.18.0.2) 5432 port [tcp/postgresql] succeeded!
+web_1            | Datenbank ist bereit.
+web_1            | Führe Datenbankmigrationen aus...
+web_1            | Operations to perform:
+web_1            |   Apply all migrations: admin, auth, contenttypes, django_celery_beat, dms, mfa, sessions
+web_1            | Running migrations:
+web_1            |   No migrations to apply.
+web_1            | Sammle statische Dateien...
+web_1            | Found another file with the destination path 'admin/js/cancel.js'. It will be ignored since only the first encountered file is collected. If this is not what you want, make sure every static file has a unique path.
+web_1            | Found another file with the destination path 'admin/js/popup_response.js'. It will be ignored since only the first encountered file is collected. If this is not what you want, make sure every static file has a unique path.
+web_1            | 
+web_1            | 184 static files copied to '/app/staticfiles', 2 unmodified, 850 post-processed.
+web_1            | Prüfe Admin-Benutzer...
+web_1            | 37 objects imported automatically (use -v 2 for details).
+web_1            | 
+web_1            | WARNUNG: ADMIN_PASSWORD nicht gesetzt. Admin wird nicht automatisch erstellt.
+web_1            | Setzen Sie ADMIN_PASSWORD in der .env Datei oder verwenden Sie 'python manage.py createsuperuser'
+web_1            | DMS gestartet.
+web_1            | [2026-01-19 11:39:14 +0000] [1] [INFO] Starting gunicorn 23.0.0
+web_1            | [2026-01-19 11:39:14 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+web_1            | [2026-01-19 11:39:14 +0000] [1] [INFO] Using worker: sync
+web_1            | [2026-01-19 11:39:14 +0000] [19] [INFO] Booting worker with pid: 19
+web_1            | [2026-01-19 11:39:14 +0000] [20] [INFO] Booting worker with pid: 20
+web_1            | [2026-01-19 11:39:14 +0000] [21] [INFO] Booting worker with pid: 21
+web_1            | [2026-01-19 11:39:14 +0000] [22] [INFO] Booting worker with pid: 22
+web_1            | 172.18.0.7 - - [19/Jan/2026:12:42:24 +0100] "GET / HTTP/1.0" 200 64331 "https://dms.hengl-bedachungen.de/admin/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+web_1            | Internal Server Error: /documents/
+web_1            | Traceback (most recent call last):
+web_1            |   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+web_1            |     response = get_response(request)
+web_1            |                ^^^^^^^^^^^^^^^^^^^^^
+web_1            |   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+web_1            |     response = wrapped_callback(request, *callback_args, **callback_kwargs)
+web_1            |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web_1            |   File "/usr/local/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+web_1            |     return view_func(request, *args, **kwargs)
+web_1            |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web_1            |   File "/app/dms/views.py", line 438, in document_list
+web_1            |     for child in cat.children.all().order_by('code'):
+web_1            |                  ^^^^^^^^^^^^
+web_1            | AttributeError: 'FileCategory' object has no attribute 'children'
+web_1            | 172.18.0.7 - - [19/Jan/2026:12:42:25 +0100] "GET /documents/ HTTP/1.0" 500 145 "https://dms.hengl-bedachungen.de/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+web_1            | 172.18.0.7 - - [19/Jan/2026:12:42:27 +0100] "GET / HTTP/1.0" 200 64331 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+web_1            | 172.18.0.7 - - [19/Jan/2026:12:42:31 +0100] "GET /documents/209aaa5a-c9ae-4ca0-a8ef-47d9c1fc56b5/ HTTP/1.0" 200 58275 "https://dms.hengl-bedachungen.de/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+web_1            | 172.18.0.7 - - [19/Jan/2026:12:42:31 +0100] "GET /documents/209aaa5a-c9ae-4ca0-a8ef-47d9c1fc56b5/view/ HTTP/1.0" 200 279072 "https://dms.hengl-bedachungen.de/documents/209aaa5a-c9ae-4ca0-a8ef-47d9c1fc56b5/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+web_1            | Internal Server Error: /documents/
+web_1            | Traceback (most recent call last):
+web_1            |   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+web_1            |     response = get_response(request)
+web_1            |                ^^^^^^^^^^^^^^^^^^^^^
+web_1            |   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+web_1            |     response = wrapped_callback(request, *callback_args, **callback_kwargs)
+web_1            |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web_1            |   File "/usr/local/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+web_1            |     return view_func(request, *args, **kwargs)
+web_1            |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+web_1            |   File "/app/dms/views.py", line 438, in document_list
+web_1            |     for child in cat.children.all().order_by('code'):
+web_1            |                  ^^^^^^^^^^^^
+web_1            | AttributeError: 'FileCategory' object has no attribute 'children'
+web_1            | 172.18.0.7 - - [19/Jan/2026:12:42:34 +0100] "GET /documents/ HTTP/1.0" 500 145 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+azure-ubuntu@azure-ubuntu-1:~/sage-local-dms$ 

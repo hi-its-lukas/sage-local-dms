@@ -435,7 +435,7 @@ def document_list(request):
             'code': cat.code,
             'is_parent': True,
         })
-        for child in cat.children.all().order_by('code'):
+        for child in cat.subcategories.all().order_by('code'):
             file_categories.append({
                 'id': child.id,
                 'name': f"  └ {child.name}",
